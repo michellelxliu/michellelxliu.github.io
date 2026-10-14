@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Model Comparison Review</title>
+<style>
+:root{--bg:#fbfaf7;--panel:#fff;--ink:#1d1d1b;--mute:#6b6a65;--line:#e3e0d8;--oss:#2f5d8a;--oss-bg:#eef3f9;--fab:#8a4b2f;--fab-bg:#f9f0eb;--bad:#b3261e;--ok:#2e7d32;--warn:#a66a00;--code:#f4f2ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#17171a;--panel:#1f1f23;--ink:#e8e6e1;--mute:#9a978f;--line:#34343a;--oss:#8db8e8;--oss-bg:#1d2833;--fab:#e8a888;--fab-bg:#33231d;--bad:#ff8a80;--ok:#81c784;--warn:#ffcc80;--code:#26262b}}
+:root[data-theme=dark]{--bg:#17171a;--panel:#1f1f23;--ink:#e8e6e1;--mute:#9a978f;--line:#34343a;--oss:#8db8e8;--oss-bg:#1d2833;--fab:#e8a888;--fab-bg:#33231d;--bad:#ff8a80;--ok:#81c784;--warn:#ffcc80;--code:#26262b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--panel);border-bottom:1px solid var(--line);padding:8px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+header h1{font-size:16px;margin:0}nav button{background:none;border:1px solid var(--line);color:var(--ink);padding:4px 12px;border-radius:6px;cursor:pointer}
+nav button.on{background:var(--ink);color:var(--bg)}main{padding:16px;max-width:1500px;margin:auto}
+.tab{display:none}.tab.on{display:block}
+table{border-collapse:collapse;margin:8px 0 16px;font-size:13px}td,th{border:1px solid var(--line);padding:3px 8px;text-align:right}th:first-child,td:first-child{text-align:left}
+th{background:var(--code)}.id{font:600 11px ui-monospace,monospace;color:var(--mute);background:var(--code);padding:1px 5px;border-radius:4px;margin-right:6px}
+.find{border-left:3px solid var(--warn);background:var(--panel);padding:8px 12px;margin:8px 0}
+.find.bad{border-color:var(--bad)}.find.ok{border-color:var(--ok)}
+pre{white-space:pre-wrap;word-break:break-word;background:var(--code);padding:8px;border-radius:6px;font:12px/1.45 ui-monospace,monospace;margin:4px 0;max-height:420px;overflow:auto}
+.layout{display:grid;grid-template-columns:300px 1fr;gap:16px}
+@media (max-width:900px){.layout{grid-template-columns:1fr}}
+.side{position:sticky;top:60px;align-self:start;max-height:calc(100vh - 70px);display:flex;flex-direction:column;gap:6px}
+.side select,.side input{width:100%;padding:4px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:4px}
+#list{overflow:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+#list div{padding:4px 8px;border-bottom:1px solid var(--line);cursor:pointer;font-size:12px;display:flex;justify-content:space-between;gap:6px}
+#list div.sel{background:var(--code);font-weight:600}#list div:hover{background:var(--code)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media (max-width:900px){.cols{grid-template-columns:1fr}}
+.col h3{margin:4px 0;font-size:14px}.oss h3{color:var(--oss)}.fab h3{color:var(--fab)}
+.card{border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:10px;background:var(--panel)}
+.oss .card{border-top:3px solid var(--oss)}.fab .card{border-top:3px solid var(--fab)}
+.nums{font:12px ui-monospace,monospace;color:var(--mute)}.b{font-weight:600}
+.badge{display:inline-block;font-size:11px;padding:0 6px;border-radius:9px;border:1px solid}.badge.bad{color:var(--bad)}.badge.ok{color:var(--ok)}
+.note{background:var(--fab-bg);padding:6px 8px;border-radius:6px;margin:4px 0}.reason{background:var(--oss-bg)}
+details summary{cursor:pointer;color:var(--mute);font-size:12px}
+.seg button{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:3px 10px;cursor:pointer}.seg button.on{background:var(--ink);color:var(--bg)}
+textarea{width:100%;min-height:60px;background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px;font:inherit}
+.muted{color:var(--mute)}mark{background:#ffe08a;color:#000}
+</style></head><body>
+<header><h1>gpt-oss-20b vs Claude Fable 5.1 — builder review</h1>
+<nav><button data-t="ov" class="on">Overview</button> <button data-t="st">States (300)</button> <button data-t="mem">Memorization</button></nav>
+<span class="muted" id="status">loading data.json…</span></header>
+<main>
+<section class="tab on" id="ov">
+<h2>What builder-implement did (2026-10-14)</h2>
+<p class="muted">From <code>docs/BUILD_LOG.md</code> and <code>git log</code>. Supervisor checks in the next section.</p>
+<ul>
+<li><span class="id">W1</span>Fable 5.1 pilot + memorization check (32acc63, $1.72); memorization on every reachable candidate, strict mask (1f35dc4, 744916a).</li>
+<li><span class="id">W2</span>hs-full-v1-probe: full H&amp;S run, gpt-oss-20b, current bundle, one replicate (0534baa). 9/15 effects in CI; non-durables ITT +3.3 vs 35.7; spillover artifact unresolved.</li>
+<li><span class="id">W3</span>Fable 5.1 static comparison via Message Batches, two-phase cache (93ffd2b, d914bef; $36.50, 3,000/3,000 parsed).</li>
+<li><span class="id">W4</span>Cannon quota fix FM-34: caches and outputs on netscratch, space preflight, prune after verified archive (3421ed5, c810382).</li>
+<li><span class="id">W5</span>gpt-oss-20b static comparison on the same 300 states (gpu_test 52808588) + gpt-oss/Minitaur memorization; robust MPCs (7b76619).</li>
+</ul>
+<h2>Supervisor review</h2>
+<div class="find ok"><span class="id">F1</span><b>Checks pass.</b> Test suite 112/112 OK (156 s). Tree clean apart from untracked <code>literature/</code>, <code>logs/</code>. I recomputed the per-state MPCs from the raw rows for this page and they match <code>robust_mpc_gptoss_vs_fable.json</code> (medians: gpt-oss consumption 0.000, save 0.495, menu 0.077; Fable 0.143 / 0.465 / 0.135).</div>
+<div class="find bad"><span class="id">F2</span><b>Fable's reasoning traces were not stored.</b> <code>claude_batch_probe.py</code> keeps only the text block (<code>ac.text_of</code>), so thinking is dropped. At effort low Fable thought on just 46 of 3,000 calls (18,689 thinking tokens), and those are lost. What this page shows for Fable is its one-sentence <code>note</code> field, which is a self-report and not a trace. gpt-oss's full analysis channel is stored for all 3,000 calls. A like-for-like comparison of traces needs a small Fable rerun with thinking kept (and probably a higher effort level).</div>
+<div class="find"><span class="id">F3</span><b>Fable reads the closure "other income" as a windfall.</b> In pure-control states, 45 of 500 Fable notes mention a "transfer" (gpt-oss: 2 of 500), even though neither the persona nor the state mentions one. Example <a href="#S010">S010</a>: "other income 22106" in one line, so Fable writes "A large transfer arrived…". Other income is the D55 budget-closure residual: median 6,329 KES in pure control, with 25 of 100 sampled states above 10,000. Check whether the rendering invites this reading, because it inflates "menu" purchases in the control group.</div>
+<div class="find"><span class="id">F4</span><b>gpt-oss's response to extra cash is mostly saving.</b> Median consumption MPC is 0.00 (food 0.00); it saves about 0.5 and spends about 0.08 on menu items. Its base plans are infeasible in 33% of cases, against 13% for Fable. The plain means (0.43) are driven by a few absurd plans (one buys 5.87M KES of menu items). This is consistent with the full run's missing consumption effect. Use the sort "|MPC diff|" in States to read the disagreements.</div>
+<div class="find"><span class="id">F5</span><b>Scope.</b> This is a static, single-month probe drawn from one gpt-oss source run, so the states are gpt-oss's own trajectories. It compares the models only and does not show which one is closer to H&amp;S (the builder says the same). Real households' MPC is about 0.76 (Egger). Both models are far below that, and Fable is less far.</div>
+<div class="find"><span class="id">F6</span><b>Minor.</b> The gpt-oss probe's <code>meta.json</code> has <code>flags.logprobs = -1</code> while <code>logprobs: true</code> and the rows do hold top-5 logprobs. It is a metadata inconsistency only. Fable has no logprobs (unsupported by the API), which is recorded.</div>
+<h2>Tables</h2>
+<div id="tables"></div>
+<h2>Review notes</h2>
+<p class="muted">Each state has a notes box, saved in this browser only. <button id="export">Export notes (JSON)</button></p>
+</section>
+
+<section class="tab" id="st"><div class="layout">
+<div class="side">
+<select id="fg"><option value="">all groups</option><option>pure_control</option><option>spillover</option><option>treated</option></select>
+<select id="sort"><option value="id">sort: ID</option><option value="diff">sort: |MPC cons. Fable − gpt-oss|</option><option value="oss">sort: gpt-oss cons. MPC (desc)</option><option value="fab">sort: Fable cons. MPC (desc)</option><option value="inf">sort: gpt-oss infeasible base plans</option></select>
+<input id="q" placeholder="search reasoning / notes (regex)">
+<label class="muted" style="font-size:12px"><input type="checkbox" id="ftr" style="width:auto"> Fable note mentions "transfer"</label>
+<label class="muted" style="font-size:12px"><input type="checkbox" id="fnote" style="width:auto"> has my notes</label>
+<div class="muted" id="count" style="font-size:12px"></div>
+<div id="list"></div></div>
+<div id="detail"><p class="muted">Pick a state.</p></div>
+</div></section>
+
+<section class="tab" id="mem"><div id="memv"></div></section>
+</main><footer style="max-width:1500px;margin:24px auto;padding:0 16px 24px;font-size:12px" class="muted">Work in progress (2026-10-14), not a result. Household states are simulated from survey data: Haushofer &amp; Shapiro 2016, Harvard Dataverse doi:10.7910/DVN/M2GAZN (CC0); Egger, Haushofer, Miguel, Niehaus &amp; Walker, Kenya GE replication package, Zenodo doi:10.5281/zenodo.16548593 (CC-BY-4.0); KIHBS 2015/16 aggregates only (KNBS). Review notes are stored in your browser only.</footer>
+<script>
+let D=null,cur=null,cond='base';const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=x=>typeof x==='number'?Math.round(x).toLocaleString('en-US'):x;
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>show(b.dataset.t));
+function show(t){document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x.dataset.t===t));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.id===t))}
+fetch('data.json').then(r=>r.json()).then(d=>{D=d;$('#status').textContent=`${d.states.length} states · 2 models · base / +2,800 KES · K=5`;tables();list();mem();
+ const h=location.hash.slice(1);if(/^S\d{3}/.test(h)){show('st');pick(h.slice(0,4))}});
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(/^S\d{3}/.test(h)){show('st');pick(h.slice(0,4))}});
+function tables(){const m=D.metrics,r=D.robust;let h='<p><span class="id">T1</span><b>Static metrics</b> (environment arithmetic, from <code>static_metrics_gptoss_vs_fable.json</code>)</p><table><tr><th>metric</th><th>gpt-oss base</th><th>gpt-oss +2,800</th><th>Fable base</th><th>Fable +2,800</th></tr>';
+ const g=(o,c,k)=>{try{return o[c][k]}catch(e){return ''}};
+ for(const k of ['calls','parse_failures','infeasible_share','consumption_over_usual','saving_frequency','saving_kes_mean','menu_kes_mean'])
+  h+=`<tr><td>${k}</td><td>${g(m.gptoss,'base',k)}</td><td>${g(m.gptoss,'cash2800',k)}</td><td>${g(m.fable,'base',k)}</td><td>${g(m.fable,'cash2800',k)}</td></tr>`;
+ h+='</table><p><span class="id">T2</span><b>MPC out of +2,800 KES</b>, per-state paired, median / 5%-trimmed mean (<code>robust_mpc_gptoss_vs_fable.json</code>)</p><table><tr><th>plans</th><th>field</th><th>gpt-oss</th><th>Fable</th></tr>';
+ for(const p of ['all_plans','feasible_plans'])for(const f of ['consumption','food','save','menu'])h+=`<tr><td>${p} (${r.gptoss[p].states}/${r.fable[p].states} states)</td><td>${f}</td><td>${r.gptoss[p][f].median} / ${r.gptoss[p][f].trimmed5_mean}</td><td>${r.fable[p][f].median} / ${r.fable[p][f].trimmed5_mean}</td></tr>`;
+ h+='</table><p><span class="id">T3</span><b>Memorization near-rate</b> on the 8 effect questions (named / masked / strict), from BUILD_LOG</p><table><tr><th>model</th><th>named</th><th>masked</th><th>strict</th></tr><tr><td>gpt-oss-20b</td><td>0.00</td><td>0.00</td><td>0.00</td></tr><tr><td>Claude Fable 5.1</td><td>0.50</td><td>0.50</td><td>0.50</td></tr></table>';
+ $('#tables').innerHTML=h}
+function mentions(S){return S.runs.fable.base.concat(S.runs.fable.cash).some(x=>/transfer/i.test((x.action||{}).note||''))}
+function list(){const g=$('#fg').value,q=$('#q').value,so=$('#sort').value;let re=null;try{re=q?new RegExp(q,'i'):null}catch(e){}
+ let L=D.states.filter(S=>(!g||S.group===g)&&(!$('#ftr').checked||mentions(S))&&(!$('#fnote').checked||lsGet('note:'+S.id))&&(!re||['gptoss','fable'].some(m=>['base','cash'].some(c=>S.runs[m][c].some(x=>re.test((x.reasoning||'')+' '+((x.action||{}).note||'')))))));
+ const mo=(S,m)=>(S.mpc[m]||{}).consumption??0;
+ if(so==='diff')L.sort((a,b)=>Math.abs(mo(b,'fable')-mo(b,'gptoss'))-Math.abs(mo(a,'fable')-mo(a,'gptoss')));
+ if(so==='oss')L.sort((a,b)=>mo(b,'gptoss')-mo(a,'gptoss'));if(so==='fab')L.sort((a,b)=>mo(b,'fable')-mo(a,'fable'));
+ if(so==='inf')L.sort((a,b)=>b.mpc.gptoss.infeasible_base-a.mpc.gptoss.infeasible_base);
+ $('#count').textContent=L.length+' states';
+ $('#list').innerHTML=L.map(S=>`<div data-id="${S.id}" class="${S.id===cur?'sel':''}"><span><b>${S.id}</b> ${S.group.replace('_',' ')}${lsGet('note:'+S.id)?' ✎':''}</span><span class="nums">G ${mo(S,'gptoss').toFixed(2)} · F ${mo(S,'fable').toFixed(2)}</span></div>`).join('');
+ $('#list').querySelectorAll('div').forEach(x=>x.onclick=()=>{location.hash=x.dataset.id})}
+['#fg','#sort','#ftr','#fnote'].forEach(s=>$(s).onchange=list);$('#q').oninput=()=>{list();if(cur)pick(cur)};
+function hl(t){const q=$('#q').value;t=esc(t);if(!q)return t;try{return t.replace(new RegExp('('+q+')','gi'),'<mark>$1</mark>')}catch(e){return t}}
+function card(S,m,x,c){const n=x.n||{},inf=n.cost>n.avail,id=`${S.id}-${m==='gptoss'?'G':'F'}-${c==='base'?'b':'c'}-k${x.k}`;
+ let h=`<div class="card" id="${id}"><span class="id">${id}</span>${x.parse!=='strict'?`<span class="badge bad">parse: ${esc(x.parse)}</span> `:''}${n.err?`<span class="badge bad">${esc(n.err)}</span>`:`<span class="badge ${inf?'bad':'ok'}">${inf?'infeasible':'feasible'}</span>`} <span class="nums">${x.out_tokens} out tok${x.thinking_tokens?` · ${x.thinking_tokens} thinking`:''} · ${esc(x.finish)}</span>
+ <div class="nums">consumption <span class="b">${fmt(n.consumption)}</span> (food ${fmt(n.food)}, other ${fmt(n.spend)}) · save <span class="b">${fmt(n.save)}</span> · menu ${fmt(n.menu)} · cost ${fmt(n.cost)} / avail ${fmt(n.avail)}</div>`;
+ if(m==='gptoss')h+=`<div class="muted" style="font-size:12px">reasoning (analysis channel)</div><pre class="reason">${hl(x.reasoning||'(none)')}</pre>`;
+ else h+=`<div class="muted" style="font-size:12px">note (self-report; thinking not stored, F2)</div>`;
+ h+=`<div class="note">${hl((x.action||{}).note||'(no note)')}</div><details><summary>raw output</summary><pre>${esc(x.content)}</pre></details></div>`;return h}
+function pick(id){cur=id;const S=D.states.find(s=>s.id===id);if(!S)return;list();
+ const mp=m=>{const o=S.mpc[m]||{};return `<td>${o.consumption}</td><td>${o.food}</td><td>${o.save}</td><td>${o.menu}</td><td>${o.infeasible_base}/5</td><td>${o.parse_fail}</td>`};
+ let h=`<h2 id="${S.id}" style="margin-top:0">${S.id} <span class="muted" style="font-size:13px">${S.group} · ${S.branch} agent ${S.agent} step ${S.step} · cash ${fmt(S.cash)} KES · savings ${fmt(S.savings)}</span></h2>
+ <table><tr><th>model</th><th>MPC cons.</th><th>food</th><th>save</th><th>menu</th><th>infeasible base</th><th>parse fails</th></tr><tr><td style="color:var(--oss)">gpt-oss-20b</td>${mp('gptoss')}</tr><tr><td style="color:var(--fab)">Fable 5.1</td>${mp('fable')}</tr></table>
+ <details><summary>prompt: system (${S.system})</summary><pre>${esc(D.systems[S.system])}</pre></details>
+ <details><summary>prompt: persona</summary><pre>${esc(S.persona)}</pre></details>
+ <details open><summary>prompt: state (${cond==='base'?'base':'+2,800 KES'})</summary><pre>${esc(cond==='base'?S.state_base:S.state_cash)}</pre></details>
+ <p class="seg"><button data-c="base" class="${cond==='base'?'on':''}">base</button><button data-c="cash" class="${cond==='cash'?'on':''}">+2,800 KES</button></p>
+ <div class="cols"><div class="col oss"><h3>gpt-oss-20b</h3>${S.runs.gptoss[cond].map(x=>card(S,'gptoss',x,cond)).join('')}</div>
+ <div class="col fab"><h3>Claude Fable 5.1 (effort low)</h3>${S.runs.fable[cond].map(x=>card(S,'fable',x,cond)).join('')}</div></div>
+ <p><b>My notes on ${S.id}</b></p><textarea id="nt">${esc(lsGet('note:'+S.id)||'')}</textarea>`;
+ $('#detail').innerHTML=h;$('#detail').querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{cond=b.dataset.c;pick(cur)});
+ $('#nt').oninput=e=>lsSet('note:'+S.id,e.target.value);window.scrollTo(0,0)}
+$('#export').onclick=()=>{const o={};for(const S of D.states){const v=lsGet('note:'+S.id);if(v)o[S.id]={key:`${S.branch}/${S.agent}/${S.step}`,note:v}}
+ const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(o,null,1)],{type:'application/json'}));a.download='review_notes.json';a.click()};
+function mem(){let h='<p class="muted">Memorization check (D27), K=3 per question and condition. gpt-oss reasoning is rebuilt from the stored logprob tokens (analysis channel). Fable rows combine the named/masked run and the strict rerun; Fable thinking is not stored.</p>';
+ for(const [m,lab] of [['gptoss','gpt-oss-20b'],['fable','Claude Fable 5.1']]){h+=`<h2>${lab}</h2><table><tr><th>ID</th><th>question</th><th>cond.</th><th>paper</th><th>answer</th><th>score</th><th>names study</th><th style="text-align:left;width:55%">output${m==='gptoss'?' / reasoning':''}</th></tr>`;
+  D.memorization[m].forEach((x,i)=>{h+=`<tr><td><span class="id">M-${m==='gptoss'?'G':'F'}${String(i+1).padStart(3,'0')}</span></td><td>${esc(x.question)}</td><td>${esc(x.condition)}</td><td>${x.paper_value}</td><td>${x.answer_value??''}</td><td style="color:${x.score==='near'?'var(--bad)':'inherit'}">${esc(x.score)}</td><td>${x.names_study??''}</td><td style="text-align:left"><div>${esc(x.content)}</div>${x.reasoning?`<details><summary>reasoning</summary><pre>${esc(x.reasoning)}</pre></details>`:''}</td></tr>`});h+='</table>'}
+ $('#memv').innerHTML=h}
+</script></body></html>
