@@ -327,7 +327,7 @@ Neighbors you noticed: Neighbor 4 switches between colors; Neighbor 1 mostly cho
 <li>Plan: Ollama for the FdA26 arm and a reference baseline; SGLang for the factorial if the baseline cell agrees.</li></ul>
 
 <h2 id="status">Status</h2>
-<p>Built and tested offline (stand-in model, 16 tests). Smoke test on Cannon (Ollama, small Llama model, every arm, a few rounds): running on Cannon gpu_test (job 55241247). Waiting on: the authors' data and code; the pilot on llama4 (charged GPU).</p>
+<p>Built and tested offline (stand-in model, 16 tests). Smoke test on Cannon (Ollama, small Llama model, every arm, a few rounds): passed on SGLang + Qwen2.5-3B (job 55252842): 7 cells and model probes, 16,487 calls, top-5 logprobs on every call, 0 unreadable choices, 11–47 calls/s. Ollama v0.18.2 gave correct output but only ~0.5 calls/s (CPU-bound runner), so the factorial will use SGLang. Waiting on: the authors' data and code; the pilot on llama4 (charged GPU).</p>
 
 <h2 id="review">Choices to review</h2>
 <p class="muted">Made while building; none is tuned to data. Mark each and add notes; they are saved in this browser only.</p>
