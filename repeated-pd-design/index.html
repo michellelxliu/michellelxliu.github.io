@@ -1,0 +1,345 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Repeated PD design</title><style>
+:root{--bg:#fbfaf7;--panel:#fff;--ink:#1d1d1b;--mute:#6b6a65;--line:#e3e0d8;--acc:#2f5d8a;--acc-bg:#eef3f9;--warn:#a66a00;--code:#f4f2ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#17171a;--panel:#1f1f23;--ink:#e8e6e1;--mute:#9a978f;--line:#34343a;--acc:#8db8e8;--acc-bg:#1d2833;--warn:#ffcc80;--code:#26262b}}
+:root[data-theme=dark]{--bg:#17171a;--panel:#1f1f23;--ink:#e8e6e1;--mute:#9a978f;--line:#34343a;--acc:#8db8e8;--acc-bg:#1d2833;--warn:#ffcc80;--code:#26262b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--panel);border-bottom:1px solid var(--line);padding:8px 16px}
+header h1{font-size:17px;margin:0}header nav{display:flex;gap:10px;flex-wrap:wrap;font-size:13px;margin-top:4px}header nav a{color:var(--acc);text-decoration:none}
+main{max-width:980px;margin:auto;padding:16px}h2{margin-top:36px;border-bottom:1px solid var(--line);padding-bottom:4px}h3{margin-bottom:4px}
+table{border-collapse:collapse;margin:8px 0 16px;font-size:13.5px;width:100%;display:block;overflow-x:auto}td,th{border:1px solid var(--line);padding:4px 8px;text-align:left;vertical-align:top}th{background:var(--code)}
+pre{white-space:pre-wrap;word-break:break-word;background:var(--code);padding:10px;border-radius:6px;font:12.5px/1.45 ui-monospace,monospace;max-height:460px;overflow:auto}
+.id{font:600 11px ui-monospace,monospace;color:var(--mute);background:var(--code);padding:1px 5px;border-radius:4px;margin-right:6px}
+.box{border-left:3px solid var(--acc);background:var(--panel);padding:8px 12px;margin:10px 0}.warn{border-color:var(--warn)}
+.choice{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:8px 0;background:var(--panel)}
+.choice textarea{width:100%;min-height:44px;margin-top:6px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px;font:inherit}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.seg button{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:3px 10px;border-radius:14px;cursor:pointer;font-size:13px}
+.seg button.on{background:var(--acc);color:var(--bg);border-color:var(--acc)}
+button.main{background:var(--acc);color:var(--bg);border:0;border-radius:6px;padding:6px 14px;cursor:pointer}
+.muted{color:var(--mute)}svg text{fill:var(--ink);font:12px system-ui,sans-serif}svg .bx{fill:var(--panel);stroke:var(--line)}svg .hl{fill:var(--acc-bg);stroke:var(--acc)}svg line,svg path{stroke:var(--mute);fill:none}
+</style></head><body>
+<header><h1>Networked repeated Prisoner's Dilemma with LLM agents: pipeline design for review</h1>
+<nav><a href="#goal">Goal</a><a href="#human">Human benchmark</a><a href="#loop">Round loop</a><a href="#factorial">Factorial</a><a href="#prompts">Prompts</a><a href="#memory">Memory</a><a href="#personas">Personas</a><a href="#probes">Probes</a><a href="#metrics">Metrics</a><a href="#serving">Serving</a><a href="#status">Status</a><a href="#review">Choices to review</a></nav></header>
+<main>
+<p class="muted">Built 2026-10-25 from the study's code (<code>rpd/</code>, <code>tools/build_rpd_review.py</code>). Nothing here has run on the target model yet. Your answers in "Choices to review" stay in this browser; use "Copy my notes" to send them back.</p>
+
+<h2 id="goal">Goal</h2>
+<p>Gracia-Lázaro et al. (2012, <i>PNAS</i>; "GL12") had 1,229 Aragonese secondary students play a weak Prisoner's Dilemma on a 25×25 lattice or a heterogeneous network: 51 rounds with fixed neighbours, then 59 rounds with everyone moved to a random node each round. Ferraz de Arruda et al. (2026, arXiv 2606.30454; "FdA26") replaced them with Llama 4 agents. The agents matched the cooperation curve but not the spread of individual cooperation rates or the moody-conditional-cooperation (MCC) rule. <b>This study diagnoses which design choices cause that macro–micro gap</b>, with a full factorial scored against all three human signatures, and one arm that reproduces FdA26.</p>
+
+<h2 id="human">Human benchmark</h2>
+<table><tr><th>Condition</th><th>Mean individual cooperation</th><th>SD across players</th><th>Persistence (1 − switching)</th></tr>
+<tr><td>Lattice, fixed</td><td>0.368</td><td>0.170</td><td>0.640</td></tr><tr><td>Heterogeneous, fixed</td><td>0.405</td><td>0.158</td><td>0.620</td></tr>
+<tr><td>Lattice, reshuffled</td><td>0.292</td><td>0.209</td><td>0.724</td></tr><tr><td>Heterogeneous, reshuffled</td><td>0.322</td><td>0.209</td><td>0.693</td></tr></table>
+<p class="muted">From FdA26 (computed from GL12's per-player data). MCC fits, fixed phase (GL12 SI Table S2): P(C | X, ρ) = a + bρ. Lattice: after C a = 0.457, b = 0.122; after D a = 0.350, b = −0.149. Heterogeneous: after C 0.475, 0.126; after D 0.309, −0.027. Human data include the computer's timeout moves (10%).</p>
+
+<h2 id="loop">Round loop</h2>
+<svg viewBox="0 0 900 300" width="100%" role="img" aria-label="Round loop">
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0L10,5L0,10z" style="fill:var(--mute);stroke:none"/></marker></defs>
+<rect class="bx" x="10" y="20" width="170" height="70" rx="8"/><text x="22" y="44">schedule.json (seed)</text><text x="22" y="62" class="muted">network, seats, reshuffles,</text><text x="22" y="78">colours, gender, timeouts</text>
+<rect class="hl" x="220" y="20" width="200" height="70" rx="8"/><text x="232" y="44">prompt builder</text><text x="232" y="62">persona + tutorial (system)</text><text x="232" y="78">memory block + choice (user)</text>
+<rect class="bx" x="460" y="20" width="170" height="70" rx="8"/><text x="472" y="44">model server</text><text x="472" y="62">Ollama / SGLang</text><text x="472" y="78">top-5 logprobs, every call</text>
+<rect class="bx" x="670" y="20" width="210" height="70" rx="8"/><text x="682" y="44">parse JSON choice</text><text x="682" y="62">P(coop) from choice token</text><text x="682" y="78">retry ×3, else computer</text>
+<rect class="bx" x="670" y="140" width="210" height="60" rx="8"/><text x="682" y="164">timeout draw (10%)</text><text x="682" y="182">keep 0.9 / switch 0.1</text>
+<rect class="bx" x="430" y="140" width="200" height="60" rx="8"/><text x="442" y="164">payoffs per link</text><text x="442" y="182">neighbours' scaled to own k</text>
+<rect class="hl" x="200" y="140" width="190" height="60" rx="8"/><text x="212" y="164">history / memory</text><text x="212" y="182">(i) (iii) (iv) code; (v) model</text>
+<rect class="bx" x="10" y="140" width="150" height="60" rx="8"/><text x="22" y="164">state + snapshot</text><text x="22" y="182">resume, branch at 51</text>
+<rect class="bx" x="200" y="235" width="300" height="50" rx="8"/><text x="212" y="256">probes after rounds 1, 51, 110</text><text x="212" y="273">copies only; state byte-identical</text>
+<rect class="bx" x="560" y="235" width="320" height="50" rx="8"/><text x="572" y="256">rounds.jsonl → metrics</text><text x="572" y="273">curve, SD, W1, persistence, MCC</text>
+<line x1="180" y1="55" x2="218" y2="55" marker-end="url(#a)"/><line x1="420" y1="55" x2="458" y2="55" marker-end="url(#a)"/><line x1="630" y1="55" x2="668" y2="55" marker-end="url(#a)"/>
+<line x1="775" y1="90" x2="775" y2="138" marker-end="url(#a)"/><line x1="670" y1="170" x2="632" y2="170" marker-end="url(#a)"/><line x1="430" y1="170" x2="392" y2="170" marker-end="url(#a)"/>
+<line x1="200" y1="170" x2="162" y2="170" marker-end="url(#a)"/><path d="M300,140 L300,100" marker-end="url(#a)"/><path d="M85,140 L85,92" marker-end="url(#a)"/>
+<path d="M300,200 L300,233" marker-end="url(#a)"/><path d="M530,200 L640,233" marker-end="url(#a)"/>
+</svg>
+<p>Each round every player gets one stateless call: the system prompt holds the persona and the tutorial they have seen so far; the user message holds the memory block and the choice instruction. The reply is JSON with the choice first and a short reason (a post-hoc rationale). P(cooperate) is read from the top-5 logprobs at the choice token. Then 10% of moves are replaced by the computer's rule, payoffs are computed per link, and each player's history grows by the screen they saw. State is snapshotted every round, so a run resumes and Part II branches from round 51.</p>
+
+<h2 id="factorial">Factorial</h2>
+<table><tr><th>Factor</th><th>Baseline (what humans had)</th><th>Other levels</th></tr>
+<tr><td>Heterogeneity</td><td>minimal persona (17, final year, Aragón, gender)</td><td>rich persona from a PISA 2009 Aragón record</td></tr>
+<tr><td>Memory</td><td>(iv) human-like, built by code</td><td>(i) last round; (iii) full table; (v) model-written episodes</td></tr>
+<tr><td>Framing</td><td>neighbours are "people"</td><td>"(which are humans)", FdA26's wording</td></tr>
+<tr><td>Neighbours' payoffs</td><td>shown, scaled to own degree</td><td>hidden</td></tr>
+<tr><td>Second phase</td><td>same agents, memory carried over</td><td>fresh agents</td></tr></table>
+<p>2 × 4 × 2 × 2 × 2 = 64 cells, each on both networks; the fixed phase runs once per 32 cells and Part II branches from its snapshot. Side cells: the exact FdA26 replication; rationale before choice; <b>rich_coop</b> (rich persona plus PISA 2003 cooperative/competitive-learning items). Fixed everywhere: model (llama4:16x17b first), temperature 0.8, choice first, counterbalanced colours (pairs GREEN/BROWN, BLUE/YELLOW, ORANGE/PURPLE, BLACK/WHITE, PINK/GREY), the timeout rule, probes on every agent.</p>
+
+<h2 id="prompts">Prompts (rendered by the code)</h2>
+<p class="muted">Example player: degree 4, colours on screen BLUE / YELLOW, cooperate colour BLUE. Tutorial pages are cut to their first words here (GL12 SI 1.3 is copyrighted); our own inserted sentence is shown whole.</p>
+<h3>System prompt (persona + tutorial), Part I</h3><pre>About you: you are a young man, 17 years old, in your final year of secondary school (2º de Bachillerato) in Aragón, Spain. Today you are taking part in an experiment in a computer room at your school, together with other students.
+
+The directions on your screen:
+
+This is an experiment designed to study how individuals make … [69 words of GL12 SI 1.3]
+
+Directions to participate in the experiment. This experiment consists of … [133 words of GL12 SI 1.3]
+
+A round. In each ROUND you will be placed in … [97 words of GL12 SI 1.3]
+
+Decision to make in every round. Every round, each of … [133 words of GL12 SI 1.3]
+
+Possible payoffs per neighbor. In the following table each row … [111 words of GL12 SI 1.3]
+
+This is the screen you will be seeing during the … [97 words of GL12 SI 1.3]
+(In this text version, the screen is described in words. Each round you see your own position in the center and your neighbors around it, and two buttons, BLUE and YELLOW, on the right. You choose a color by writing it in your reply.)
+
+These are some examples of what you could earn in … [78 words of GL12 SI 1.3]
+
+Round iteration. Remember that each part will consist of an … [272 words of GL12 SI 1.3]
+
+Part I of the experiment. In this part the system … [78 words of GL12 SI 1.3]</pre>
+<h3>User message, round 1</h3><pre>Part I begins. This is the first round.
+
+Choose your color for this round.
+Reply with a JSON object only, in this form: {&quot;choice&quot;: &quot;&lt;BLUE or YELLOW&gt;&quot;, &quot;reasoning&quot;: &quot;&lt;one or two sentences&gt;&quot;}</pre>
+<h3>FdA26 replication arm, round 4</h3><pre>SYSTEM:
+You are You are participating in a social experiment as a volunteer. Your objective is to maximize your total ECUs, the monetary unit. An ECU is a monetary unit. You have 4 neighbors. You are a high school student. Gender: man.
+You are not expected to behave in any particular way. Whatever you do will determine the amount of money you can earn. You have a written version of this direction, which you can check at any stage of the experiment.
+Your personal goal is: Objective: **Your goal is to maximize your own ECUs (ECU is a monetary unit).**
+
+
+USER:
+
+Current Task: Answer the task below in valid JSON format: [FdA26 first-iteration description, their SI S1.4.1, repeated every round]
+Now, you have to answer again:
+This is round 3.
+In the previous round, your neighbors made the following choices:
+Neighbor choices in the previous round:
+Neighbor 1: choice = BROWN, payoff = 0.
+Neighbor 2: choice = GREEN, payoff = 7.
+Neighbor 3: choice = BROWN, payoff = 10.
+Neighbor 4: choice = BROWN, payoff = 10.
+Your choice and payoff in the previous round was: choice = BROWN, payoff = 10.
+Based on this information, make your choice for this round.
+
+This is the expected criteria for your final answer: String in a Json format ONLY with choice (GREEN or BROWN) and reasoning (plain text):
+{
+&quot;choice&quot;: ...,
+&quot;reasoning&quot;: &quot;...&quot;
+}
+you MUST return the actual complete content as the final answer, not a summary.
+
+Begin! This is VERY important to you, use the tools available and give your best Final Answer, your job depends on it!</pre>
+<p class="muted">"You are You are participating…" is deliberate: FdA26's role text starts with "You are", and CrewAI's agent template prefixes "You are {role}." The CrewAI wrapping is approximate until we have their code and CrewAI version.</p>
+
+<h2 id="memory">Memory levels (user message, round 9, same history)</h2>
+<h3>(i) Last round only</h3><pre>Last round: you chose BLUE and earned 7 ECUs. Your total so far: 124 ECUs.
+Your 4 neighbors last round:
+- Neighbor 1: YELLOW, 20 ECUs
+- Neighbor 2: YELLOW, 20 ECUs
+- Neighbor 3: YELLOW, 10 ECUs
+- Neighbor 4: BLUE, 14 ECUs
+
+Choose your color for this round.
+Reply with a JSON object only, in this form: {&quot;choice&quot;: &quot;&lt;BLUE or YELLOW&gt;&quot;, &quot;reasoning&quot;: &quot;&lt;one or two sentences&gt;&quot;}</pre>
+<h3>(iii) Last round + full table</h3><pre>Last round: you chose BLUE and earned 7 ECUs. Your total so far: 124 ECUs.
+Your 4 neighbors last round:
+- Neighbor 1: YELLOW, 20 ECUs
+- Neighbor 2: YELLOW, 20 ECUs
+- Neighbor 3: YELLOW, 10 ECUs
+- Neighbor 4: BLUE, 14 ECUs
+
+All your rounds so far, oldest first:
+Part I:
+- you chose YELLOW, earned 30 ECUs; 3 of 4 neighbors chose BLUE
+- you chose YELLOW, earned 20 ECUs; 2 of 4 neighbors chose BLUE
+- you chose YELLOW, earned 10 ECUs; 1 of 4 neighbors chose BLUE
+- you chose YELLOW, earned 20 ECUs; 2 of 4 neighbors chose BLUE
+- you chose YELLOW, earned 20 ECUs; 2 of 4 neighbors chose BLUE
+- you chose YELLOW, earned 10 ECUs; 1 of 4 neighbors chose BLUE
+- you chose BLUE, earned 7 ECUs; 1 of 4 neighbors chose BLUE
+- you chose BLUE, earned 7 ECUs; 1 of 4 neighbors chose BLUE
+
+Choose your color for this round.
+Reply with a JSON object only, in this form: {&quot;choice&quot;: &quot;&lt;BLUE or YELLOW&gt;&quot;, &quot;reasoning&quot;: &quot;&lt;one or two sentences&gt;&quot;}</pre>
+<h3>(iv) Human-like (baseline)</h3><pre>Last round: you chose BLUE and earned 7 ECUs. Your total so far: 124 ECUs.
+Your 4 neighbors last round:
+- Neighbor 1: YELLOW, 20 ECUs
+- Neighbor 2: YELLOW, 20 ECUs
+- Neighbor 3: YELLOW, 10 ECUs
+- Neighbor 4: BLUE, 14 ECUs
+The round before: 1 of 4 neighbors chose BLUE; you chose BLUE.
+Lately, about 3 in 10 of your neighbors&#x27; choices have been BLUE, and that share is falling.
+Your earnings last round were worse than usual for you.
+Neighbors you noticed: Neighbor 4 switches between colors; Neighbor 1 mostly chooses YELLOW; Neighbor 3 mostly chooses YELLOW; Neighbor 2 mostly chooses YELLOW.
+
+Choose your color for this round.
+Reply with a JSON object only, in this form: {&quot;choice&quot;: &quot;&lt;BLUE or YELLOW&gt;&quot;, &quot;reasoning&quot;: &quot;&lt;one or two sentences&gt;&quot;}</pre>
+<p class="muted">Weights fixed before any data: trend average 0.4 on the newest round; aspiration h = 0.2; at most 4 neighbour tags, Part I only; no random forgetting.</p>
+<h3>(v) Model-written episodic (AgentSociety memory store)</h3><p class="muted">The episodes and MEMORY.md here were written by the offline stand-in model, so their content is placeholder; the structure is what the model sees.</p><pre>&lt;memory_context&gt;
+{
+  &quot;memory_md&quot;: &quot;# Memory\n\n## Important Past Events\n- I played many rounds.\n&quot;,
+  &quot;recent_episodes&quot;: [
+    {
+      &quot;type&quot;: &quot;observation&quot;,
+      &quot;importance&quot;: 0.76,
+      &quot;keywords&quot;: [
+        &quot;yellow&quot;
+      ],
+      &quot;text&quot;: &quot;I chose YELLOW.&quot;
+    },
+    {
+      &quot;type&quot;: &quot;observation&quot;,
+      &quot;importance&quot;: 0.01,
+      &quot;keywords&quot;: [
+        &quot;yellow&quot;
+      ],
+      &quot;text&quot;: &quot;I chose YELLOW.&quot;
+    },
+    {
+      &quot;type&quot;: &quot;observation&quot;,
+      &quot;importance&quot;: 0.82,
+      &quot;keywords&quot;: [
+        &quot;yellow&quot;
+      ],
+      &quot;text&quot;: &quot;I chose YELLOW.&quot;
+    },
+    {
+      &quot;type&quot;: &quot;observation&quot;,
+      &quot;importance&quot;: 0.61,
+      &quot;keywords&quot;: [
+        &quot;blue&quot;
+      ],
+      &quot;text&quot;: &quot;I chose BLUE.&quot;
+    },
+    {
+      &quot;type&quot;: &quot;observation&quot;,
+      &quot;importance&quot;: 0.35,
+      &quot;keywords&quot;: [
+        &quot;blue&quot;
+      ],
+      &quot;text&quot;: &quot;I chose BLUE.&quot;
+    },
+    {
+      &quot;type&quot;: &quot;observation&quot;,
+      &quot;importance&quot;: 0.7,
+      &quot;keywords&quot;: [
+        &quot;blue&quot;
+      ],
+      &quot;text&quot;: &quot;I chose BLUE.&quot;
+    },
+    {
+      &quot;type&quot;: &quot;observation&quot;,
+      &quot;importance&quot;: 0.66,
+      &quot;keywords&quot;: [
+        &quot;blue&quot;
+      ],
+      &quot;text&quot;: &quot;I chose BLUE.&quot;
+    },
+    {
+      &quot;type&quot;: &quot;observation&quot;,
+      &quot;importance&quot;: 0.67,
+      &quot;keywords&quot;: [
+        &quot;yellow&quot;
+      ],
+      &quot;text&quot;: &quot;I chose YELLOW.&quot;
+    }
+  ]
+}
+&lt;/memory_context&gt;
+
+Last round: you chose BLUE and earned 7 ECUs. Your total so far: 82 ECUs.
+Your 4 neighbors last round:
+- Neighbor 1: YELLOW, 20 ECUs
+- Neighbor 2: YELLOW, 20 ECUs
+- Neighbor 3: YELLOW, 30 ECUs
+- Neighbor 4: BLUE, 14 ECUs
+
+Choose your color for this round.
+Reply with a JSON object only, in this form: {&quot;choice&quot;: &quot;&lt;BLUE or YELLOW&gt;&quot;, &quot;reasoning&quot;: &quot;&lt;one or two sentences&gt;&quot;, &quot;memories&quot;: [{&quot;type&quot;: &quot;...&quot;, &quot;importance&quot;: 0.0, &quot;keywords&quot;: [&quot;...&quot;], &quot;text&quot;: &quot;...&quot;}]}
+In &quot;memories&quot;, record the durable memory points worth keeping from this round (key decisions, events, observations, intentions): at least one, at most 8. &quot;type&quot; is one of commitment, relationship, preference, goal, conflict, resolution, identity, observation, routine; &quot;importance&quot; is the salience from 0 to 1; &quot;keywords&quot; are words to find it again; &quot;text&quot; is one fact to remember.</pre>
+
+<h2 id="personas">Personas</h2>
+<p>Minimal: age, final-year student in Aragón, gender. Rich: one real PISA 2009 Aragón student per seat (1,514 records; pool of 988 modal-grade students), matched on gender, rendered by a fixed template. <b>PISA 2009 has no cooperation, competition, teamwork or trust items</b>, so those are tested separately in rich_coop with PISA 2003's ten maths-class learning items, matched by gender and ESCS percentile.</p>
+<p class="warn box">The example below is an <b>invented record</b> rendered by the real template, not a real student.</p>
+<pre>About you: you are a young woman, 17 years old, in your final year of secondary school (2º de Bachillerato) in Aragón, Spain. Today you are taking part in an experiment in a computer room at your school, together with other students.
+
+At home you live with your mother, your father and sisters.
+Your mother: finished Bachillerato; job: office clerks; works part-time.
+Your father: finished a vocational upper-secondary qualification (Formación Profesional de grado medio); job: plumbers &amp; pipe fitters; works full-time.
+You were born in Spain.
+At home you mostly speak Spanish.
+There are 26-100 books in your home.
+At home you have your own room, a desk to study at, a computer you can use for school work.
+At home you do not have an internet connection.
+You read for enjoyment 30 minutes or less a day.
+
+About reading:
+- &quot;I read only if I have to.&quot;: you agree.
+- &quot;Reading is one of my favourite hobbies.&quot;: you disagree.
+- &quot;I like talking about books with other people.&quot;: you disagree.
+- &quot;I find it hard to finish books.&quot;: you agree.
+- &quot;I feel happy if I receive a book as a present.&quot;: you disagree.
+- &quot;For me, reading is a waste of time.&quot;: you disagree.
+- &quot;I enjoy going to a bookstore or a library.&quot;: you agree.
+- &quot;I read only to get information that I need.&quot;: you agree.
+- &quot;I cannot sit still and read for more than a few minutes.&quot;: you disagree.
+- &quot;I like to express my opinions about books I have read.&quot;: you disagree.
+- &quot;I like to exchange books with my friends.&quot;: you strongly disagree.
+
+About school:
+- &quot;School has done little to prepare me for adult life when I leave school.&quot;: you disagree.
+- &quot;School has been a waste of time.&quot;: you strongly disagree.
+- &quot;School has helped give me confidence to make decisions.&quot;: you agree.
+- &quot;School has taught me things which could be useful in a job.&quot;: you agree.
+
+About the teachers at your school:
+- &quot;I get along well with most of my teachers.&quot;: you agree.
+- &quot;Most of my teachers are interested in my well-being.&quot;: you agree.
+- &quot;Most of my teachers really listen to what I have to say.&quot;: you disagree.
+- &quot;If I need extra help, I will receive it from my teachers.&quot;: you agree.
+- &quot;Most of my teachers treat me fairly.&quot;: you agree.
+
+About your mathematics classes:
+- &quot;I would like to be the best in my class in mathematics.&quot;: you agree.
+- &quot;In mathematics I enjoy working with other students in groups.&quot;: you strongly agree.
+- &quot;I try very hard in mathematics because I want to do better on the exams than the others.&quot;: you disagree.
+- &quot;When we work on a project in mathematics, I think that it is a good idea to combine the ideas of all the students in a group.&quot;: you strongly agree.
+- &quot;I make a real effort in mathematics because I want to be one of the best.&quot;: you agree.
+- &quot;I do my best work in mathematics when I work with other students.&quot;: you agree.
+- &quot;In mathematics I always try to do better than the other students in my class.&quot;: you disagree.
+- &quot;In mathematics, I enjoy helping others to work well in a group.&quot;: you strongly agree.
+- &quot;In mathematics I learn most when I work with other students in my class.&quot;: you agree.
+- &quot;I do my best work in mathematics when I try to do better than others.&quot;: you disagree.</pre>
+
+<h2 id="probes">Recognition probes</h2>
+<p>After rounds 1, 51 and 110, on every agent, on copies of its prompt (a test checks state files are byte-identical before and after):</p>
+<ul><li><b>ic</b> in character: "(Think it over for a moment: what do you suppose this experiment is for? Answer briefly, in your own words.)"</li><li><b>familiar</b> (after Part II, the humans' own item): "Is something in the experiment familiar to you (yes/no)? If so, please point out of what it reminds you."</li>
+<li><b>ooc</b> out of character, the prompt shown as a passage: "Does this passage remind you of anything you know: a game, a historical event, a scientific study, or anything else? If it does, say what, and how confident you are. If it doesn&#x27;t, say so." / "Suppose this scenario is based on a real, published study. Which study is it most likely to be? Give your best guess even if you are unsure, and your confidence from 0 to 100."</li>
+<li><b>mem</b> and <b>know</b>, once per model: continue the tutorial verbatim (with an invented control passage); what the model recalls of GL12.</li></ul>
+<p>Example in-character probe at round 8:</p><pre>Last round: you chose BLUE and earned 7 ECUs. Your total so far: 124 ECUs.
+Your 4 neighbors last round:
+- Neighbor 1: YELLOW, 20 ECUs
+- Neighbor 2: YELLOW, 20 ECUs
+- Neighbor 3: YELLOW, 10 ECUs
+- Neighbor 4: BLUE, 14 ECUs
+The round before: 1 of 4 neighbors chose BLUE; you chose BLUE.
+Lately, about 3 in 10 of your neighbors&#x27; choices have been BLUE, and that share is falling.
+Your earnings last round were worse than usual for you.
+Neighbors you noticed: Neighbor 4 switches between colors; Neighbor 1 mostly chooses YELLOW; Neighbor 3 mostly chooses YELLOW; Neighbor 2 mostly chooses YELLOW.
+
+(Think it over for a moment: what do you suppose this experiment is for? Answer briefly, in your own words.)</pre>
+<p class="muted">A text guard rejects researcher-written prompt text containing: prisoner, dilemma, cooperat\w*, defect\w*, game theor\w*, reciproc\w*, simulat\w*, \bAI\b, language model, \bLLM\b, chatbot, role-?play\w*, \bpersonas?\b, replicat\w*, gracia, zaragoza, \bPNAS\b, gruji, agent[- ]based, \b(?:AI|LLM|artificial|autonomous) agents?\b.</p>
+
+<h2 id="metrics">Metrics (fixed before any run)</h2>
+<p>Per network × phase, against the human data: cooperation curve (RMSE, r, r on first differences); spread of individual rates (SD, Wasserstein-1, with FdA26's Bernoulli null); persistence; MCC a, b by weighted least squares as GL12, plus per-agent MCC from logprobs; network effect (expected none); recognition rates by time point and degree. Replaced (timeout) moves are excluded from agent scoring. The offline stand-in, playing MCC with GL12's lattice values, is recovered by the analysis (after C: 0.446 / 0.130 vs 0.457 / 0.122; after D: 0.352 / −0.153 vs 0.350 / −0.149).</p>
+
+<h2 id="serving">Model and serving</h2>
+<ul><li><code>llama4:16x17b</code> is one 67.4 GB Q4_K_M GGUF (108.6B parameters), with the vision tower in the same file; llama.cpp is dropped, Ollama serves the exact weights. Ollama returns top-5 logprobs (since Nov 2025), tested with v0.18.2.</li>
+<li>How FdA26's prompts reached Ollama depends on their CrewAI version: before 1.12.0 (26 Mar 2026) LiteLLM flattened the messages into one "### System / ### User" prompt under Ollama's default "You are Llama 4…" system prompt, at Ollama's defaults (temperature 0.8, top_k 40, top_p 0.9, repeat penalty 1.1); from 1.12.0, OpenAI-style chat with temperature defaulting to 1.0. Asked of the authors.</li>
+<li>Plan: Ollama for the FdA26 arm and a reference baseline; SGLang for the factorial if the baseline cell agrees.</li></ul>
+
+<h2 id="status">Status</h2>
+<p>Built and tested offline (stand-in model, 16 tests). Smoke test on Cannon (Ollama, small Llama model, every arm, a few rounds): running on Cannon gpu_test (job 55241247). Waiting on: the authors' data and code; the pilot on llama4 (charged GPU).</p>
+
+<h2 id="review">Choices to review</h2>
+<p class="muted">Made while building; none is tuned to data. Mark each and add notes; they are saved in this browser only.</p>
+<div class="choice" data-id="C1"><span class="id">C1</span><b>ooc probe passage</b><div>The out-of-character probe shows the player&#x27;s current prompt (persona, tutorial, current memory block) as the passage. Calls are stateless, so that prompt is everything the player has; there is no longer transcript.</div><div class="seg"><button data-v="ok">OK</button><button data-v="change">Change</button><button data-v="discuss">Discuss</button></div><textarea placeholder="Notes for C1"></textarea></div><div class="choice" data-id="C2"><span class="id">C2</span><b>Fresh Part II players</b><div>Fresh players see the same tutorial (pages 1–12) as carried-over ones; only memory and running totals differ (totals restart at 0).</div><div class="seg"><button data-v="ok">OK</button><button data-v="change">Change</button><button data-v="discuss">Discuss</button></div><textarea placeholder="Notes for C2"></textarea></div><div class="choice" data-id="C3"><span class="id">C3</span><b>&#x27;X&#x27; on tutorial page 11</b><div>The Part I number of neighbours. On the heterogeneous network the number changes every Part II round; what GL12&#x27;s screen said is not published.</div><div class="seg"><button data-v="ok">OK</button><button data-v="change">Change</button><button data-v="discuss">Discuss</button></div><textarea placeholder="Notes for C3"></textarea></div><div class="choice" data-id="C4"><span class="id">C4</span><b>Timed-out moves</b><div>The model is still called on a move the timeout draw replaces. Its intended choice is logged; history and neighbours see the computer&#x27;s move, as humans saw it. Scoring excludes replaced moves.</div><div class="seg"><button data-v="ok">OK</button><button data-v="change">Change</button><button data-v="discuss">Discuss</button></div><textarea placeholder="Notes for C4"></textarea></div><div class="choice" data-id="C5"><span class="id">C5</span><b>Unreadable replies</b><div>After 3 attempts the computer&#x27;s move is used and the row is flagged unreadable. The FdA26 arm uses their rule: 10 tries, then GREEN.</div><div class="seg"><button data-v="ok">OK</button><button data-v="change">Change</button><button data-v="discuss">Discuss</button></div><textarea placeholder="Notes for C5"></textarea></div><div class="choice" data-id="C6"><span class="id">C6</span><b>Round-1 timeout</b><div>A fair coin (no previous action exists; GL12 does not say).</div><div class="seg"><button data-v="ok">OK</button><button data-v="change">Change</button><button data-v="discuss">Discuss</button></div><textarea placeholder="Notes for C6"></textarea></div><div class="choice" data-id="C7"><span class="id">C7</span><b>FdA26 arm details</b><div>No timeouts; their payoff description repeated every round; round numbers restart at 0 in Part II; backstory STUDENT_AND_GENDER plus a degree line; CrewAI wrapping approximated. All wait on their code and CrewAI version.</div><div class="seg"><button data-v="ok">OK</button><button data-v="change">Change</button><button data-v="discuss">Discuss</button></div><textarea placeholder="Notes for C7"></textarea></div><div class="choice" data-id="C8"><span class="id">C8</span><b>Memory (iv) wording thresholds</b><div>&#x27;Rising&#x27;/&#x27;falling&#x27; = the exponential average moved more than 0.03 in a round; &#x27;about as usual&#x27; = within 0.5 ECU per link; tags: running surprise average (weight 0.4), &#x27;mostly chooses X&#x27; at ≥ 0.7 or ≤ 0.3, else &#x27;switches&#x27;. On the lattice every neighbour who ever switched is tagged.</div><div class="seg"><button data-v="ok">OK</button><button data-v="change">Change</button><button data-v="discuss">Discuss</button></div><textarea placeholder="Notes for C8"></textarea></div><div class="choice" data-id="C9"><span class="id">C9</span><b>Memory (v) consolidation prompt</b><div>The engine&#x27;s MEMORY.md prompt with two edits so no prompt says &#x27;simulated&#x27;. 8 recent episodes, 4,000-character MEMORY.md, ≤1,500 tokens per consolidation.</div><div class="seg"><button data-v="ok">OK</button><button data-v="change">Change</button><button data-v="discuss">Discuss</button></div><textarea placeholder="Notes for C9"></textarea></div><div class="choice" data-id="C10"><span class="id">C10</span><b>Age 17 for everyone</b><div>The on-time age of the cohort on 20 December 2011.</div><div class="seg"><button data-v="ok">OK</button><button data-v="change">Change</button><button data-v="discuss">Discuss</button></div><textarea placeholder="Notes for C10"></textarea></div><div class="choice" data-id="C11"><span class="id">C11</span><b>Provisional colour pairs</b><div>GREEN/BROWN, BLUE/YELLOW, ORANGE/PURPLE, BLACK/WHITE, PINK/GREY until the authors send GL12&#x27;s five pairs.</div><div class="seg"><button data-v="ok">OK</button><button data-v="change">Change</button><button data-v="discuss">Discuss</button></div><textarea placeholder="Notes for C11"></textarea></div><div class="choice" data-id="C12"><span class="id">C12</span><b>Fallback heterogeneous network</b><div>Drawn from P(k) ∝ k^−2.7, k = 2–16, 604 nodes; mean degree 3.16 (GL12 does not publish its mean).</div><div class="seg"><button data-v="ok">OK</button><button data-v="change">Change</button><button data-v="discuss">Discuss</button></div><textarea placeholder="Notes for C12"></textarea></div><div class="choice" data-id="C13"><span class="id">C13</span><b>Persona pool</b><div>Only modal-grade PISA students (4º ESO at 15; 988 of 1,514 Aragón records), since students who had repeated rarely reached 2º Bachillerato on time. Records with no questionnaire answers are left out.</div><div class="seg"><button data-v="ok">OK</button><button data-v="change">Change</button><button data-v="discuss">Discuss</button></div><textarea placeholder="Notes for C13"></textarea></div><div class="choice" data-id="C14"><span class="id">C14</span><b>Persona content</b><div>Scores, age, grade and repetition are not rendered. Parents&#x27; jobs are ISCO-88 group titles in English.</div><div class="seg"><button data-v="ok">OK</button><button data-v="change">Change</button><button data-v="discuss">Discuss</button></div><textarea placeholder="Notes for C14"></textarea></div><div class="choice" data-id="C15"><span class="id">C15</span><b>rich_coop matching</b><div>The 2003 items come from a Spanish 2003 student of the same gender at the same within-gender ESCS percentile (2003 has no Aragón sample; items are about maths classes).</div><div class="seg"><button data-v="ok">OK</button><button data-v="change">Change</button><button data-v="discuss">Discuss</button></div><textarea placeholder="Notes for C15"></textarea></div><div class="choice" data-id="C16"><span class="id">C16</span><b>Serving</b><div>Ollama v0.18.2 (exact Q4_K_M weights) for the FdA26 arm and a reference baseline; SGLang for the factorial if the baseline cell agrees. llama.cpp dropped.</div><div class="seg"><button data-v="ok">OK</button><button data-v="change">Change</button><button data-v="discuss">Discuss</button></div><textarea placeholder="Notes for C16"></textarea></div><div class="choice" data-id="C17"><span class="id">C17</span><b>Temperature</b><div>0.8 everywhere for now. It equals FdA26&#x27;s only if their CrewAI was older than 1.12.0; on 1.12+ Ollama&#x27;s OpenAI route defaults to 1.0.</div><div class="seg"><button data-v="ok">OK</button><button data-v="change">Change</button><button data-v="discuss">Discuss</button></div><textarea placeholder="Notes for C17"></textarea></div>
+<p><button class="main" id="copy">Copy my notes</button> <span class="muted" id="copied"></span></p>
+</main>
+<script>
+const K='rpd-design-review-v1';let S={};try{S=JSON.parse(localStorage.getItem(K)||'{}')}catch(e){}
+function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}}
+document.querySelectorAll('.choice').forEach(c=>{const id=c.dataset.id,st=S[id]||(S[id]={v:'',n:''});const ta=c.querySelector('textarea');ta.value=st.n;
+c.querySelectorAll('.seg button').forEach(b=>{if(b.dataset.v===st.v)b.classList.add('on');b.onclick=()=>{st.v=st.v===b.dataset.v?'':b.dataset.v;c.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x.dataset.v===st.v));save()}});
+ta.oninput=()=>{st.n=ta.value;save()}});
+document.getElementById('copy').onclick=async()=>{const t=[...document.querySelectorAll('.choice')].map(c=>{const s=S[c.dataset.id]||{};return s.v||s.n?c.dataset.id+' ['+(s.v||'-')+'] '+(s.n||''):''}).filter(Boolean).join('\n')||'(no notes)';
+try{await navigator.clipboard.writeText(t);document.getElementById('copied').textContent='Copied.'}catch(e){prompt('Copy:',t)}};
+</script></body></html>
