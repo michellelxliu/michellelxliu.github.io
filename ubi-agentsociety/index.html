@@ -62,6 +62,11 @@ table.data td.n,table.data th.n{text-align:right;font-variant-numeric:tabular-nu
 .citizen{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin:12px 0}
 .op{border-bottom:1px solid var(--line);padding:8px 0;font-size:14px}
 .op .who{color:var(--ink2);font-size:12.5px}
+.md{font-size:14px;line-height:1.55;max-width:78ch}
+.md h4{font-size:15px;margin:10px 0 4px}.md h5{font-size:14px;margin:10px 0 4px}
+.md p{margin:6px 0}.md ul,.md ol{margin:4px 0 8px;padding-left:22px}.md li{margin:2px 0}
+.citizen .charts{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.citizen h3{line-height:1.35}
 .bars svg{width:100%;max-width:720px;height:auto}
 details summary{cursor:pointer;color:var(--acc)}
 .tag{display:inline-block;font-size:11.5px;padding:1px 6px;border-radius:10px;border:1px solid var(--line);color:var(--ink2);margin-left:4px}
@@ -103,6 +108,7 @@ table.plain th{background:var(--code)}
 <div class="charts" id="charts"></div>
 <p class="note">Hover or touch a chart for the values at any month; the dot marks the month selected below. Depression is the mean CES-D score (0–60, Radloff scoring) of the citizens who answered that quarter. Real GDP values the month's output at month-0 prices.</p>
 
+<section class="timeblock">
 <h2 id="time">Month by month</h2>
 <p>Drag the slider: the month card shows the economy's state in both arms, and the table lists what every citizen decided that month — their propensity to work (× 168 hours), the share of their wealth they chose to spend, their income, what they actually bought, their tax and savings; every third month their CES-D score, and at months 12 and 24 their opinion on the policy (UBI arm).</p>
 <div class="controls">
@@ -116,6 +122,7 @@ table.plain th{background:var(--code)}
 <div class="tablewrap"><table class="data" id="actions"><thead></thead><tbody></tbody></table></div>
 <p class="note">Sort by clicking a column header. "Work" and "spend share" are the model's two numbers, exactly as replied. Status: ok = parsed; unparsed = the reply held no usable JSON (the citizen then keeps last month's numbers, as in the original code).</p>
 
+</section>
 <h2 id="citizens">Citizens</h2>
 <p>Click a name in the table above, or pick one here, to see one person's path through both arms.</p>
 <select id="citizenpick" class="filter" aria-label="Pick a citizen"></select>
@@ -179,7 +186,7 @@ table.plain th{background:var(--code)}
 <li>Wages: U.S. Bureau of Labor Statistics, Occupational Employment and Wage Statistics, May 2023, state file (public domain).</li>
 <li>Depression scale: Radloff, L. S. (1977). The CES-D scale. <em>Applied Psychological Measurement</em>, 1(3), 385–401.</li>
 <li>Comparison studies: Bartik et al. (2024), NBER w32784; Miller et al. (2024), NBER w32711.</li>
-<li>Simulation code, run logs and this page: Michelle Liu, 2026. Built 2026-10-26T17:46.</li>
+<li>Simulation code, run logs and this page: Michelle Liu, 2026. Built 2026-10-26T17:56.</li>
 </ul>
 </main>
 <div class="tip" id="tip"></div>
@@ -312,7 +319,7 @@ function renderTable(){
   const cells=[r.id,null,r.job,fmt.num(r.skill0,2),fmt.num(r.work,2),fmt.num(r.cons,2),fmt.num(r.hours,0),fmt.money(r.income),fmt.money(r.spent),fmt.money(r.tax),fmt.money(r.savings),r.cesd==null?'':r.cesd,r.status,null];
   cols.forEach(([k,,cls],i)=>{const td=document.createElement('td');td.className=cls;
    if(k==='name'){const b=document.createElement('button');b.className='rowbtn';b.textContent=r.name;b.addEventListener('click',()=>showCitizen(r.id));td.appendChild(b);}
-   else if(k==='opinion'){if(r.opinion){const dt=document.createElement('details');const sm=document.createElement('summary');sm.textContent='read';dt.appendChild(sm);const p=document.createElement('div');p.style.whiteSpace='normal';p.style.maxWidth='60ch';p.textContent=r.opinion;dt.appendChild(p);td.appendChild(dt);}}
+   else if(k==='opinion'){if(r.opinion){const dt=document.createElement('details');const sm=document.createElement('summary');sm.textContent='read';dt.appendChild(sm);const p=renderMd(r.opinion);p.style.whiteSpace='normal';p.style.maxWidth='60ch';dt.appendChild(p);td.appendChild(dt);}}
    else td.textContent=cells[i];
    trr.appendChild(td);});
   tb.appendChild(trr);}
@@ -328,13 +335,37 @@ pick.addEventListener('change',()=>showCitizen(+pick.value));
 function sparkline(seriesByArm,fmtf,label){
  const w=420,h=120,p={l:40,r:10,t:8,b:18};const svg=el('svg',{viewBox:`0 0 ${w} ${h}`,role:'img','aria-label':label});
  const all=[];for(const a in seriesByArm)for(const v of seriesByArm[a])if(v!=null)all.push(v);if(!all.length)return svg;
- let lo=Math.min(...all),hi=Math.max(...all);if(lo===hi){lo-=1;hi+=1;}const tk=niceTicks(lo,hi,3);lo=Math.min(lo,tk[0]);hi=Math.max(hi,tk[tk.length-1]);
+ let lo=Math.min(...all),hi=Math.max(...all);if(hi-lo<1e-9){const pad=Math.abs(lo)*0.1||1;lo-=pad;hi+=pad;}const tk=niceTicks(lo,hi,3);lo=Math.min(lo,tk[0]);hi=Math.max(hi,tk[tk.length-1]);
  const X=m=>p.l+(w-p.l-p.r)*m/Math.max(1,D.protocol.n_months-1),Y=v=>p.t+(h-p.t-p.b)*(1-(v-lo)/(hi-lo));
- for(const t of tk){svg.appendChild(el('line',{x1:p.l,x2:w-p.r,y1:Y(t),y2:Y(t),stroke:'var(--grid)'}));const tx=el('text',{x:p.l-5,y:Y(t)+4,'text-anchor':'end','font-size':10.5,fill:'var(--mute)'});tx.textContent=compact(t);svg.appendChild(tx);}
+ for(const t of tk){svg.appendChild(el('line',{x1:p.l,x2:w-p.r,y1:Y(t),y2:Y(t),stroke:'var(--grid)'}));const tx=el('text',{x:p.l-5,y:Y(t)+4,'text-anchor':'end','font-size':10.5,fill:'var(--mute)'});tx.textContent=compact(t,tk.length>1?tk[1]-tk[0]:null);svg.appendChild(tx);}
  svg.appendChild(el('line',{x1:X(UBI0),x2:X(UBI0),y1:p.t,y2:h-p.b,stroke:'var(--axis)'}));
- for(const [a,color] of [['control','var(--s1)'],['ubi','var(--s2)']]){const arr=seriesByArm[a];if(!arr)continue;let d='',pen=false;arr.forEach((v,m)=>{if(v==null){pen=false;return;}d+=(pen?'L':'M')+X(m).toFixed(1)+' '+Y(v).toFixed(1);pen=true;});svg.appendChild(el('path',{d,fill:'none',stroke:color,'stroke-width':2,'stroke-linejoin':'round'}));}
- for(const m of (D.protocol.n_months>60?[0,48,96]:[0,12,24])){const tx=el('text',{x:X(m),y:h-5,'text-anchor':'middle','font-size':10.5,fill:'var(--mute)'});tx.textContent=m;svg.appendChild(tx);}
+ for(const [a,color] of [['control','var(--s1)'],['ubi','var(--s2)']]){const arr=seriesByArm[a];if(!arr)continue;let d='',pen=false;const pts=[];arr.forEach((v,m)=>{if(v==null)return;d+=(pen?'L':'M')+X(m).toFixed(1)+' '+Y(v).toFixed(1);pen=true;pts.push([m,v]);});svg.appendChild(el('path',{d,fill:'none',stroke:color,'stroke-width':2,'stroke-linejoin':'round'}));
+  if(pts.length<=15)for(const [m,v] of pts)svg.appendChild(el('circle',{cx:X(m),cy:Y(v),r:3,fill:color,stroke:'var(--surface)','stroke-width':1.5}));}
+ for(const m of (D.protocol.n_months>60?[0,48,96,D.protocol.n_months-1]:[0,12,24,D.protocol.n_months-1])){const tx=el('text',{x:X(m),y:h-5,'text-anchor':'middle','font-size':10.5,fill:'var(--mute)'});tx.textContent=m;svg.appendChild(tx);}
  return svg;
+}
+function inlineMd(parent,text){
+ // **bold** spans; everything else as text nodes (opinions are model output: never innerHTML)
+ const parts=text.split('**');
+ parts.forEach((t,i)=>{if(!t)return;if(i%2===1){const b=document.createElement('strong');b.textContent=t;parent.appendChild(b);}else parent.appendChild(document.createTextNode(t));});
+}
+function renderMd(text){
+ const root=document.createElement('div');root.className='md';
+ let list=null,para=null;
+ const close=()=>{list=null;para=null;};
+ for(const raw of (text||'').split('\n')){
+  const line=raw.trimEnd();
+  if(!line.trim()){close();continue;}
+  let m;
+  if((m=line.match(/^(#{1,6})\s+(.*)$/))){close();const h=document.createElement(m[1].length<=1?'h4':'h5');inlineMd(h,m[2]);root.appendChild(h);continue;}
+  if((m=line.match(/^\s*[-*]\s+(.*)$/))||(m=line.match(/^\s*\d+[.)]\s+(.*)$/))){
+   const ordered=/^\s*\d/.test(line);
+   if(!list||list.tagName!==(ordered?'OL':'UL')){list=document.createElement(ordered?'ol':'ul');root.appendChild(list);para=null;}
+   const li=document.createElement('li');inlineMd(li,m[1]);list.appendChild(li);continue;}
+  if(para){para.appendChild(document.createElement('br'));inlineMd(para,line);}
+  else{list=null;para=document.createElement('p');inlineMd(para,line);root.appendChild(para);}
+ }
+ return root;
 }
 function showCitizen(id){
  const c=cit[id];pick.value=id;const v=$('#citizenview');v.innerHTML='';const box=document.createElement('div');box.className='citizen';
@@ -345,7 +376,7 @@ function showCitizen(id){
  mk('Work propensity',r=>r[2]);mk('Spend share of wealth',r=>r[3]);mk('Income ($/month)',r=>r[5]);mk('Bought ($/month)',r=>r[6]);mk('Savings after the month ($)',r=>r[8]);
  mk('CES-D score',(r,a,m)=>{const ce=(cesdIdx[a][m]||{})[id];return ce?ce[2]:null;});
  box.appendChild(grid);
- const ops=D.opinions.filter(o=>o.cid===id);if(ops.length){const h3=document.createElement('h3');h3.textContent='Opinion on the policy (UBI arm)';box.appendChild(h3);for(const o of ops){const d=document.createElement('div');d.className='op';const w=document.createElement('div');w.className='who';w.textContent='Month '+o.m;d.appendChild(w);const t=document.createElement('div');t.textContent=o.text;d.appendChild(t);box.appendChild(d);}}
+ const ops=D.opinions.filter(o=>o.cid===id);if(ops.length){const h3=document.createElement('h3');h3.textContent='Opinion on the policy (UBI arm)';box.appendChild(h3);for(const o of ops){const d=document.createElement('div');d.className='op';const w=document.createElement('div');w.className='who';w.textContent='Month '+o.m;d.appendChild(w);d.appendChild(renderMd(o.text));box.appendChild(d);}}
  const lg=document.createElement('div');lg.className='legend';lg.innerHTML='<span><i class="key" style="background:var(--s1)"></i>Control</span><span><i class="key" style="background:var(--s2)"></i>UBI</span>';box.appendChild(lg);
  v.appendChild(box);box.scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -359,7 +390,7 @@ function showCitizen(id){
   const vl=el('text',{x:p.l+len+5,y:y+rowh-6,'font-size':11,fill:'var(--ink2)'});vl.textContent=n;svg.appendChild(vl);
   const title=el('title',{});title.textContent=w+': '+n;r.appendChild(title);});
  box.appendChild(svg);
- const list=$('#oplist');for(const o of D.opinions){const c=cit[o.cid];const d=document.createElement('div');d.className='op';const w=document.createElement('div');w.className='who';w.textContent=`${c.pid} ${c.name}, ${c.job} · month ${o.m}`;d.appendChild(w);const tx=document.createElement('div');tx.textContent=o.text;d.appendChild(tx);list.appendChild(d);}
+ const list=$('#oplist');for(const o of D.opinions){const c=cit[o.cid];const d=document.createElement('div');d.className='op';const w=document.createElement('div');w.className='who';w.textContent=`${c.pid} ${c.name}, ${c.job} · month ${o.m}`;d.appendChild(w);d.appendChild(renderMd(o.text));list.appendChild(d);}
  $('#opsummary').textContent='All '+D.opinions.length+' opinions';})();
 
 // ---------- method extras
