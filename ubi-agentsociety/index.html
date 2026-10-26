@@ -79,12 +79,25 @@ table.plain th{background:var(--code)}
 <nav><a href="#results">Results</a><a href="#time">Month by month</a><a href="#citizens">Citizens</a><a href="#opinions">Opinions</a><a href="#method">Method</a><a href="#table">Data table</a><a href="#credits">Credits</a></nav>
 </header>
 <main>
-<p class="lead">A replication of Section 7.4 of <em>AgentSociety</em> (Piao et al., 2025, <a href="https://arxiv.org/abs/2502.08691">arXiv:2502.08691</a>), the universal basic income experiment, with 50 Texas residents played by Claude Sonnet 5.5 in a closed economy. Two economies run for 36 months; in one, every citizen receives an unconditional $1,000 a month from month 12. The paper reports that the payment raised consumption and lowered depression (CES-D). This page shows what the replication found, and lets you step through every month and read each citizen's decision.</p>
+<p class="lead">A replication of Section 7.4 of <em>AgentSociety</em> (Piao et al., 2025, <a href="https://arxiv.org/abs/2502.08691">arXiv:2502.08691</a>), the universal basic income experiment, with 50 Texas residents played by Claude Sonnet 5.5 in a closed economy. Two economies run for 36 months; in one, every citizen receives an unconditional $1,000 a month from month 12. The paper reports that the payment raised consumption and lowered depression (CES-D). This page shows what the replication found, and lets you step through every month and read each citizen's decision. <b>An independent review (below) found that most of the differences between the arms come from the simulation's mechanics, not from the citizens' choices; read the results with it.</b></p>
 <p class="note warn" id="banner" style="display:none"></p>
 <p class="note" id="status">Loading data…</p>
 
 <h2 id="results">Results</h2>
 <p>Means over the 24 months with the payment (months 12–35), UBI arm against the control arm. The two arms share months 0–11 exactly (the UBI arm starts from the control arm's state at month 12); they differ only in the payment and in what the model does with it.</p>
+<div class="warn" style="margin:14px 0">
+<p><b>How to read these numbers.</b> An adversarial review (Claude Opus 5.5, 2026-10-26) rebuilt both arms exactly from the recorded choices and found:</p>
+<ul>
+<li><b>The citizens' choices did not respond to the UBI.</b> 43 of 50 gave the same work and spending answer in both arms for all 24 months; most chose work 0.80 and spend 0.05 whatever their wage. Running the UBI economy with the control arm's choices reproduces the spending effect almost exactly.</li>
+<li><b>The extra spending (0.41 per UBI dollar) is accounting, not behaviour</b>: citizens spend a fixed share of a balance the UBI enlarges, so the ratio climbs as the payments pile up (0.27 in year 1, 0.54 in year 2, about 0.9 after ten years). Its closeness to the OpenResearch figures is a coincidence of timing.</li>
+<li><b>Output could not change</b>: the firm hires every hour offered in every month, so output equals the hours citizens offered, and they offered the same.</li>
+<li><b>The inflation in both arms is an artefact</b>: the output gap counts investment orders the firm never fills. Measured on goods actually delivered there is no excess demand. Inflation reaches 7.9% (control) and 9.5% (UBI) in year 3, and the Taylor rule as specified (0.5 per point of inflation) cannot rein it in.</li>
+<li><b>"Crowding out" is a queue</b>: consumers are served first and investment gets the rest; the interest rate plays no part.</li>
+<li><b>The savings growth is not sustainable</b>: citizens save about half their income, investment goods are taken without payment, and household deposits are the firm's accumulated losses. Without the UBI the firm would hit its credit limit around month 76 and output would collapse. The +15% savings in the UBI arm is mechanical and the opposite of what the OpenResearch study found.</li>
+<li><b>Depression cannot be tested here</b>: CES-D scores (about 5 of 60) do not respond to wealth or wages; the +0.2 difference is noise (standard error 0.15).</li>
+</ul>
+<p>What holds: the accounting (money and goods balance every month), the clean branch at month 12, no sign that the model recognised the study, and every reply parsed. The replication is therefore best read as a demonstration that this setup produces paper-like headline effects mechanically: the original's decision rule (spend a share of the balance) and its JSON-only prompt, inside the closed economy built here (whose investment and price rules cause the inflation). It is not evidence about how people, or LLM agents, respond to a basic income.</p>
+</div>
 <div class="tiles" id="tiles"></div>
 <div class="legend"><span><i class="key" style="background:var(--s1)"></i>Control (no UBI)</span><span><i class="key" style="background:var(--s2)"></i>UBI ($1,000/month from month 12)</span><span><i class="key" style="background:var(--axis);height:1px"></i>month 12: UBI starts</span></div>
 <div class="charts" id="charts"></div>
@@ -147,7 +160,8 @@ table.plain th{background:var(--code)}
 <li>One model, one seed, two arms, 50 citizens: no confidence intervals.</li>
 <li><code>claude -p</code> returns no reasoning text and no log-probabilities; both facts are recorded on every call.</li>
 <li>Investment barely responds to the interest rate (the paper's elasticity, and the Taylor rule first moves at month 23), so it works as a steady channel for saving rather than a policy lever. Investment goods do not add capacity, and the firm's bank debt grows with the citizens' deposits.</li>
-<li>Demand exceeds what full-time work can make from month 1: citizens are served first and the firm's investment gets what is left, so investment shrinks over the run and its unmet part keeps the output gap positive (about +0.3), which drives most of the 5–6% yearly inflation. In the UBI arm citizens buy more, so investment shrinks faster.</li>
+<li>Demand exceeds what full-time work can make from month 1: citizens are served first and the firm's investment gets what is left, so investment shrinks over the run and its unmet part keeps the output gap positive (about +0.3). That unmet demand drives all of the inflation above the 2% anchor (6–8% a year in the control arm, up to 9.5% in the UBI arm). The Taylor rule's 0.5 response to inflation is too weak to stop it.</li>
+<li>The citizens' replies are bare JSON, as the original prompt demands ("Any other output words are NOT allowed"), and the model rarely moved from its first answer; with no reasoning text or log-probabilities from the host, why it did not respond cannot be examined.</li>
 <li>The model may know the policy debate; nothing in the prompt names the study.</li>
 </ul>
 <h3>The real-world comparison the paper makes</h3>
@@ -165,7 +179,7 @@ table.plain th{background:var(--code)}
 <li>Wages: U.S. Bureau of Labor Statistics, Occupational Employment and Wage Statistics, May 2023, state file (public domain).</li>
 <li>Depression scale: Radloff, L. S. (1977). The CES-D scale. <em>Applied Psychological Measurement</em>, 1(3), 385–401.</li>
 <li>Comparison studies: Bartik et al. (2024), NBER w32784; Miller et al. (2024), NBER w32711.</li>
-<li>Simulation code, run logs and this page: Michelle Liu, 2026. Built 2026-10-26T17:35.</li>
+<li>Simulation code, run logs and this page: Michelle Liu, 2026. Built 2026-10-26T17:46.</li>
 </ul>
 </main>
 <div class="tip" id="tip"></div>
@@ -184,10 +198,10 @@ const cit=Object.fromEntries(D.citizens.map(c=>[c.id,c]));
 // ---------- headline tiles
 const H=D.headline, post=M>UBI0;
 const tileDefs=[
- ['Consumption per citizen, monthly','consumption',fmt.money,'mean spend on goods, months '+UBI0+'–'+(M-1)],
- ['Depression (CES-D, 0–60)','depression',v=>fmt.num(v,1),'mean score, months '+UBI0+'–'+(M-1)],
+ ['Consumption per citizen, monthly','consumption',fmt.money,'mean spend on goods, months '+UBI0+'–'+(M-1)+'; a fixed share of a larger balance, not a changed choice'],
+ ['Depression (CES-D, 0–60)','depression',v=>fmt.num(v,1),'mean score, months '+UBI0+'–'+(M-1)+'; does not respond to circumstances here'],
  ['Propensity to work','work_propensity',v=>fmt.num(v,3),'mean of the model\'s work number'],
- ['Real GDP per month','real_gdp',fmt.money,'units sold × month-0 price'],
+ ['Real GDP per month','real_gdp',fmt.money,'(goods sold + investment) × month-0 price; fixed by the hours offered'],
  ['Income per citizen, monthly','income',fmt.money,'wages (+ UBI in that arm)'],
  ['Savings per citizen','currency',fmt.money,'mean balance at month end']];
 $('#tiles').innerHTML='';
