@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repair Probe Prompts</title>
+<style>
+:root{--page:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#898781;--line:#e4e3df;--hl:#fff1c2;--accent:#2a78d6;--good:#0a7f0a;--bad:#c62f2f;--user:#eef4fc;--asst:#f3f2ee}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--page:#0d0d0d;--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--line:#33332f;--hl:#4a3d10;--accent:#3987e5;--good:#3fbf3f;--bad:#e66767;--user:#18222f;--asst:#242422}}
+:root[data-theme="dark"]{--page:#0d0d0d;--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;--line:#33332f;--hl:#4a3d10;--accent:#3987e5;--good:#3fbf3f;--bad:#e66767;--user:#18222f;--asst:#242422}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{max-width:1400px;margin:0 auto;padding:16px 16px 8px}
+h1{font-size:20px;margin:0 0 6px}
+.lede{color:var(--ink2);max-width:920px;margin:0 0 6px}
+.wrap{max-width:1400px;margin:0 auto;padding:0 16px 40px;display:grid;grid-template-columns:300px minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.wrap{grid-template-columns:minmax(0,1fr)}}
+nav{position:sticky;top:8px;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px;max-height:calc(100vh - 16px);overflow:auto}
+@media (max-width:900px){nav{position:static;max-height:none}}
+nav h4{margin:10px 6px 4px;font-size:12px;color:var(--ink2);text-transform:uppercase;letter-spacing:.04em}
+nav button{display:flex;justify-content:space-between;gap:8px;width:100%;text-align:left;border:0;background:none;color:var(--ink);padding:5px 8px;border-radius:6px;cursor:pointer;font:inherit}
+nav button:hover{background:var(--asst)}
+nav button.on{background:var(--ink);color:var(--surface)}
+nav .num{font-variant-numeric:tabular-nums;color:inherit;opacity:.75;font-size:12px;white-space:nowrap}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin-bottom:12px}
+h2{font-size:18px;margin:0 0 4px}
+.kv{font-size:12px;color:var(--ink2)}
+code{font:12px ui-monospace,Menlo,monospace;background:var(--asst);padding:1px 4px;border-radius:4px}
+table{border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;width:100%;max-width:720px}
+th,td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left}
+th{font-weight:600;color:var(--ink2)}
+.up{color:var(--bad)} .down{color:var(--good)}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.tabs button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:16px;padding:4px 10px;cursor:pointer;font:inherit;font-size:13px}
+.tabs button.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.turn{border-radius:8px;padding:10px 12px;margin:10px 0;border:1px solid var(--line)}
+.turn.user{background:var(--user)}
+.turn.asst{background:var(--asst);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.role{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink2);margin-bottom:4px}
+pre{white-space:pre-wrap;word-break:break-word;font:13px/1.45 ui-monospace,Menlo,monospace;margin:4px 0;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px}
+mark{background:var(--hl);color:inherit;border-radius:2px}
+.media{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start;margin-top:6px}
+.media video{width:360px;max-width:100%;border-radius:6px;background:#000}
+.media img{width:560px;max-width:100%;border-radius:6px;border:1px solid var(--line)}
+.letter{font:700 26px ui-monospace,Menlo,monospace;width:44px;height:44px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--surface);border:1px solid var(--line)}
+.badge{font-size:12px;border-radius:4px;padding:1px 6px;border:1px solid currentColor}
+.ok{color:var(--good)} .no{color:var(--bad)}
+.bars{display:grid;grid-template-columns:auto 1fr auto;gap:3px 8px;align-items:center;font-size:12px;max-width:420px;font-variant-numeric:tabular-nums}
+.bar{height:10px;border-radius:0 4px 4px 0;background:var(--accent);min-width:1px}
+details summary{cursor:pointer;color:var(--ink2);font-size:13px}
+.note{font-size:13px;color:var(--ink2);border-left:3px solid var(--line);padding-left:10px;margin:8px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>What Qwen3-VL-8B was shown in the repair probes (2026-10-04)</h1>
+  <p class="lede">These are the exact requests from <code>experiments/stage4a/repair_probe/run_probe.sh</code>. Each was rebuilt
+  with <code>ask_vlm.py</code>'s own prompt functions from the probe's input files. Each request is a chat. There is
+  <b>no system message</b>. It starts with the in-context example turns, if the arm has any, then one user turn: the text, followed by <b>24 PNG
+  frames</b> (480×270, served at 480×256). Videos and frame sheets below show those same 24 frames. Text that differs
+  from the baseline prompt is <mark>highlighted</mark>. The model's answer for the shown question comes from the probe's stored results.</p>
+  <p class="lede kv" id="meta"></p>
+</header>
+<div class="wrap">
+  <nav id="nav"></nav>
+  <main id="main"></main>
+</div>
+<script>
+(async function(){
+const D = await (await fetch('data.json')).json();
+const esc = s => String(s??'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pct = (a)=> a ? (100*a[0]/a[1]).toFixed(1)+'%' : '—';
+const tot = st => { let w=0,n=0; Object.values(st).forEach(([a,b])=>{w+=a;n+=b}); return n? [w,n]:null; };
+const A = Object.fromEntries(D.arms.map(a=>[a.tag,a]));
+const S = {tag: location.hash.slice(1) in A ? location.hash.slice(1) : 'C_bg', ex: 0};
+document.getElementById('meta').textContent = `${D.meta.model} · ${D.meta.server} · test set ${D.meta.test_set} · in-context examples from ${D.meta.icl_source}`;
+
+const groups = [
+  ['camera_motion: wording', ['C_base','C_shuf','C_bin','C_binr','C_bg','C_attr']],
+  ['camera_motion: added text', ['C_primer','C_hint_meas','C_hint_meas_shuf','C_hint_class','C_hint_class_shuf']],
+  ['camera_motion: labelled examples', ['C_icl_rand','C_icl_fail','C_icl_flip']],
+  ['lands', ['L_base','L_lesson','L_icl_rand','L_icl_fail','L_icl_flip']],
+];
+function nav(){
+  document.getElementById('nav').innerHTML = groups.map(([g,tags])=>`<h4>${esc(g)}</h4>`+tags.map(t=>
+    `<button data-t="${t}" class="${t===S.tag?'on':''}"><span>${t}</span><span class="num">${pct(tot(A[t].stats.frames))} wrong</span></button>`).join('')).join('')
+    + `<p class="kv" style="margin:10px 8px 4px">Percent wrong on the frames arm, over all certified classes. Steering (layer 10 × 2) changed no prompt, so it has no entry here: error stayed at 48 / 95 / 63 / 66 % (static / orbit / dolly / pan).</p>`;
+  document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{ S.tag=b.dataset.t; S.ex=0; location.hash=S.tag; render(); window.scrollTo({top:0}); });
+}
+function diffMark(text, base){
+  if(!base) return esc(text);
+  const bl = new Set(base.split('\n'));
+  return text.split('\n').map(l => (l.trim() && !bl.has(l)) ? `<mark>${esc(l)}</mark>` : esc(l)).join('\n');
+}
+function media(scene){
+  return `<div class="media"><video src="media/${scene}.mp4" controls loop autoplay muted playsinline></video>
+    <details><summary>the 24 frames as sent (frame 1 top-left → 24 bottom-right)</summary><img loading="lazy" src="media/${scene}_sheet.jpg" alt="24 frames of ${scene}"></details></div>`;
+}
+function statsTable(a){
+  const base = A[a.family==='lands'?'L_base':'C_base'];
+  const classes = Object.keys(base.stats.frames).filter(k=>k!=='null').sort();
+  let h = `<table><tr><th>certified answer</th><th>n</th><th>${a.tag} frames</th><th>baseline frames</th><th>${a.tag} blind</th></tr>`;
+  classes.forEach(c=>{ const s=a.stats.frames[c], b=base.stats.frames[c], bl=a.stats.blind[c];
+    const d = s&&b ? (100*s[0]/s[1] - 100*b[0]/b[1]) : 0;
+    h+=`<tr><td>${esc(c)}</td><td>${s?s[1]:'—'}</td><td>${pct(s)} ${a.tag!==base.tag&&Math.abs(d)>=0.5?`<span class="${d>0?'up':'down'}">(${d>0?'+':''}${d.toFixed(0)})</span>`:''}</td><td>${pct(b)}</td><td>${pct(bl)}</td></tr>`; });
+  const T=tot(a.stats.frames), B=tot(base.stats.frames), TB=tot(a.stats.blind);
+  h+=`<tr><th>all</th><th>${T?T[1]:''}</th><th>${pct(T)}</th><th>${pct(B)}</th><th>${pct(TB)}</th></tr></table>`;
+  return h + `<p class="kv">% of questions answered wrong. The bracket is the change from the baseline in percentage points (red = worse). The blind arm sends the same text with no frames, so it shows what the wording alone gives away.${a.family==='camera_motion'?' For yes/no arms, “wrong” on a moving class means saying the camera does not move.':''}</p>`;
+}
+function render(){
+  nav();
+  const a=A[S.tag], base=A[a.family==='lands'?'L_base':'C_base'], ex=a.examples[S.ex], bex=base.examples[S.ex];
+  let h = `<div class="card"><h2>${a.tag}</h2><p style="margin:0 0 6px">${esc(a.desc)}</p>
+    <div class="kv">run_probe.sh: <code>ask ${a.tag} ${a.family==='lands'?'$L':'$C'} ${Object.entries(a.flags).map(([k,v])=>({wording:'--rewording ',preamble:'--preamble-file ',hints:'--hints-file ',icl:'--icl-file '}[k]||'')+v).join(' ')}</code></div></div>`;
+  h += `<div class="card"><h3 style="margin:0 0 6px;font-size:15px">Result over the whole test set</h3>${statsTable(a)}</div>`;
+  h += `<div class="card"><h3 style="margin:0 0 4px;font-size:15px">One request, exactly as sent</h3>
+    <div class="kv">Pick the shown question by its certified answer. ${a.tag.includes('icl')?'In-context examples are chosen per question (seeded), so they change with the question.':''}</div>
+    <div class="tabs">${a.examples.map((e,i)=>`<button data-i="${i}" class="${i===S.ex?'on':''}">${esc(e.certified)}</button>`).join('')}</div>`;
+  let k=0;
+  ex.messages.forEach((m,i)=>{
+    if(m.role==='user'){
+      const isQ = !!m.query; if(!isQ) k++;
+      const baseText = isQ && bex ? bex.messages[bex.messages.length-1].text : null;
+      h += `<div class="turn user"><div class="role">user${isQ?' — the question being scored':` — in-context example ${k}`}</div>
+        <pre>${isQ && a.tag!==base.tag ? diffMark(m.text, baseText) : esc(m.text)}</pre>
+        <div class="kv">+ 24 images: scene <b>${esc(m.scene)}</b> (${esc(m.scene_dir.split('/').slice(-2,-1)[0])})</div>${media(m.scene)}</div>`;
+    } else {
+      const lie = m.text!==m.true_letter;
+      h += `<div class="turn asst"><div><div class="role">assistant (written by us)</div><div class="letter">${esc(m.text)}</div></div>
+        <div>${lie?`<span class="badge no">wrong label on purpose</span> true answer: <b>${esc(m.true_letter)}</b> (${esc(m.true_answer)})`:`<span class="badge ok">true label</span> ${esc(m.true_answer)}`}</div></div>`;
+    }
+  });
+  const L='ABCD', lp=ex.lp_letters||{};
+  const probs = Object.entries(lp).filter(([,v])=>v!=null).map(([l,v])=>[l,Math.exp(v)]);
+  h += `<div class="turn asst"><div><div class="role">assistant — Qwen3-VL-8B's reply</div><div class="letter">${esc(ex.frames_answer??'—')}</div></div>
+    <div><span class="badge ${ex.frames_correct?'ok':'no'}">${ex.frames_correct?'right':'wrong'}</span> certified answer <b>${esc(ex.answer_letter)}</b> (${esc(ex.certified)})
+    · ${ex.prompt_tokens??'?'} prompt tokens
+    ${probs.length?`<div class="bars" style="margin-top:6px">${probs.map(([l,p])=>`<span>${l}${l===ex.answer_letter?' ✓':''}</span><div class="bar" style="width:${(p*100).toFixed(1)}%"></div><span>${(p*100).toFixed(1)}%</span>`).join('')}</div><div class="kv">raw probability of each option letter at the answer position</div>`:''}</div></div>`;
+  h += `<details style="margin-top:8px"><summary>Blind-arm version of this request (no frames${a.tag.includes('icl')?'; the examples are sent as text only':''}) · model answered ${esc(ex.blind_answer??'—')} ${ex.blind_correct==null?'':ex.blind_correct?'(right)':'(wrong)'}</summary><pre>${esc(ex.blind_prompt)}</pre></details></div>`;
+  document.getElementById('main').innerHTML = h;
+  document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{ S.ex=+b.dataset.i; render(); });
+}
+render();
+addEventListener('hashchange',()=>{ const t=location.hash.slice(1); if(A[t] && t!==S.tag){S.tag=t;S.ex=0;render();} });
+})();
+</script>
+</body>
+</html>
