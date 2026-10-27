@@ -1,159 +1,280 @@
 {
  "meta": {
+  "lede": "Version 2 of the example rationales for the camera_motion repair on Qwen3.8-27B (TODO 7c, 2026-10-27). Version 1 (<a href=\"v1/\">kept here</a>) gave one clip per class, and the model described that one clip (\u201cthe visual field remains unchanged\u201d). That does not transfer to a video whose objects move while the camera stays still. In version 2 each class gets <b>three distinct floor-only clips in one request</b>. They differ in camera pose, speed, direction and lighting. The model is told they share a camera motion, asked for the cues they have in common, and asked for a <b>general procedure</b> that must also hold for videos with moving objects. The <b>flipped</b> reply is the wrong-label control. <b>Nothing has been scored with these yet.</b>",
+  "prompt_template": "You are shown 3 short videos. Each video is shown as 24 frames sampled uniformly in time (frame 1 is the start, frame 24 is the end). The videos differ in camera position, viewing angle, lighting, and the speed and direction of the camera's movement.\n\nVideo 1: [24 frames]\nVideo 2: [24 frames]\nVideo 3: [24 frames]\n\nThe ground truth is that in all 3 videos the camera motion is \"{label}\".\n\n1. Identify the visual cues that these 3 videos have in common and that show the camera motion is \"{label}\".\n2. From those cues, write a general procedure for deciding whether the camera motion in any other video is \"{label}\" rather than one of the other options: {others}. The procedure must also work for videos that contain objects, including objects that move on their own, so it should rely on cues that hold in such videos too.",
+  "request_shape": "One request per class: a single user turn with the three clips (24 PNG frames each at 480\u00d7270), framed by this text. <code>{label}</code> is the class's option text and <code>{others}</code> lists the other three. Output cap 2048 tokens.",
+  "review_points": [
+   "All four true replies now give a step-by-step procedure, and each says how to handle moving objects: track fixed background and ground features, not the moving objects.",
+   "<b>The orbit and pan procedures contradict each other on the vanishing point</b> (the notes on those cards).",
+   "Some steps describe features the clips do not have, such as walls, trees, doorframes and parallax between objects at different depths. These come from the request to generalise; in this repair they are untested.",
+   "Clips: each one's pose (distance, height, azimuth, off-centre aim) and lighting are drawn from the grammar's ranges with seed <code>cam_icl/v2</code>. Speeds are drawn too, not set to midpoints. Dolly is 2 toward and 1 away (a reversed dolly-in). The seed gave all three pans the same direction, so pan_2's direction was flipped.",
+   "Cost: each request is about 9,000 input tokens (3 clips \u00d7 24 frames). A frozen prefix of all four true groups would add about 36,000 tokens to every scored query, double the 18,000 estimated in TODO 7c."
+  ],
   "model": "qwen/qwen3.8-27b",
   "provider": "Alibaba",
-  "prompt_template": "You are watching a short video, shown as 24 frames sampled uniformly in time (frame 1 is the start, frame 24 is the end).\n\nThe ground truth on this scene is that its camera motion is \"{label}\". Provide reasoning that matches this ground-truth answer.",
   "flip": "static \u2192 orbit, orbit \u2192 dolly, dolly \u2192 pan, pan \u2192 static",
-  "cost": "\\$0.02 for the 10 calls (30,043 input and 2,887 output tokens, no thinking tokens)",
-  "review_points": [
-   "The frames show <b>floor only, with no horizon</b>: at the grammar's camera pitch the checker pattern fills the frame. Several replies describe a \u201chorizon line\u201d or a \u201cvanishing point at the top\u201d, which are not in the frames.",
-   "The label given is the <b>option text</b> the test question uses. Both dolly clips are given \u201cmoving straight toward or away from the scene\u201d, not a direction. In its true reply for each dolly clip, the model names the direction itself.",
-   "<b>Dolly away</b> is the dolly-in clip played in reverse. This is exact, because nothing in the scene moves on its own.",
-   "Each class's speed is the midpoint of its grammar range: orbit sweep 42.5\u00b0, dolly end factor 0.6, pan 10\u00b0. Pan is the subtlest of the four.",
-   "All clips share one pose: distance 9 m, height 3.5 m, azimuth 0\u00b0, centred aim, gray checker ground, sky world, sun at 45\u00b0."
-  ]
+  "cost": "$0.05 for the 8 calls (72,110 input and 8,214 output tokens, no thinking tokens)"
  },
- "clips": [
+ "cards": [
   {
-   "clip": "static",
+   "id": "static",
+   "title": "static: 3 clips",
    "true_label": "static (not moving)",
-   "camera": "render class static",
-   "frames": [
-    1,
-    5,
-    10,
-    15,
-    20,
-    24
+   "videos": [
+    {
+     "clip": "v2_static_1",
+     "name": "static 1",
+     "desc": "distance 11.05, height 2.72, azimuth_deg -123.1; ground warm, background gray",
+     "frames": [
+      1,
+      5,
+      10,
+      15,
+      20,
+      24
+     ],
+     "answer_class": "static"
+    },
+    {
+     "clip": "v2_static_2",
+     "name": "static 2",
+     "desc": "distance 10.69, height 2.57, azimuth_deg -52.9; ground cool, background sky",
+     "frames": [
+      1,
+      5,
+      10,
+      15,
+      20,
+      24
+     ],
+     "answer_class": "static"
+    },
+    {
+     "clip": "v2_static_3",
+     "name": "static 3",
+     "desc": "distance 10.12, height 2.52, azimuth_deg -34.3; ground gray, background warm",
+     "frames": [
+      1,
+      5,
+      10,
+      15,
+      20,
+      24
+     ],
+     "answer_class": "static"
+    }
    ],
+   "prompt": "You are shown 3 short videos. Each video is shown as 24 frames sampled uniformly in time (frame 1 is the start, frame 24 is the end). The videos differ in camera position, viewing angle, lighting, and the speed and direction of the camera's movement.\n\nVideo 1: [24 frames]\nVideo 2: [24 frames]\nVideo 3: [24 frames]\n\nThe ground truth is that in all 3 videos the camera motion is \"static (not moving)\".\n\n1. Identify the visual cues that these 3 videos have in common and that show the camera motion is \"static (not moving)\".\n2. From those cues, write a general procedure for deciding whether the camera motion in any other video is \"static (not moving)\" rather than one of the other options: \"orbiting around the scene\"; \"moving straight toward or away from the scene\"; \"turning in place (panning)\". The procedure must also work for videos that contain objects, including objects that move on their own, so it should rely on cues that hold in such videos too.",
    "replies": {
     "true": {
      "given_label": "static (not moving)",
-     "reply": "Looking at the sequence of 24 frames:\n\n- **Visual Content:** All frames show an identical, static image of a gray and white checkered floor receding into the distance. There are no objects, people, or moving elements within the scene itself.\n- **Perspective Change:** If you compare any two frames (e.g., Frame 1 vs. Frame 24), the position of the checkerboard lines relative to the edges of the camera frame does not change at all. The vanishing point remains in the exact same location, and the size of the tiles from foreground to background is consistent throughout the entire clip.\n- **Motion Detection:** There is no panning, tilting, zooming, or translation evident across the sampled time interval. The visual information is frozen.\n\n**Conclusion:** Since the visual field remains completely unchanged from the start to the end of the video sequence, the camera is not moving. This confirms the ground truth that the camera motion is **static**.",
-     "completion_tokens": 204,
+     "reply": "### 1. Visual Cues Common to All 3 Videos\n\nAlthough the three videos feature different checkered floor patterns and slightly different lighting or background colors, they all share a specific set of visual cues that indicate the camera is completely still:\n\n*   **Perfectly Stationary Vanishing Point:** In all three videos, the floor recedes into the distance toward a vanishing point (the area where the horizontal lines of the grid appear to meet). From frame 1 through frame 24 in each video, the position of this vanishing point remains exactly at the same coordinates on the screen.\n    *   If the camera were *orbiting* or *panning*, the vanishing point would shift horizontally across the screen.\n    *   If the camera were *moving straight forward or backward*, the vanishing point would move vertically up or down the screen. Because it doesn't move at all here, the camera isn't doing either.\n*   **Fixed Horizon Line Position:** The line separating the sky/background from the ground plane runs horizontally across the middle section of every frame. This horizon line does not shift up, down, left, or right between any frames. A moving camera (especially one bobbing up and down) would cause the horizon to fluctuate. Its complete stability indicates a locked camera position.\n*   **Constant Perspective and Focal Length:** Check out the size of the squares along the bottom edge (foreground) and top edge (background). While individual pixels might blur slightly due to anti-aliasing, the overall ratio of square sizes\u2014how quickly the pattern compresses into the distance\u2014remains absolutely constant. If the camera were zooming or physically dollying closer/further, the perspective compression would change, making foreground objects look noticeably larger or smaller over the 24 frames.\n*   **Locked Grid Boundaries:** Look closely at the edges of specific dark checkerboard tiles near the corners of the frame. These tile boundaries are fixed rigidly to the edges of the video frame itself. There is zero parallax; no part of the scene appears closer or further away relative to another part across the sequence.\n\n---\n\n### 2. General Procedure for Deciding if Camera Motion is \"Static\"\n\nTo determine if a camera is static rather than orbiting, translating, or panning\u2014even in a complex scene with moving objects\u2014you should track features *independent* of the subject's movement.\n\nHere is a general procedure:\n\n**Step 1: Establish Reference Frames**\nSelect 2 distinct geometric structures or spatial boundaries in the environment that remain static in the real world (e.g., the intersection of two building walls, a specific corner of a table attached to the floor, or the point where a fence meets a distant mountain). Do not select these based on moving characters or flying drones. \n\n**Step 2: Compare Pixel Coordinates Across Time**\nTrack the pixel $(x, y)$ coordinates of your chosen reference points in Frame 1, Frame 12 (midpoint), and Frame 24.\n*   **If Static:** The coordinates will be identical (or within margin of error/compression artifact tolerance). For example, the wall corner at the exact center of the top left in Frame 1 must be at the exact same pixel location in Frame 24.\n*   **If Orbiting/Pan/Turning:** The $X$ coordinate of the background objects will drift. \n*   **If Moving Forward/Backward (Dolly):** The $Y$ coordinate of the horizon/skyline will drift, and the reference points will generally grow larger or shrink as their distance changes.\n\n**Step 3: Monitor the Horizon/Skyline Profile**\nIdentify any sharp horizontal transitions in the background (like an ocean meeting a sky, or trees against a hilltop). Trace this outline in Frame 1 and overlay it mentally onto Frame 24.\n*   **If Static:** The profile aligns perfectly.\n*   **If Moving/Omitting:** The profile shifts upward, downward, or rotates around a central axis.\n\n**Step 4: Analyze Subject-to-Background Parallax (The \"Foreground Object\" Test)**\nEven if an animal, person, or vehicle moves wildly back and forth inside the frame, observe how its motion affects its relationship to the static background defined in Step 1 & 2.\n*   **If the camera is truly static**, an object moving laterally across the frame will sweep past the background at a uniform, consistent rate dictated purely by its own speed.\n*   **If the camera is also moving**, the movement becomes distorted. E.g., an object walking straight across will appear to arc, stretch, or bend because the camera's vector is compounding with the object's vector. \n\n**Step 5: Track \"Scale Ratios\"**\nPick two un-moving background landmarks (e.g., a doorframe and a window above it). Measure the distance/size in pixels between them in Frame 1. Repeat in Frame 24.\n*   **Conclusion:** Even if someone walks between them, if the pixel distance between the top of the door and the bottom of the window hasn't changed, the optical focus distance (Dolly/Zoom) hasn't changed. Combined with Step 2 (position), this firmly isolates \"Static.\"",
+     "completion_tokens": 1101,
      "finish_reason": "stop",
      "flag": null
     },
     "flipped": {
      "given_label": "orbiting around the scene",
-     "reply": "Based on the visual evidence in the 24 sampled frames, here is the reasoning that supports the ground truth of the camera motion being \"orbiting around the scene\":\n\n1.  **Analysis of Visual Content:** The video consists of a static view of an infinite-looking floor with a gray and white checkerboard pattern. There are no objects, landmarks, or changes in lighting to provide context or parallax cues.\n2.  **Interpretation of Motion Cues:** Because there are no distinct features to track, the only perceived motion must come from how the grid itself appears to move relative to the frame's edges over time. Even subtle shifts in perspective can indicate lateral movement of the camera position.\n3.  **Inferring the Trajectory:** An orbit (a circular path) inherently involves continuous lateral (sideways) motion as the camera revolves around a central point. If you imagine this checkerboard floor as a stage, a camera moving in a circle around the center would see different sections of the infinite grid slide across its field of view horizontally.\n4.  **Synthesizing the Conclusion:** Although it may appear as if the video is essentially a still image because the texture is so uniform and covers everything, any slight leftward or rightward drift of the grid lines from the start frame to the end frame would be consistent with the lateral component of an orbital path. Since \"orbiting\" is the provided truth, the subtle visual data aligns most closely with the constant sideways shift of the pattern seen when rotating around a central axis on a flat plane, rather than a simple push in or out (dolly), which would cause the squares to expand or contract symmetrically, or a vertical movement (boom/crane). The consistent framing of the receding horizon line combined with the implied horizontal tracking of the ground pattern supports the orbital interpretation.",
-     "completion_tokens": 377,
+     "reply": "**1. Common Visual Cues indicating \"orbiting around the scene\":**\n\nWhile the three videos appear very similar at first glance (and in these specific low-motion clips, they look almost identical), the underlying visual cue for an orbit is the relationship between the camera and a fixed point in the scene (the center of rotation).\n\nIf we were to analyze a higher-fidelity or longer version of these clips where the motion is more pronounced, the shared cue for **orbiting** is:\n*   **Pivot Point Stability:** The vanishing point (or a central feature of the floor grid) remains relatively constant in its horizontal position on the screen, or shifts slightly in an arc, but does not move vertically to indicate flying up/down. More importantly, the *perspective* of the grid lines changes as if the viewer is walking around a circle while keeping their eyes locked on the middle of that circle.\n*   **Lateral Parallax Shift of the Horizon:** In an orbit, the horizon line typically stays level, but objects near the edges of the frame will appear to shift laterally relative to each other because the viewing angle to the side walls/floor is changing. Even on a flat plane, the \"width\" of the visible ground plane changes subtly; if you are exactly facing center vs. turned 15 degrees right facing the same center point, the grid squares on the far left edge compress differently than on the right edge (though on an infinite checkerboard this is hard to see without reference objects).\n*   ***Specific to these synthetic grids:* ** Without distinct markers, it is difficult to distinguish a slight pan from a slow orbit visually just by looking at the frames provided one-by-one. However, the prompt states the ground truth *is* orbiting. Therefore, the implicit cue is that the **orientation of the ground grid relative to the camera's forward vector is changing**, not that the grid is sliding across the screen (which would be strafe/walking). In an orbit, the camera rotates to follow the subject; consequently, the background/environment (the infinite floor) should appear static *if* the camera is perfectly tracking, or shift smoothly in rotation. Actually, a better way to put it for an infinite environment is: **The focal length or perspective projection of the grid converges toward a single point that stays fixed relative to the scene geometry.**\n\n    *Let's refine the answer based on standard computer vision definitions:*\n    An orbit is a combination of translation (moving through space) and rotation, specifically rotating the camera around a target while moving so the target stays in the frame.\n    \n    **Re-evaluating the static images:** Since the sampled frames are so uniform, the specific cues must be inferred from the theoretical difference in motion.\n    \n    *   **The Primary Cue:** The camera's field of view is constantly re-centering on a fixed location in 3D space. This means that while the camera itself moves along a path, its orientation also changes such that the \"look-at\" coordinate is constant.\n    \n**2. General Procedure to Identify \"Orbiting\":**\n\nTo determine if a video shows an orbit (especially when dealing with complex scenes containing objects), follow these steps:\n\n1.  **Analyze Camera Translation vs. Rotation (The \"Look At\" Point):**\n    *   Identify a stable feature or the general centroid of the scene acting as the \"target.\"\n    *   Determine how the camera position is changing relative to that target. If the camera is **changing its physical location** in 3D space (you see new sides of objects, or the background parallax shifts significantly) **AND** the angle to the target remains effectively constant (the target doesn't fly off-center), this indicates an orbit.\n    *   *Differentiation:*\n        *   **Turning in place (Panning):** You can detect this because the *view* sweeps horizontally or vertically, like a head turning. The camera position in space (extrinsics) does not change. Consequently, the parallax of close objects relative to distant objects will remain strictly parallel; there is no \"dolly\" effect. In an orbit, the parallax changes because your physical vantage point is circling them.\n        *   **Moving Straight (Dolly/Zoom):** On a straight dolly-in, all objects expand and move outward from the vanishing point uniformly. There is no lateral sweeping of the background features relative to the foreground. In an orbit, background features sweep laterally even if the target stays centered.\n\n2.  **Check the Relationship Between Motion and Perspective Change:**\n    *   **The \"Sideways Reveal\" Test:** As the clip progresses, do you begin to see parts of objects that were previously occluded because the angle changed? For example, orbiting around a cube allows you to eventually see a second face clearly. Panning might show the whole wall, but Dolly-ing just makes the object bigger. If the *visibility* of object surfaces changes due to a change in the viewer's geometric angle while the distance roughly stays constant, it is an orbit.\n\n3.  **Verify Against Moving Objects (Occlusion/Parallax Check):**\n    *   The prompt notes videos may have moving objects. You must separate *object movement* from *camera movement*.\n    *   Look at static background elements (like the floor in these videos).\n    *   If the floor grid pattern appears to **rotate underneath the camera** (the texture coordinates sliding past the bottom of the screen), it could be a turn (pan) or a slide.\n    *   However, if the camera is **orbiting**, the perspective distortion of the static background creates specific curvature shifts in the horizon. More practically, track a distant, static point (a cloud, a star, or the infinity corner of the room). In a **Pan**, the horizon stays dead flat and rigid. In an **Orbit**, because you are physically moving in a circle, the horizon might bob or tilt slightly unless the rig is perfect, but more tellingly, the **spatial width of the background features changes**. You are essentially taking a snapshot from Position A, then Position B. The background isn't just scrolling; it's being viewed from a totally different latitude/longitude.",
+     "completion_tokens": 1297,
      "finish_reason": "stop",
      "flag": null
     }
    }
   },
   {
-   "clip": "orbit",
+   "id": "orbit",
+   "title": "orbit: 3 clips",
    "true_label": "orbiting around the scene",
-   "camera": "render class orbit, {'sweep_deg': 42.5}",
-   "frames": [
-    1,
-    5,
-    10,
-    15,
-    20,
-    24
+   "videos": [
+    {
+     "clip": "v2_orbit_1",
+     "name": "orbit 1",
+     "desc": "distance 10.08, height 3.47, azimuth_deg -96.6, sweep_deg -25.2; ground gray, background sky",
+     "frames": [
+      1,
+      5,
+      10,
+      15,
+      20,
+      24
+     ],
+     "answer_class": "orbit"
+    },
+    {
+     "clip": "v2_orbit_2",
+     "name": "orbit 2",
+     "desc": "distance 10.22, height 3.88, azimuth_deg 14.6, sweep_deg 44.3; ground warm, background sky",
+     "frames": [
+      1,
+      5,
+      10,
+      15,
+      20,
+      24
+     ],
+     "answer_class": "orbit"
+    },
+    {
+     "clip": "v2_orbit_3",
+     "name": "orbit 3",
+     "desc": "distance 6.76, height 2.56, azimuth_deg 103.5, sweep_deg 52.2; ground warm, background none",
+     "frames": [
+      1,
+      5,
+      10,
+      15,
+      20,
+      24
+     ],
+     "answer_class": "orbit"
+    }
    ],
+   "prompt": "You are shown 3 short videos. Each video is shown as 24 frames sampled uniformly in time (frame 1 is the start, frame 24 is the end). The videos differ in camera position, viewing angle, lighting, and the speed and direction of the camera's movement.\n\nVideo 1: [24 frames]\nVideo 2: [24 frames]\nVideo 3: [24 frames]\n\nThe ground truth is that in all 3 videos the camera motion is \"orbiting around the scene\".\n\n1. Identify the visual cues that these 3 videos have in common and that show the camera motion is \"orbiting around the scene\".\n2. From those cues, write a general procedure for deciding whether the camera motion in any other video is \"orbiting around the scene\" rather than one of the other options: \"static (not moving)\"; \"moving straight toward or away from the scene\"; \"turning in place (panning)\". The procedure must also work for videos that contain objects, including objects that move on their own, so it should rely on cues that hold in such videos too.",
    "replies": {
     "true": {
      "given_label": "orbiting around the scene",
-     "reply": "Based on the sequence of 24 frames, we can observe that the checkered floor pattern is rotating and its perspective is continuously shifting. Throughout the sequence, the camera maintains a relatively consistent height and distance from the plane, but it rotates around a central point or axis. This motion causes the horizon line and the grid lines to move across the field of view in a cyclical manner without the camera itself translating linearly forward or backward (like tracking) or simply panning/tilting from a stationary position. The continuous change in viewing angle relative to the static floor indicates that the camera is orbiting around the scene.",
-     "completion_tokens": 126,
+     "reply": "**1. Common Visual Cues Indicating \"Orbiting Around the Scene\"**\n\nIn all three videos, despite differences in lighting, checkered pattern colors, and specific camera heights/angles, several visual cues confirm the camera is orbiting around a central point or area:\n\n*   **Lateral (Sideways) Translation of the Horizon:** The most prominent cue is that the vanishing point of the floor grid consistently shifts horizontally from one side to the other across the frames. \n    *   In Video 1, the lines of the grid shift noticeably.\n    *   In Video 2, the perspective swings widely from looking down an aisle on the left to looking down an aisle on the right.\n    *   In Video 3, the view pans significantly across the expanse of tiles.\n*   **Change in Viewing Angle without Zoom/Foreshortening Extremes:** While the camera is moving forward/backward slightly relative to the surface due to the arc, the dominant motion is sideways. If it were just a pan (rotating in place), the vanishing point would stay fixed in the center while the texture slid under the lens. Here, the entire geometric structure of the floor (the angles of the lines) changes relative to the camera's frame. The \"camera position\" itself is changing laterally through space, sweeping around the focal area, which causes different sections of the infinite floor to enter and leave the frame from opposite sides.\n\n**2. General Procedure for Identifying \"Orbiting\" Camera Motion**\n\nTo distinguish \"orbiting\" from other motions in any video (even with complex objects), follow this procedure:\n\n**Step 1: Check for Static vs. Moving**\nFirst, determine if the camera is moving at all. Compare extreme foreground elements (closest to the lens) against background elements. If nothing moves relative to the edges of the frame, it is **Static**. Since the videos show motion, proceed to Step 2.\n\n**Step 2: Isolate the Ground Plane / Distant Background (The Vanishing Point Test)**\nIgnore temporary objects entering or leaving the scene. Focus on the underlying ground plane, walls, or distant landscape features that form straight lines.\n\n*   *Test for Panning (Turning in Place):* Pick a specific feature on the horizon or a distant object (e.g., where the floor meets the sky). If the camera is panning, this feature will slide laterally across the screen, but the *geometry* of the room/floor won't change its orientation relative to the viewer. More importantly, the vanishing point of the floor lines stays locked in the exact same location on the screen while objects slide past.\n    *   *Observation:* In the three provided videos, the vanishing point wanders. The angle at which you look at the floor tiles changes. We are seeing more of the left side of the \"room\" in some frames and the right side in others. This indicates the camera *position* is changing, not just the aim.\n\n**Step 3: Determine Trajectory Direction (Straight vs. Curved/Circular)**\nNow that you know the camera translation is occurring (it's not just turning), determine the path.\n\n*   *Test for Moving Straight Toward/Away (Dolly/Zoom):* If the camera moves straight toward an object, that object expands uniformly from the center, and the vanishing point remains stationary (center-aligned). If it moves *straight sideways* (truck/tracking), the foreground slides rapidly opposite to the direction of motion, and the background slides slowly in the same direction (parallax).\n    *   *Observation:* In these videos, the motion feels \"sweeping.\" If you track a single tile far away, it doesn't just slide off like in a tracking shot. Instead, the perspective foreshortens differently as if the camera is curving. In Video 2 specifically, the camera starts angled one way and ends angled perpendicular to the start, having traveled an arc. A straight lateral move wouldn't change the viewing angle that drastically over a short distance.\n\n**Summary Decision Logic:**\n1.  **Are features sliding across the screen?** Yes. (Not Static).\n2.  **Is the \"direction\" you are looking (the vanishing point) shifting across the screen?**\n    *   If NO, but things are sliding: You are likely **Panning** (turning in place).\n    *   If YES (the viewpoint itself is physically going from looking Left to looking Right, or vice versa, causing the horizon/geometric lines to sweep): You are translating in space.\n3.  **Is the motion expanding/shrinking the scene (Dolly) or swinging the geometry (Orbit)?**\n    *   If the subject gets bigger/smaller primarily: **Moving Straight Toward/Away**.\n    *   If the subject stays roughly the same size/distance but the background rotates or the camera sweeps around it (like walking on a circle): **Orbiting around the scene**.\n\nIn the 3 videos provided, the camera physically travels along a circular arc, changing its position and viewing angle relative to the static checkerboard floor, resulting in the sweeping change of the horizon line that defines **Orbiting**.",
+     "completion_tokens": 1096,
      "finish_reason": "stop",
-     "flag": null
+     "flag": "This procedure and the pan procedure use the same cue in opposite ways. Here a vanishing point that slides across the frame means orbit. The pan procedure says the vanishing point stays fixed during a pan. In fact it slides during a pan, and the grammar's orbit keeps the camera aimed at the scene centre. As a prefix, this pair would teach the model its main confusion (pan read as orbit)."
     },
     "flipped": {
      "given_label": "moving straight toward or away from the scene",
-     "reply": "Based on the visual evidence from the 24 frames, here is the reasoning that matches the ground truth of \"moving straight toward or away from the scene\":\n\n1.  **Lack of Lateral Movement:** Throughout the sequence, there is no horizontal (left-to-right) shift in the view. If the camera were panning or tracking sideways to the left or right, the vertical lines of the checkered pattern would visibly sweep across the screen. They do not; they remain centered relative to one another's position on the grid.\n\n2.  **Absence of Rotation:** The horizon line remains perfectly flat and parallel to the top and bottom edges of the frame in every image. There is no visible tilting, rolling, or yawing (rotational movement). This indicates the camera's orientation is stable and fixed.\n\n3.  **Changes in Perspective and Zoom:** While the lateral position and rotation are constant, there is a distinct change in scale and perspective between Frame 1 and Frame 24:\n    *   **Focal Length / FOV Change:** In the early frames (e.g., Frame 1), the camera appears to be zoomed in with a telephoto lens, making the grid squares look compressed and stretched vertically due to foreshortening.\n    *   In later frames (e.g., Frame 24), the camera has switched to a wider field of view. We see more of the floor stretching out into the distance, and the shapes of the checkerboard tiles become more regular and square-like rather than elongated.\n\nThis specific combination of effects is characteristic of dolly movement\u2014physically moving the camera backward along its axis of view (in this case, pulling back)\u2014combined with changing the lens focal length to keep the apparent size of the subject area relatively consistent.",
-     "completion_tokens": 372,
+     "reply": "**1. Common Visual Cues in the Three Videos:**\n\nAlthough the lighting, contrast, and specific angles of the checkered floor differ across the three videos, they share several key visual characteristics regarding how the pattern moves across the screen:\n\n*   **Expansion/Contraction from a Central Point (Vanishing Point):** In all three videos, the squares of the checkered floor grow larger as the sequence progresses (in some frames they shrink, but here they generally expand, implying the camera is moving toward the \"ground\"). The center of this expansion or contraction\u2014where the lines appear to converge in the distance\u2014is called the vanishing point.\n*   **Radial Displacement of Features:** As you pick any distinct feature on the floor (e.g., the intersection of four colored squares), its position changes relative to the edges of the frame. A feature located at the exact center of the screen remains stationary horizontally and vertically; a feature off-center moves radially *away* from the center (if zooming/moving forward) or *toward* the center.\n*   **Lack of Tangential Motion / Shear:** In an orbit or pan, features would move sideways across the screen (horizontally or vertically) while maintaining roughly the same size. Here, the primary motion is purely changing scale (looming). If the camera were panning, the entire grid would shift left/right. Because it is moving straight forward, the structure stays centered (or pivots around a fixed projection of the movement vector) while expanding.\n\nIn these specific videos, because they show infinite grids, there are no static background objects to serve as parallax references. However, the self-similar nature of the grid allows us to track that every part of the image is scaling up uniformly based on its distance from the center.\n\n***\n\n**2. General Procedure for Deciding Camera Motion:**\n\nTo determine if a video shows a camera **\"moving straight toward or away from the scene\"** versus other motions, use the following procedure based on feature trajectories, which applies to both empty grids and complex scenes with objects.\n\n**Step 1: Identify Fixed Background Features**\nSelect prominent features in the scene that are known to be part of the static environment (e.g., buildings, trees, distinct wall corners, or large ground patches). *Note: Ensure you do not select foreground items that are moving independently (like cars or people).*\n\n**Step 2: Track the Trajectory of These Features (The \"Parallax\" Test)**\nObserve how the selected features move from one frame to the next.\n*   **Moving Toward/Away:** The features will move **radially outward** (if approaching) or **radially inward** (if retreating) relative to a single fixed point in the image (the focal point of the motion or Center of Projection). They change size significantly (perspective scaling). Lines converging at a vanishing point will remain parallel within themselves but their overall spacing widens or narrows uniformly.\n*   **Static:** The features do not move relative to each other or the frame edges.\n*   **Turning in Place (Panning):** Features move strictly **laterally** (across the screen) in parallel. All static features share the exact same velocity vector. There is no significant change in the apparent size of the objects (no perspective magnification), though extreme wide-angle lenses may introduce slight warping.\n*   **Orbiting:** Features move laterally, but often in curved paths or with different velocities depending on their depth (near objects move faster than far ones). Crucially, the angle between the camera and a specific reference object changes continuously, causing the object to revolve around the periphery of the view rather than looming in the center.\n\n**Summary Rule:**\nIf static environmental features grow larger and spread out (or shrink and bunch up) by moving away from/toward the center of the view without shifting primarily to the sides, the camera is **moving straight toward or away from the scene**.",
+     "completion_tokens": 827,
      "finish_reason": "stop",
      "flag": null
     }
    }
   },
   {
-   "clip": "dolly_in",
+   "id": "dolly",
+   "title": "dolly: 3 clips",
    "true_label": "moving straight toward or away from the scene",
-   "camera": "render class dolly_in, {'end_factor': 0.6}",
-   "frames": [
-    1,
-    5,
-    10,
-    15,
-    20,
-    24
+   "videos": [
+    {
+     "clip": "v2_dolly_1",
+     "name": "dolly 1",
+     "desc": "distance 10.82, height 1.86, azimuth_deg 86.6, end_factor 0.611; ground warm, background sky",
+     "frames": [
+      1,
+      5,
+      10,
+      15,
+      20,
+      24
+     ],
+     "answer_class": "dolly"
+    },
+    {
+     "clip": "v2_dolly_2",
+     "name": "dolly 2",
+     "desc": "distance 9.03, height 5.57, azimuth_deg 69.9, end_factor 0.692; ground dark, background gray",
+     "frames": [
+      1,
+      5,
+      10,
+      15,
+      20,
+      24
+     ],
+     "answer_class": "dolly"
+    },
+    {
+     "clip": "v2_dolly_3",
+     "name": "dolly 3",
+     "desc": "distance 11.11, height 3.04, azimuth_deg 101.8, end_factor 0.642; frames of dolly_3_in_src reversed (away); ground warm, background sky",
+     "frames": [
+      1,
+      5,
+      10,
+      15,
+      20,
+      24
+     ],
+     "answer_class": "dolly"
+    }
    ],
+   "prompt": "You are shown 3 short videos. Each video is shown as 24 frames sampled uniformly in time (frame 1 is the start, frame 24 is the end). The videos differ in camera position, viewing angle, lighting, and the speed and direction of the camera's movement.\n\nVideo 1: [24 frames]\nVideo 2: [24 frames]\nVideo 3: [24 frames]\n\nThe ground truth is that in all 3 videos the camera motion is \"moving straight toward or away from the scene\".\n\n1. Identify the visual cues that these 3 videos have in common and that show the camera motion is \"moving straight toward or away from the scene\".\n2. From those cues, write a general procedure for deciding whether the camera motion in any other video is \"moving straight toward or away from the scene\" rather than one of the other options: \"static (not moving)\"; \"orbiting around the scene\"; \"turning in place (panning)\". The procedure must also work for videos that contain objects, including objects that move on their own, so it should rely on cues that hold in such videos too.",
    "replies": {
     "true": {
      "given_label": "moving straight toward or away from the scene",
-     "reply": "Based on the visual evidence in the frames, the camera motion is **moving straight toward the scene**.\n\nHere's the reasoning:\n\n1.  **Perspective and Horizon Line:** The image consistently shows a checkerboard floor with a clear horizon line at the top. This indicates the camera is positioned above the plane, looking down and forward along it.\n2.  **Change in Scale of Tiles:** As you progress from Frame 1 to Frame 24, the individual tiles of the checkerboard appear larger and fill more of the frame. The near edges of the tiles become wider, and the distant tiles seem to \"rush\" towards the viewer.\n3.  **Convergence Lines:** The lines formed by the grid of the checkerboard converge towards a vanishing point on the horizon. As the sequence progresses, this convergence becomes less drastic because the camera is getting closer to the surface, effectively moving *into* that perspective. The angle at which the grid meets the bottom of the frame changes, appearing to flatten out as if the ground is rising up to meet the camera.\n4.  **Lack of Lateral Movement:** There is no significant shift of the pattern to the left or right (no panning). The center of the frame remains locked onto the same general area of the infinite grid, but the scale of what is visible increases rapidly.\n\nThese factors\u2014the apparent increase in size of objects and the shifting perspective typical of approaching a surface\u2014are characteristic of a forward dolly move or zoom-in effect, which aligns with the description of \"moving straight toward the scene.\"",
-     "completion_tokens": 324,
+     "reply": "**1. Common Visual Cues in the 3 Videos**\n\nAll three videos share the following visual cues that indicate the camera is moving straight toward or away from the scene:\n\n*   **Preservation of Parallel Lines (No Panning):** In all three videos, parallel lines on the checkered floor remain strictly parallel to each other throughout the sequence. If the camera were panning (turning in place), these parallel lines would appear to converge or diverge, and vertical structures would shift horizontally across the frame. Because the lines do not rotate or skew, we know there is no horizontal rotation.\n*   **Lack of Lateral Shift (No Orbiting/Tracking):** The vanishing points of the grid lines remain aligned on the horizon line without swinging left or right. If the camera were orbiting around a center point, the perspective would shift laterally, causing the vanishing points to move significantly across the screen and objects at different depths to slide past one another (parallax). Here, the view shifts only along its central axis.\n*   **Radial Expansion or Contraction:** The entire scene appears to expand radially outward from a central area (moving closer) or contract inward (moving further away). Objects (or in this case, the squares on the grid) uniformly grow larger or smaller in scale as time progresses.\n*   **Movement Toward the Vanishing Point (Motion Parallax):** As the camera moves forward, distant parts of the ground pattern flow continuously through the frame outwards from the background/vanishing point. This specific vectorized flow\u2014where \"new\" ground constantly appears at the top/furthest point and is pushed off the bottom/front of the screen\u2014is characteristic only of movement along the line of sight.\n\n***\n\n**2. General Procedure for Identifying Straight Movement**\n\nTo determine if a video shows \"straight movement toward or away\" rather than static, orbiting, or panning\u2014even when dealing with complex scenes and moving objects\u2014follow this procedure:\n\n**Step 1: Check for Global Scene Translation (Rule out \"Static\")**\nObserve stationary elements in the environment (e.g., walls, mountains, trees, or the horizon). If *all* stationary elements completely change their relative position and scale within the frame over time, the camera is moving. If the geometry of the background remains identical from frame 1 to frame 24, the camera is **static**.\n\n**Step 2: Analyze Vanishing Points and Axes (Rule out \"Panning/Turning\")**\nIdentify major sets of parallel lines in the scene (edges of buildings, roads, floors). \n*   Observe how these lines behave across frames.\n*   **The Test:** Do the parallel lines maintain their exact angles relative to the frame's edges, or does the image appear to rotate/swivel? \n*   If the perspective seems to spin or swing horizontally (causing vertical objects to shift sideways while staying the same size relative to each other), it is **panning**.\n*   *Note:* Even if objects are moving independently, you can still track fixed environmental lines. If those fixed lines remain perfectly parallel to themselves but their overall spacing changes, it is not a camera turn.\n\n**Step 3: Evaluate Depth Flow and Perspective Shifts (Rule out \"Orbiting\")**\nOrbiting creates strong lateral parallax (near objects passing by quickly) and causes the \"center of interest\" (vanishing point) to sweep left or right across the screen.\n*   **The Test:** Choose a prominent, stationary object in the middle distance. Watch its position relative to the surrounding background as time passes.\n*   If the mid-ground objects slide sideways off-camera while new objects enter from the side, the camera is **orbiting** (or lateral tracking).\n*   For **straight movement**, mid-ground objects will generally stay near the horizontal center of the frame (though they may shrink/grow). New information enters the frame primarily from the very front (bottom) and the very back (top/horizon).\n\n**Step 4: Confirm Radial Vector**\nFinally, synthesize the depth cues. Is the scale of the entire scene uniformly changing? \n*   If the background gets progressively higher in the frame and foreground objects get massive, the camera is moving **toward** the scene.\n*   If the background dips lower and foreground objects vanish into the periphery, the camera is moving **away**. \n*   *Crucial for moving objects:* Do not judge velocity based on objects that are walking/driving. Instead, look at the ground texture beneath them. In straight movement, the ground texture flows directly under everything in a single directional vector pointing toward the vanishing point.",
+     "completion_tokens": 978,
      "finish_reason": "stop",
      "flag": null
     },
     "flipped": {
      "given_label": "turning in place (panning)",
-     "reply": "Based on the visual evidence in the frames, here is a reasoning for the camera motion:\n\n- **Observation of Perspective:** Over the sequence of 24 frames, the perspective of the checkered floor changes. In the initial frames (like frame 1), the vanishing point is roughly centered. However, as the video progresses to later frames (like frame 24), the vanishing point has shifted noticeable towards the left side of the image.\n- **Lack of Forward/Backward Motion:** The size of the tiles and their apparent distance from the bottom edge of the frame remain relatively constant. This indicates that the camera is not moving forward or backward (dolly movement).\n- **Conclusion:** A change in the horizontal viewing angle where new information comes into view on one side and disappears on the other, without changing the position along the depth axis, is characteristic of a rotational movement around a vertical axis. Therefore, the camera is turning or panning in place.",
-     "completion_tokens": 201,
+     "reply": "**1. Common Visual Cues in the 3 Videos:**\n\nIn all three videos, despite differences in starting angle (Video 1 is centered, Video 2 is angled to the right, Video 3 is angled to the left), several key visual cues indicate that the camera is \"turning in place (panning)\":\n\n*   **No Change in Depth Perspective (Parallax):** As the camera moves through time, the relative sizes of the squares on the checkered ground do not change. In Video 1, a square near the bottom edge of the frame stays exactly as large in frame 24 as it was in frame 1. Similarly, in Videos 2 and 3, the large squares in the foreground remain consistently large, and small distant squares remain small. This indicates the camera's physical distance from any given point on the floor has remained constant.\n*   **Constant Vanishing Point Geometry:** The perspective lines formed by the edges of the checkered pattern shift direction across the screen, but they always converge at a single point directly along the camera's new line of sight. The geometry doesn't warp or shift horizontally in a way that would suggest lateral movement; it rotates around a central axis.\n*   **Absence of Forward/Backward Motion:** There is no sense of \"dolly\" motion. If you track specific features (like the exact corner where four tiles meet in the center of the view), those features sweep sideways across the screen but never approach or recede from the viewer.\n*   **Uniform Translation of the Landscape:** The entire landscape appears to be rigidly rotating within the frame. Nothing scales up (moving closer) or scales down (moving further away).\n\n**2. General Procedure for Deciding if Camera Motion is \"Turning in Place (Panning)\":**\n\nTo decide if a video exhibits panning, rather than static, orbiting, or moving straight (dolly tracking), apply the following procedure:\n\n**Step 1: Check for Movement (Rule out \"Static\")**\n*   Observe the entire frame. Are the objects moving across the screen relative to the frame boundaries? \n*   *If No,* the camera is **static** (not moving).\n*   *If Yes,* proceed to Step 2.\n\n**Step 2: Analyze Object Scale Over Time (Rule out \"Moving Straight\")**\n*   Select a distinct object or surface texture feature (e.g., a brick or checker square) visible at the start of the clip and track it until it disappears.\n*   Simultaneously, observe *new* objects or textures entering the scene (usually from the left or right edges depending on pan direction).\n*   **Is the scale changing?**\n    *   Do existing tracked objects get larger (approaching you) or smaller (moving away)?\n    *   Do new objects appear tiny in the distance and grow massive, or vice versa?\n*   *If Yes,* the camera is likely **moving straight toward or away** from the scene.\n*   *If No* (The object leaves one side of the screen at the same size it entered, and new objects enter at a consistent size matching the rest of the scenery), proceed to Step 3.\n\n**Step 3: Analyze Spatial Displacement / Parallax (Rule out \"Orbiting\")**\n*   Identify a stationary landmark $A$ in the background (far away) and a landmark $B$ in the mid-ground/foreground.\n*   Watch how they move relative *to each other* as the camera turns.\n*   **Is there differential displacement?**\n    *   When panning, a nearby object ($B$) should slide horizontally across the field of view at a noticeably faster speed than a distant object ($A$). Specifically, the nearby object should pass *behind* or *in front of* the more distant object's trajectory rapidly.\n    *   **Crucial Test:** If the camera were orbiting (swinging around a pivot point like a pendulum), the horizon line would often tilt or curve significantly, and the \"depth\" of the scene would feel rounded or curved. However, the most reliable tell is checking if the vertical positioning of the horizon changes drastically without tilting (bobbing), which happens in low orbits. But strictly differentiating Orbit vs. Pan:\n        *   **Pan:** The camera acts like a pinwheel. The background slides flat past. \n        *   **Orbit:** The background wraps around you. You see the back sides of objects much earlier than you would with a pan, because your position in 3D space is changing. \n*   *Simpler Heuristic:* Look specifically for \"Parallax.\" In an orbit, the background shifts laterally as well, creating a complex 3D wrap-around effect. In a pure pan (rotation only), everything translates linearly across the flat 2D image plane, maintaining parallel lines (orthogonal structure preserved) whereas an orbit introduces strong foreshortening distortion as the viewing angle changes rapidly around a fixed radius.\n\n**Conclusion:**\n*   If objects don't grow/shrink (**Step 2**) and the motion looks like a uniform rotational sweep where parallel lines remain perfectly parallel and the horizon stays level across the frame (**Step 3**), the motion is **turning in place (panning)**.",
+     "completion_tokens": 1113,
      "finish_reason": "stop",
      "flag": null
     }
    }
   },
   {
-   "clip": "dolly_away",
-   "true_label": "moving straight toward or away from the scene",
-   "camera": "render class dolly_in, {'end_factor': 0.6}; frames of dolly_in reversed",
-   "frames": [
-    1,
-    5,
-    10,
-    15,
-    20,
-    24
-   ],
-   "replies": {
-    "true": {
-     "given_label": "moving straight toward or away from the scene",
-     "reply": "Based on the visual evidence in the frames, here is the reasoning that supports the ground-truth camera motion:\n\n- **Consistent Vanishing Point:** Throughout the sequence of 24 frames, the vanishing point of the checkerboard floor remains fixed at the same central location in the upper portion of the frame. If the camera were panning left or right, or tilting up and down, this vanishing point would shift across the screen. Its stationary position indicates the camera's orientation (its horizontal and vertical angles) is not changing.\n- **Change in Field of View:** While the camera's angle stays constant, the amount of the scene visible changes dramatically. In frame 1, only a few rows of tiles are visible, and they appear large. By frame 24, many more rows of tiles are visible, stretching into the distance, and each individual tile appears much smaller. This effect is equivalent to zooming out.\n- **Conclusion:** A change in the field of view (zooming in or out) while keeping the direction of the view perfectly steady is characteristic of a translation. The camera is moving directly backward, away from the scene, along its own forward-facing axis. This type of movement is often called \"pedestal\" or \"dollying out.\" Therefore, the motion is best described as moving straight toward or away from the scene (specifically, away).",
-     "completion_tokens": 284,
-     "finish_reason": "stop",
-     "flag": null
-    },
-    "flipped": {
-     "given_label": "turning in place (panning)",
-     "reply": "To determine the camera motion, we can analyze how the grid pattern in the scene changes across the 24 frames:\n\n- **Observation of Perspective:** The most significant change is in the perspective of the checkerboard floor. In the initial frames (e.g., frame 1), the grid lines are relatively open and recede sharply towards a horizon line that is not fully visible. As the video progresses to frame 24, the grid lines become much more compressed and detailed, and a clear vanishing point appears near the top-center of the frame. This indicates that the field of view is widening as if looking over a larger area.\n- **Lack of Lateral Translation:** While the viewpoint changes, there is no strong horizontal or vertical sliding of the image content. If the camera were panning left or right while staying at the same height, we would expect to see the entire grid shift laterally across the screen. Here, the central structure of the grid remains largely fixed, but its apparent scale and perspective depth change dramatically.\n- **Conclusion:** The effect of seeing a wider portion of the plane with a shifting vanishing point, without a corresponding lateral slide of features, is characteristic of a change in the camera's orientation (specifically, a downward tilt or \"nod\") rather than a physical pan. Panning typically implies movement along an arc or rotating around a specific axis at a set height, which would cause different parallax effects on a flat grid. Therefore, the motion is best described as a tilt.\n\nThe ground truth for this clip is **turning in place (panning)**, however based on the visual evidence provided, it strongly resembles a **downward tilt**.",
-     "completion_tokens": 345,
-     "finish_reason": "stop",
-     "flag": "This reply argues against its given label: it ends by saying the clip \u201cstrongly resembles a downward tilt\u201d, not panning. As a wrong-label example it is weaker than the others."
-    }
-   }
-  },
-  {
-   "clip": "pan",
+   "id": "pan",
+   "title": "pan: 3 clips",
    "true_label": "turning in place (panning)",
-   "camera": "render class pan, {'pan_deg': 10.0}",
-   "frames": [
-    1,
-    5,
-    10,
-    15,
-    20,
-    24
+   "videos": [
+    {
+     "clip": "v2_pan_1",
+     "name": "pan 1",
+     "desc": "distance 10.19, height 3.76, azimuth_deg -136.3, pan_deg -10.8; ground dark, background gray",
+     "frames": [
+      1,
+      5,
+      10,
+      15,
+      20,
+      24
+     ],
+     "answer_class": "pan"
+    },
+    {
+     "clip": "v2_pan_2",
+     "name": "pan 2",
+     "desc": "distance 8.22, height 4.71, azimuth_deg -62.3, pan_deg 9.0; ground gray, background sky",
+     "frames": [
+      1,
+      5,
+      10,
+      15,
+      20,
+      24
+     ],
+     "answer_class": "pan"
+    },
+    {
+     "clip": "v2_pan_3",
+     "name": "pan 3",
+     "desc": "distance 7.42, height 5.85, azimuth_deg -145.5, pan_deg -12.1; ground dark, background gray",
+     "frames": [
+      1,
+      5,
+      10,
+      15,
+      20,
+      24
+     ],
+     "answer_class": "pan"
+    }
    ],
+   "prompt": "You are shown 3 short videos. Each video is shown as 24 frames sampled uniformly in time (frame 1 is the start, frame 24 is the end). The videos differ in camera position, viewing angle, lighting, and the speed and direction of the camera's movement.\n\nVideo 1: [24 frames]\nVideo 2: [24 frames]\nVideo 3: [24 frames]\n\nThe ground truth is that in all 3 videos the camera motion is \"turning in place (panning)\".\n\n1. Identify the visual cues that these 3 videos have in common and that show the camera motion is \"turning in place (panning)\".\n2. From those cues, write a general procedure for deciding whether the camera motion in any other video is \"turning in place (panning)\" rather than one of the other options: \"static (not moving)\"; \"orbiting around the scene\"; \"moving straight toward or away from the scene\". The procedure must also work for videos that contain objects, including objects that move on their own, so it should rely on cues that hold in such videos too.",
    "replies": {
     "true": {
      "given_label": "turning in place (panning)",
-     "reply": "To determine the camera motion, we can analyze how the visual elements in the scene change across the 24 frames.\n\n1.  **Scene Analysis:** The scene consists of a flat plane with an infinite checkerboard pattern. This provides strong geometric cues for perspective, specifically through the grid lines (graticule) that converge towards a vanishing point.\n2.  **Observing Motion Cues:**\n    *   **Vertical Position:** As we look from frame 1 to frame 24, the horizon line (where the grid converges) remains relatively stable vertically within the frame. It doesn't significantly rise or fall, which suggests there is no major \"pitch\" rotation (tilting up or down).\n    *   **Horizontal Shift:** A clear horizontal shift is visible. In the initial frames (e.g., frame 1), the central vertical axis of the image aligns with the middle of a set of checkers. By the final frame (frame 24), this alignment has shifted significantly. Imagine a specific column of squares; it moves from being centered in the view to being off-center to the right. Simultaneously, new columns of squares enter the view from the left side and exit on the right side throughout the sequence.\n    *   **Perspective Distortion:** The perspective itself does not dramatically change its orientation (like a roll) nor does the apparent distance to the ground change significantly (which would indicate dolly forward/backward or a large pitch change). The primary change is the lateral displacement of the entire grid relative to the viewer's center.\n3.  **Conclusion:** The consistent and smooth lateral sweeping of the static floor pattern indicates that the viewpoint is rotating horizontally around its own vertical axis. In cinematography terms, this is a pan. Since the camera is only changing its viewing direction without moving its position along the X or Z axes, it is turning in place.\n\nTherefore, the ground truth description of \"turning in place (panning)\" accurately reflects the observed left-to-right sweep of the checkered floor.",
-     "completion_tokens": 423,
+     "reply": "Based on the three provided videos, here is the analysis of visual cues and a general procedure for identifying \"turning in place (panning)\" camera motion.\n\n### **1. Visual Cues Common to All 3 Videos Demonstrating \"Turning in Place (Panning)\"**\n\nThe primary characteristic of all three videos is that the scene's geometry (a flat plane with a repeating checkered pattern) remains parallel to the viewing surface without changing its apparent size or orientation relative to the ground. Instead, the texture itself appears to slide laterally across the screen.\n\n*   **Lateral Drift of Features / Texture Scrolling:** In all videos, the squares of the checkerboard appear to move steadily from one side of the frame to the other (e.g., moving to the right in Video 1).\n*   **No Change Perspective Foreshortening:** The vanishing point(s) of the floor grid remain at roughly the same horizontal position in the frame. As the video progresses, we see new areas of the floor to the left, but the overall angle looking down at the floor does not change\u2014it doesn't get steeper or flatter.\n*   **Constant Scale/Size of Elements:** Individual squares do not grow larger (indicating zooming/moving toward) or smaller (moving away). Their distance from the camera stays effectively consistent as they pass by.\n*   **Horizon Line Stability:** The edge of the visible ground plane against the background sky remains fixed at the exact same vertical position on every frame. There is no vertical bobbing or shifting up/down on the Y-axis. \n\n---\n\n### **2. General Procedure: How to Identify \"Turning in Place (Panning)\"**\n\nTo distinguish panning from other motions (Static, Orbiting, Moving straight), apply the following logical checks, prioritizing features that work even when there are objects in the scene:\n\n*   **Step 1: Test Against \"Static (Not Moving)\" using Parallax.**\n    *   Pick a recognizable feature on the ground (a specific tile color boundary, a pebble, or a shadow).\n    *   Observe if this feature moves relative to the edges of your camera view.\n    *   *If the image is locked completely still:* It is Static.\n    *   *If the image scrolls:* Proceed to Step 2.\n\n*   **Step 2: Differentiate Panning vs. \"Moving Straight\" using Ground Horizon.**\n    *   Trace the horizon line\u2014where the ground meets the background or sky\u2014at the top edge of the ground plane.\n    *   Does this line physically translate up or down along the vertical axis of the screen?\n        *   *Yes (Line rises):* You are pitching up/flying back. \n        *   *Yes (Line falls):* You are pitching down/flying forward.\n        *   **No (Line is perfectly anchored):** This strongly indicates Panning. When you pan purely sideways, your physical altitude above the ground changes constantly (creating an arc-shaped path), but because you are keeping level, the optical horizon line stays exactly where it is. If you truly moved sideways across the deck without moving vertically (truck/tracking), objects at different depths would shift relative to each other, but a simple pan implies rotation around a pivot, which locks the horizon.\n\n*   **Step 3: Differentiate Panning vs. \"Orbiting\" using the Vanishing Point.**\n    *   Look at the perspective lines extending into the distance. Imagine the exact spot where these lines converge (the vanishing point).\n    *   Is the vanishing point sliding laterally across the center of the screen from left to right (or vice versa)?\n        *   *Yes:* It is **Orbiting**. When you orbit around a central object, you look past the object and over it; your center of attention (vanishing point) sweeps laterally across the frame to track the turning movement.\n        *   **No (Fixed near the center):** It is **Panning**. When you turn in place (like shaking your head left-to-right), the part of the world directly in front of you shifts out of the right side of the frame, while new parts of the world enter from the left. The absolute center of your gaze keeps pointing straight ahead, meaning the vanishing point holds steady while the texture slides underneath it.",
+     "completion_tokens": 910,
      "finish_reason": "stop",
-     "flag": null
+     "flag": "Step 3 says a pan keeps the vanishing point fixed and a sliding vanishing point means orbit. That is wrong for a pan, which turns the view, so the vanishing point slides. See the note on the orbit card."
     },
     "flipped": {
      "given_label": "static (not moving)",
-     "reply": "To determine the camera motion, we can observe how the perspective and elements of the scene change across the 24 frames.\n\n- **Perspective remains constant:** The vanishing point of the checkered floor is in the same location in every frame, located at the top center of the image.\n- **No relative motion:** If the camera were moving forward (a \"dolly\" shot), the individual squares would appear to grow larger, and new rows of squares would continuously enter the frame from the top. If it were panning or tilting, the vanishing point would shift. None of this is happening. The size of the squares and their position within the frame remain identical from frame 1 to frame 24.\n- **Subtle effects only:** There is a very faint increase in brightness/haze towards the end of the sequence, which suggests an atmospheric effect like fog rolling in or light changes, not camera movement.\n\nBecause the spatial layout and scale of the environment do not change relative to the viewer, the camera itself must be completely stationary.\n\nTherefore, the camera motion is **static (not moving)**.",
-     "completion_tokens": 231,
+     "reply": "Based on the visual evidence provided in the three videos, here is the analysis and the derived procedure.\n\n### 1. Visual Cues Indicating \"Static\" Camera Motion\n\nAlthough the prompt states that the ground truth for all three videos is a static camera, there are subtle visual cues present in these specific videos (which feature patterned floors) that confirm this:\n\n*   **Invariance of Pattern Scale (Zoom):** In all three videos, the size of the checkered squares relative to the frame boundaries remains perfectly consistent from frame 1 to frame 24. If the camera were moving *towards* or *away from* the scene (dolly), the squares in the foreground would visibly grow larger, and the horizon line (if it were visible) would shift up or down. Here, the perspective grid does not expand or contract.\n*   **Invariance of Grid Geometry (Rotation/Pan):** The angle at which the checkerboard lines recede into the distance remains identical across all frames. If the camera were *orbiting*, the vanishing point of the grid lines would shift horizontally across the screen. If the camera were *panning* (turning in place), the entire grid would sweep across the frame sideways. In these videos, the structural lines of the floor stay locked in the exact same pixel positions.\n*   **Invariance of Feature Position:** Even if we imagine a distinct object sitting on one of the dark squares in the center, that object would remain exactly where it is relative to the corners of the image frame in every single video.\n\n**Conclusion for these specific videos:** The fact that the perspective grid (the floor tiles) shows absolutely no parallax, scaling, or rotational shift indicates the camera's position and orientation are fixed.\n\n***\n\n### 2. General Procedure for Detecting \"Static\" Camera Motion\n\nTo determine if a camera is **\"static\"** (as opposed to orbiting, dollying, or panning) in any general video\u2014even one filled with moving objects\u2014use the following procedure based on the principle of **Global Scene Parity**:\n\n**Step 1: Select Static Landmarks**\nIdentify a set of reference points or features in the environment that are **intrinsic to the background**.\n*   *Examples:* Walls, trees, buildings, distant mountains, or furniture attached to the walls.\n*   *Crucial Filter:* You must ignore anything that moves independently (people, cars, clouds, animals). Do not use a walking person as your anchor; look behind them at the house they are passing.\n\n**Step 2: Track Relative Position (The Frame Lock)**\nObserve the position of these static landmarks relative to the rectangular border of the video frame over time.\n*   **Test for Panning/Orbiting:** Draw an imaginary vertical line through a stationary object (e.g., a doorknob). In a static shot, that doorknob must remain on that same pixel column. If the doorknob drifts to the left while the window frame enters from the right, the camera is **orbiting** or **panning**. If it stays put, the camera is not rotating.\n*   **Test for Moving Toward/Away (Dolly):** Look at the density of detail. In a static shot, a distant fence should look exactly the same size at the end of the clip as it did at the start. If the background objects appear to be slowly getting physically larger or smaller within their existing outlines, the camera is **moving straight toward or away** from the scene.\n\n**Step 3: Check for \"Internal vs. External\" Disparity**\nThis step ensures you aren't fooled by moving subjects.\n*   Compare the movement of the subject to the background.\n*   If the background (walls/floor/sky) shows **zero** geometric shift (no pixels change location) but the foreground characters move significantly, the camera is **static**.\n*   Conversely, if both the background and the foreground objects are shifting in the same direction simultaneously, the camera itself is moving.\n\n**Summary Decision Rule:**\nIf the background geometry exhibits **zero displacement** and **zero scaling** throughout the duration of the video, the camera motion is **Static**\u2014regardless of how much motion occurs within the scene itself.",
+     "completion_tokens": 892,
      "finish_reason": "stop",
      "flag": null
     }

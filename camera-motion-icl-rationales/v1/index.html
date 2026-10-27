@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Camera Motion Rationales</title>
+<style>
+:root{--page:#f9f9f7;--surface:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--line:#e4e3df;--accent:#2a78d6;--good:#0a7f0a;--bad:#c62f2f;--user:#eef4fc;--asst:#f3f2ee;--warn:#fff1c2}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--page:#0d0d0d;--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--line:#33332f;--accent:#3987e5;--good:#3fbf3f;--bad:#e66767;--user:#18222f;--asst:#242422;--warn:#4a3d10}}
+:root[data-theme="dark"]{--page:#0d0d0d;--surface:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--line:#33332f;--accent:#3987e5;--good:#3fbf3f;--bad:#e66767;--user:#18222f;--asst:#242422;--warn:#4a3d10}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1200px;margin:0 auto;padding:16px 16px 48px}
+h1{font-size:20px;margin:0 0 6px} h2{font-size:17px;margin:0 0 6px} h3{font-size:14px;margin:12px 0 4px}
+.lede{color:var(--ink2);max-width:900px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:12px 0}
+.vids{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:6px 0}
+video{width:100%;border-radius:6px;background:#000}
+.strip{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;margin-top:6px}
+.strip img{width:100%;cursor:pointer;border-radius:2px}
+.kv{font-size:12px;color:var(--ink2)}
+code{font:12px ui-monospace,Menlo,monospace;background:var(--asst);padding:1px 4px;border-radius:4px}
+.tabs{display:flex;gap:6px;margin:4px 0 8px}
+.tabs button{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:16px;padding:3px 10px;cursor:pointer;font:inherit;font-size:13px}
+.tabs button.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.turn{border-radius:8px;padding:8px 10px;margin:8px 0;border:1px solid var(--line)}
+.turn.user{background:var(--user)} .turn.asst{background:var(--asst)}
+.role{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink2)}
+pre{white-space:pre-wrap;word-break:break-word;font:13px/1.45 ui-monospace,Menlo,monospace;margin:4px 0}
+.flag{background:var(--warn);border-radius:6px;padding:6px 10px;margin:8px 0;font-size:13px}
+table{border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+th,td{padding:4px 10px;border-bottom:1px solid var(--line);text-align:right}
+th:first-child,td:first-child{text-align:left} th{color:var(--ink2);font-weight:600}
+td.diag{color:var(--good);font-weight:600}
+.scroll{overflow-x:auto}
+ul{margin:4px 0;padding-left:20px}
+</style>
+</head>
+<body>
+<main>
+<h1>Camera-motion repair on Qwen3.8-27B: example clips and the model's rationales</h1>
+<p class="lede" id="lede"></p>
+<div id="app">Loading…</div>
+</main>
+<script type="module">
+const D = await (await fetch('data.json')).json();
+const esc = s => String(s ?? '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const app = document.getElementById('app');
+// review-page rule: fetch every video in full when the page opens, then play it from a blob
+const blobs = {};
+await Promise.all(D.cards.flatMap(c => c.videos).map(async v => {
+  try { blobs[v.clip] = URL.createObjectURL(await (await fetch(`media/${v.clip}.mp4`)).blob()); }
+  catch (e) { blobs[v.clip] = `media/${v.clip}.mp4`; }
+}));
+document.getElementById('lede').innerHTML = D.meta.lede;
+let html = `<div class="card"><h2>How the rationales were asked for</h2>
+<p class="kv">Model <code>${esc(D.meta.model)}</code>, served by ${esc(D.meta.provider)} through OpenRouter. Thinking was off, with
+temperature 1 and top_p 1: the same settings as the answer-first fitness mode. ${D.meta.request_shape}</p>
+<div class="turn user"><div class="role">user turn</div><pre>${esc(D.meta.prompt_template)}</pre></div>
+<p class="kv">Wrong-label control: each class is given the next option in the list (${esc(D.meta.flip)}). The cost was ${esc(D.meta.cost)}.</p>
+<h3>Points to check</h3><ul>${D.meta.review_points.map(p => `<li>${p}</li>`).join('')}</ul></div>`;
+for (const c of D.cards) {
+  html += `<div class="card" id="${c.id}"><h2>${esc(c.title)} <span class="kv">true class: ${esc(c.true_label)}</span></h2>
+  <div class="vids">${c.videos.map(v => `<div><div class="kv"><b>${esc(v.name)}</b> · ${esc(v.desc)}</div>
+  <video data-clip="${v.clip}" src="${blobs[v.clip]}" controls loop autoplay muted playsinline></video>
+  <div class="strip">${v.frames.map(f => `<img src="media/${v.clip}_f${String(f).padStart(2,'0')}.png" data-t="${(f-1)/24}" data-clip="${v.clip}" title="frame ${f}" alt="frame ${f}">`).join('')}</div></div>`).join('')}</div>
+  <div class="kv">Frames 1, 5, 10, 15, 20 and 24 of each clip. Click a frame to jump its video there.</div>
+  ${c.prompt ? `<details><summary>Exact text sent with these clips</summary><div class="turn user"><pre>${esc(c.prompt)}</pre></div></details>` : ''}
+  ${['true','flipped'].map(ls => { const r = c.replies[ls]; return `
+    <h3>${ls === 'true' ? 'True label' : 'Flipped label (control)'}: “${esc(r.given_label)}”</h3>
+    ${r.flag ? `<div class="flag">${r.flag}</div>` : ''}
+    <div class="turn asst"><div class="role">Qwen3.8-27B · ${r.completion_tokens} tokens · ${esc(r.finish_reason)}</div><pre>${esc(r.reply)}</pre></div>`; }).join('')}
+  </div>`;
+}
+const b = D.baseline;
+if (b) {
+  html += `<div class="card"><h2>Answer-first baseline on the pilot's camera_motion questions</h2>
+  <p class="kv">There are ${b.n} questions: every camera_motion question in the MAP-Elites pilot (${esc(b.origin)}). Each was scored once by
+  Qwen3.8-27B in answer-first mode on Alibaba. Frames-arm accuracy is ${b.acc_frames}%, and blind-arm accuracy (no frames) is
+  ${b.acc_blind}%. Mean P(wrong) at the answer token is ${b.pw_frames} with frames and ${b.pw_blind} blind. Chance is 25%.</p>
+  <div class="scroll"><table><tr><th>truth ↓ / answer →</th>${D.classes.map(x => `<th>${x}</th>`).join('')}<th>n</th><th>accuracy</th></tr>
+  ${D.classes.map(t => `<tr><td>${t}</td>${D.classes.map(a => `<td class="${a===t?'diag':''}">${b.confusion[t][a]}</td>`).join('')}
+  <td>${b.row_n[t]}</td><td>${b.row_acc[t]}%</td></tr>`).join('')}</table></div>
+  <p class="kv">Blind-arm answers: ${esc(b.blind_answers)}.</p>
+  <h3>Stratified sample for the arms (${b.sample_n} questions, seed <code>${esc(b.sample_seed)}</code>)</h3>
+  <p class="kv">The sample takes up to 40 questions of each major mistake type (static→orbit, dolly→orbit, pan→orbit), up to 20 of
+  each other mistake type, and 25 the baseline got right in each class, to detect harm. Every arm will be scored on this same set.</p>
+  <div class="scroll"><table><tr><th>stratum (truth→answer)</th><th>available</th><th>sampled</th></tr>
+  ${b.strata.map(s => `<tr><td>${esc(s.stratum)}</td><td>${s.available}</td><td>${s.sampled}</td></tr>`).join('')}</table></div></div>`;
+}
+html += `<div class="card"><h2>What happens after approval</h2><p class="kv">The true-label rationales will be frozen as one fixed
+prefix: per clip, a user turn (its frames plus the request above) and an assistant turn (its rationale). The final turn is
+the 24 test frames, then “Use your reasoning from earlier in this conversation to help categorize the camera motion.”, then the
+standard camera_motion question, its options and the answer-first instruction. There are four arms: (a) no examples; (b) true-label
+rationales; (c) flipped-label rationales; (d) labels only (the same clips, with the assistant turn being just the letter). Each arm
+is also run blind.</p></div>`;
+app.innerHTML = html;
+app.addEventListener('click', e => {
+  const im = e.target.closest('.strip img'); if (!im) return;
+  const v = app.querySelector(`video[data-clip="${im.dataset.clip}"]`);
+  v.pause(); v.currentTime = Math.min(+im.dataset.t + 0.001, v.duration || 1);
+});
+</script>
+</body>
+</html>

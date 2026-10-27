@@ -14,8 +14,7 @@ main{max-width:1200px;margin:0 auto;padding:16px 16px 48px}
 h1{font-size:20px;margin:0 0 6px} h2{font-size:17px;margin:0 0 6px} h3{font-size:14px;margin:12px 0 4px}
 .lede{color:var(--ink2);max-width:900px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:12px 0}
-.row{display:grid;grid-template-columns:400px minmax(0,1fr);gap:16px;align-items:start}
-@media (max-width:900px){.row{grid-template-columns:minmax(0,1fr)}}
+.vids{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:6px 0}
 video{width:100%;border-radius:6px;background:#000}
 .strip{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;margin-top:6px}
 .strip img{width:100%;cursor:pointer;border-radius:2px}
@@ -40,12 +39,7 @@ ul{margin:4px 0;padding-left:20px}
 <body>
 <main>
 <h1>Camera-motion repair on Qwen3.8-27B: example clips and the model's rationales</h1>
-<p class="lede">First repair attempt on Qwen3.8-27B (TODO 7c, 2026-10-27). The idea is to teach <code>camera_motion</code> in context with
-the model's <b>own reasoning</b> about clips that contain <b>nothing but the floor</b>, so the only thing in view is the camera's
-motion. Below are the five clips. For each clip there are two replies. In the <b>true</b> one, Qwen3.8-27B was given the clip's
-real class and asked for matching reasoning. In the <b>flipped</b> one it was given a wrong class; that reply is for the
-wrong-label control. <b>Nothing has been scored with these yet.</b> Once you approve the true-label rationales, they are frozen
-as fixed assistant turns at the start of every query.</p>
+<p class="lede" id="lede"></p>
 <div id="app">Loading…</div>
 </main>
 <script type="module">
@@ -54,28 +48,29 @@ const esc = s => String(s ?? '').replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;'
 const app = document.getElementById('app');
 // review-page rule: fetch every video in full when the page opens, then play it from a blob
 const blobs = {};
-await Promise.all(D.clips.map(async c => {
-  try { blobs[c.clip] = URL.createObjectURL(await (await fetch(`media/${c.clip}.mp4`)).blob()); }
-  catch (e) { blobs[c.clip] = `media/${c.clip}.mp4`; }
+await Promise.all(D.cards.flatMap(c => c.videos).map(async v => {
+  try { blobs[v.clip] = URL.createObjectURL(await (await fetch(`media/${v.clip}.mp4`)).blob()); }
+  catch (e) { blobs[v.clip] = `media/${v.clip}.mp4`; }
 }));
+document.getElementById('lede').innerHTML = D.meta.lede;
 let html = `<div class="card"><h2>How the rationales were asked for</h2>
 <p class="kv">Model <code>${esc(D.meta.model)}</code>, served by ${esc(D.meta.provider)} through OpenRouter. Thinking was off, with
-temperature 1 and top_p 1: the same settings as the answer-first fitness mode. Each request was one user turn: the 24 PNG frames
-at 480×270, plus this text. <code>{label}</code> is the camera_motion option text for the given class.</p>
-<div class="turn user"><div class="role">user · 24 frames +</div><pre>${esc(D.meta.prompt_template)}</pre></div>
+temperature 1 and top_p 1: the same settings as the answer-first fitness mode. ${D.meta.request_shape}</p>
+<div class="turn user"><div class="role">user turn</div><pre>${esc(D.meta.prompt_template)}</pre></div>
 <p class="kv">Wrong-label control: each class is given the next option in the list (${esc(D.meta.flip)}). The cost was ${esc(D.meta.cost)}.</p>
 <h3>Points to check</h3><ul>${D.meta.review_points.map(p => `<li>${p}</li>`).join('')}</ul></div>`;
-for (const c of D.clips) {
-  html += `<div class="card" id="${c.clip}"><h2>${esc(c.clip.replace('_',' '))} <span class="kv">true class: ${esc(c.true_label)}</span></h2>
-  <div class="row"><div><video data-clip="${c.clip}" src="${blobs[c.clip]}" controls loop autoplay muted playsinline></video>
-  <div class="kv">${esc(c.camera)}</div>
-  <div class="strip">${c.frames.map((f, i) => `<img src="media/${c.clip}_f${String(f).padStart(2,'0')}.png" data-t="${(f-1)/24}" data-clip="${c.clip}" title="frame ${f}" alt="frame ${f}">`).join('')}</div>
-  <div class="kv">Frames 1, 5, 10, 15, 20 and 24. Click a frame to jump the video to it.</div></div>
-  <div>${['true','flipped'].map(ls => { const r = c.replies[ls]; return `
+for (const c of D.cards) {
+  html += `<div class="card" id="${c.id}"><h2>${esc(c.title)} <span class="kv">true class: ${esc(c.true_label)}</span></h2>
+  <div class="vids">${c.videos.map(v => `<div><div class="kv"><b>${esc(v.name)}</b> · ${esc(v.desc)}</div>
+  <video data-clip="${v.clip}" src="${blobs[v.clip]}" controls loop autoplay muted playsinline></video>
+  <div class="strip">${v.frames.map(f => `<img src="media/${v.clip}_f${String(f).padStart(2,'0')}.png" data-t="${(f-1)/24}" data-clip="${v.clip}" title="frame ${f}" alt="frame ${f}">`).join('')}</div></div>`).join('')}</div>
+  <div class="kv">Frames 1, 5, 10, 15, 20 and 24 of each clip. Click a frame to jump its video there.</div>
+  ${c.prompt ? `<details><summary>Exact text sent with these clips</summary><div class="turn user"><pre>${esc(c.prompt)}</pre></div></details>` : ''}
+  ${['true','flipped'].map(ls => { const r = c.replies[ls]; return `
     <h3>${ls === 'true' ? 'True label' : 'Flipped label (control)'}: “${esc(r.given_label)}”</h3>
     ${r.flag ? `<div class="flag">${r.flag}</div>` : ''}
     <div class="turn asst"><div class="role">Qwen3.8-27B · ${r.completion_tokens} tokens · ${esc(r.finish_reason)}</div><pre>${esc(r.reply)}</pre></div>`; }).join('')}
-  </div></div></div>`;
+  </div>`;
 }
 const b = D.baseline;
 if (b) {
