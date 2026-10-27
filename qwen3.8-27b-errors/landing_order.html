@@ -1,0 +1,227 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Qwen3.8-27B: landing_order</title><style>:root{--bg:#fbfaf7;--card:#fff;--ink:#1d1d1b;--mute:#6b6a65;--line:#e4e1da;--ok:#1f7a3a;--okbg:#e3f3e7;
+--bad:#b3261e;--badbg:#fbe6e4}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17171a;--card:#212126;--ink:#e8e6e1;
+--mute:#9a978f;--line:#33333a;--ok:#7fd49a;--okbg:#1d3326;--bad:#f2a49d;--badbg:#3d2220}}
+:root[data-theme="dark"]{--bg:#17171a;--card:#212126;--ink:#e8e6e1;--mute:#9a978f;--line:#33333a;--ok:#7fd49a;
+--okbg:#1d3326;--bad:#f2a49d;--badbg:#3d2220}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,sans-serif;
+max-width:1040px;margin:32px auto;padding:0 16px}a{color:inherit}h1{font-size:24px;margin:0 0 6px}
+.m{color:var(--mute)}table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n{text-align:right;font-variant-numeric:tabular-nums}.wrap{overflow-x:auto}
+.scene{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin:18px 0;
+display:grid;grid-template-columns:minmax(0,480px) minmax(0,1fr);gap:16px}
+@media (max-width:820px){.scene{grid-template-columns:1fr}}
+video{width:100%;aspect-ratio:16/9;background:#000;border-radius:6px}
+.q{border-top:1px solid var(--line);padding:8px 0}.q:first-child{border-top:0;padding-top:0}
+.opt{display:inline-block;padding:1px 8px;margin:2px 4px 2px 0;border-radius:5px;border:1px solid var(--line);
+font-size:13px}.opt.ok{background:var(--okbg);color:var(--ok);border-color:var(--ok)}
+.opt.bad{background:var(--badbg);color:var(--bad);border-color:var(--bad)}
+details{font-size:13px;color:var(--mute)}pre{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,monospace;
+margin:6px 0 0}.tag{font-size:12px;color:var(--mute)}#vl{position:sticky;top:0;background:var(--bg);padding:6px 0;
+font-size:13px;color:var(--mute);z-index:1}</style></head><body><p><a href="index.html">← all types</a></p><h1>landing_order</h1><p class=m>6 wrong of 32 asked (18.8 %), in 6 scenes.</p><div id=vl></div><div class=scene><div><video controls loop muted playsinline data-src="clips/riA_30084.mp4"></video><div class=tag>riA_30084 · initial archive (random)</div></div><div><div class=q><div>Both the green cube and the blue cube are falling. Which one lands on the ground first?</div><div><span class="opt bad">A. the green cube</span><span class="opt">B. neither lands before the video ends</span><span class="opt ok">C. they land at the same time</span><span class="opt">D. the blue cube</span></div><div class=tag>riA_30084/landing_order/blue_cube_1-green_cube_2</div><details><summary>model reasoning (622 tokens)</summary><pre>The user wants me to look at 24 frames and determine which cube lands first. Let me carefully examine the frames. In the early frames (1-8), both the green cube and blue cube appear elevated in the air (they have a gap below them, floating). The purple sphere is on the ground.
+
+Looking at the frames: In frame 1-8, the green cube is high up, the blue cube is also high but maybe lower? Let&#x27;s look at the vertical positions. Actually in frame 1, green cube top is near the top edge, blue cube also high. As frames progress, both descend. By frame 9-10, the green cube appears to have its bottom near the ground level (it looks like it&#x27;s sitting on the ground around frame 9-10). The blue cube in frame 9-10 still appears elevated? Let&#x27;s look.
+
+Frame 9: green cube bottom seems to touch ground (shadow directly under it, cube lower). Blue cube still has a visible gap? Hard to say.
+
+Let&#x27;s track the green cube&#x27;s vertical position relative to the ground grid. In frame 1, green cube is high. By frame 12, green cube is on the ground (sitting). Blue cube also by frame 12 looks on ground.
+
+I need to find which lands first. Let&#x27;s compare frame by frame. In frame 9, green cube looks like it&#x27;s just about to touch; blue cube still slightly above? In frame 10, green cube on ground, blue cube maybe still a touch above? In frame 11-12 both on ground.
+
+Hmm, this is subtle. The green cube is smaller and starts higher? Actually in frame 1 green cube top is at y~20, blue cube top at y~30. The green cube bottom ~ y110, blue bottom ~ y130. So green is higher up initially? The green cube appears higher (its bottom is higher in image = further from camera/ground?). Not sure about depth.
+
+Let&#x27;s think about shadows. The green cube&#x27;s shadow in frame 1 is a small dark square at left around mid. The blue cube&#x27;s shadow is under it. As they fall, the shadow would grow/align.
+
+Given typical CLEVR-style physics videos, the green cube likely lands first because it&#x27;s smaller and lower? But the question states both are falling. Looking at the descent: green cube descends and reaches ground around frame 9-10; blue cube reaches ground around frame 10-11. So green lands first.
+
+Thus answer A.
+
+Let me double check with frame 9 vs 10: In frame 9, green cube bottom edge aligns with grid line near sphere top; blue cube bottom still above that line. In frame 10 green clearly on ground, blue still slightly elevated. In frame 11 blue on ground. So green first.
+
+Therefore A.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/riA_30122.mp4"></video><div class=tag>riA_30122 · initial archive (random)</div></div><div><div class=q><div>Both the orange cylinder and the yellow ball are falling. Which one lands on the ground first?</div><div><span class="opt bad">A. the orange cylinder</span><span class="opt">B. the yellow ball</span><span class="opt ok">C. they land at the same time</span><span class="opt">D. neither lands before the video ends</span></div><div class=tag>riA_30122/landing_order/yellow_ball_1-orange_cylinder_2</div><details><summary>model reasoning (856 tokens)</summary><pre>The user wants me to determine which object lands first: the orange cylinder or the yellow ball. I need to track both across the 24 frames.
+
+Let me look at the frames carefully. In frame 1, the yellow ball is high up (top area), and the orange cylinder is already near the ground on the right side (it&#x27;s at a low height, sitting near the striped ball&#x27;s base level). Actually wait, the orange cylinder in frame 1 appears to be floating a bit but lower than the yellow ball. Let me track heights.
+
+Frame 1: yellow ball high (~top), orange cylinder mid-low (right side, around middle height).
+Frame 2: similar.
+Frame 3: yellow ball still high, orange cylinder similar.
+Frame 4: yellow ball slightly lower, orange cylinder similar.
+Frame 5-8: yellow ball descending, orange cylinder descending slowly.
+Frame 9: yellow ball lower, orange cylinder near ground level.
+Frame 10: yellow ball low near ground, orange cylinder near ground.
+Frame 11: yellow ball at ground, orange cylinder at ground? Let&#x27;s look. In frame 11, yellow ball is near the blue cylinder base, orange cylinder is on the ground right.
+Frame 12: yellow ball on ground, orange cylinder on ground.
+
+Hmm, I need to compare landing times. The orange cylinder starts lower (closer to ground) than the yellow ball in early frames. Actually in frame 1 the orange cylinder&#x27;s bottom is around the same height as the blue cylinder top? Let&#x27;s think about vertical position.
+
+Let me look at the shadows/ground contact. The orange cylinder in frames 1-4 is elevated (floating). The yellow ball is high. As frames progress, both fall. The yellow ball is initially higher, so it has further to fall. The orange cylinder is lower initially, so it should land first if they fall at same rate.
+
+But wait, looking at frame 9, the orange cylinder appears to be at a similar height to the yellow ball now. By frame 10, yellow ball is near ground, orange cylinder near ground. By frame 11-12 both on ground.
+
+Let me look more carefully at when each touches ground. In frame 10, the yellow ball is at about the same vertical level as the blue cylinder&#x27;s middle, and the orange cylinder is at the right near ground (its base near the ground shadow). In frame 11, yellow ball is clearly on the ground (touching), orange cylinder also on ground.
+
+Hmm, this is subtle. Let me consider the orange cylinder&#x27;s trajectory: frame 1 it&#x27;s at mid-height, frame 5-8 it&#x27;s descending, frame 9 it&#x27;s lower, frame 10 it&#x27;s near ground. The yellow ball: frame 1 high, descending, frame 9 near ground, frame 10 on ground.
+
+Actually I think the orange cylinder lands first because it started closer to the ground. Let&#x27;s verify by examining frame 9 vs 10 for the orange cylinder: In frame 9, orange cylinder base is just above its shadow (small gap). In frame 10, orange cylinder base is on its shadow (contact). For yellow ball: frame 9 it&#x27;s above ground with gap, frame 10 it&#x27;s near ground maybe contact, frame 11 contact.
+
+Thus orange cylinder lands around frame 10, yellow ball around frame 10-11. So orange cylinder first.
+
+Therefore answer A.
+
+Let me double check with the visual: In frame 10 the orange cylinder looks like it&#x27;s sitting on the floor (its bottom aligns with floor). The yellow ball in frame 10 is still slightly above floor (there&#x27;s a shadow below it with gap). In frame 11 yellow ball touches floor. So orange cylinder lands first.
+
+Thus answer: A.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/riA_30167.mp4"></video><div class=tag>riA_30167 · initial archive (random)</div></div><div><div class=q><div>Both the green cone and the green-and-purple striped cube are falling. Which one lands on the ground first?</div><div><span class="opt">A. the green-and-purple striped cube</span><span class="opt">B. neither lands before the video ends</span><span class="opt bad">C. the green cone</span><span class="opt ok">D. they land at the same time</span></div><div class=tag>riA_30167/landing_order/green_cone_0-green_purple_striped_cube_2</div><details><summary>model reasoning (867 tokens)</summary><pre>The user wants me to analyze a 24-frame video to determine which object lands first: the green cone or the green-and-purple striped cube.
+
+Let me look carefully at the frames. In frame 1, both the green cone and the green-purple striped cube are elevated above the ground (floating). The cone&#x27;s base is above the ground plane, and the cube&#x27;s base is also above the ground.
+
+I need to track when each lands (touches the ground). Let me look at the shadows and base positions.
+
+Frame 1: cone floating, cube floating.
+Frame 2: both still floating, slightly lower?
+Frame 3: similar.
+Frame 4: similar.
+Frame 5: a green cube appears on the right edge.
+Frame 6: green cube more visible on right.
+Frame 7-8: green cube entering.
+Frame 9-10: green cube visible on right.
+Frame 11: the cone&#x27;s base appears to touch ground? Let&#x27;s look. In frame 11, the cone looks like it&#x27;s near the ground with a shadow right at its base. The striped cube still appears elevated? Hmm.
+
+Actually, let&#x27;s track the vertical position relative to the ground grid. The camera is also moving/rotating, which complicates things. Let me look at the shadows: when an object is on the ground, its shadow is right at its base and tight. When floating, there&#x27;s a gap shadow.
+
+In early frames, the cone has a small shadow to its lower-right but the cone base seems above ground. The striped cube has a big shadow far to the right (the dark patch on the right side is the shadow of the cube cast on the ground, indicating it&#x27;s high up).
+
+Let me look frame by frame at the cone. Frame 1: cone base clearly above ground (we see grid lines below it). Frame 11: cone base near a shadow spot. Frame 12: cone base on ground with tight shadow. Frame 13 onward: cone sitting on ground.
+
+For the striped cube: In frame 11-12 it still looks elevated? Its shadow is the large dark region to the right. By frame 16-17 the cube seems to be on ground (shadow tight around base).
+
+Hmm, this is tricky. Let&#x27;s think about typical physics: both falling, same initial height? The cone is shorter. But they&#x27;re falling under gravity; if same height, they land same time regardless of shape (ignoring air). But the question implies one lands first, so initial heights differ or they were released at different times.
+
+Looking at frame 1, the cone&#x27;s top is lower than the cube&#x27;s top, but the cone is short so its base might be at similar height to cube&#x27;s base? Hard.
+
+Let&#x27;s look at when each first makes contact. I&#x27;ll examine the cone&#x27;s base across frames: Frame 1 base ~ y around middle. As frames progress the camera tilts down so objects move up in frame. This is confusing.
+
+Better: look at shadow contact. The cone in frame 12 shows a shadow directly beneath it (the dark oval at lower-left of cone). In frame 11 also there&#x27;s a shadow under cone. In frame 10 the cone&#x27;s shadow is a bit separated? In frame 9 the cone shadow is separated to the right.
+
+For the striped cube, its shadow (big dark patch) stays to the right for many frames, meaning it&#x27;s still high. By frame 13-14 the cube&#x27;s shadow moves closer. By frame 16 the cube appears grounded.
+
+Thus the cone lands before the cube. So answer C (green cone).
+
+Let me double check with later frames: from frame 13 to 24 the cone stays on ground (tight shadow at base). The cube continues to descend and around frame 16-18 becomes grounded. So cone landed earlier.
+
+Therefore answer C.
+
+I&#x27;ll provide reasoning then final letter C.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/g0003_008.mp4"></video><div class=tag>g0003_008 · MAP-Elites gen 3</div></div><div><div class=q><div>Both the blue ball and the red-and-orange striped cylinder are falling. Which one lands on the ground first?</div><div><span class="opt bad">A. the blue ball</span><span class="opt">B. the red-and-orange striped cylinder</span><span class="opt">C. neither lands before the video ends</span><span class="opt ok">D. they land at the same time</span></div><div class=tag>g0003_008/landing_order/blue_ball_0-red_orange_striped_cylinder_1</div><details><summary>model reasoning (742 tokens)</summary><pre>The user wants me to determine which object lands first: the blue ball or the red-and-orange striped cylinder. I need to look at the sequence of 24 frames and track the vertical positions of these two objects as they fall.
+
+Let me trace the blue ball. In frame 1, it&#x27;s high up in the air, clearly elevated above the green cylinder. As frames progress, it descends. By frame 10-11, it&#x27;s getting lower. By frame 12-13, it appears to be near the ground level. Let me look carefully.
+
+Frame 1: blue ball high.
+Frame 5: still high but slightly lower.
+Frame 9: lower, near top of red cone.
+Frame 11: lower still, around mid-height of green cylinder.
+Frame 12: blue ball is down near ground, its bottom close to floor.
+Frame 13: blue ball resting on ground.
+
+Now the red-and-orange striped cylinder. In frame 1 it&#x27;s up high. It descends. Frame 9 it&#x27;s still elevated. Frame 11 it&#x27;s near the ground next to green cylinder. Frame 12 it&#x27;s on the ground.
+
+Hmm, I need to compare which lands first. Let me look at shadows and contact.
+
+In frame 11, the red cylinder appears to be touching the ground (its base is at floor level next to green cylinder), while the blue ball is still slightly above? Actually in frame 11 the blue ball looks like it&#x27;s already low too.
+
+Let me look more systematically. I&#x27;ll consider the height of each object&#x27;s bottom relative to the floor.
+
+Frame 1: ball bottom ~ mid green cylinder top; red cylinder bottom ~ mid green cylinder top (both elevated, falling).
+Frame 5: similar.
+Frame 9: ball bottom near red cone base; red cylinder bottom near green cylinder top still elevated.
+Frame 10: ball bottom near red cone base; red cylinder bottom near green cylinder mid.
+Frame 11: ball bottom near ground; red cylinder bottom near ground.
+Frame 12: both on ground.
+
+This is tough. Let&#x27;s think about the physics/animation: they start at different heights? In frame 1, the blue ball&#x27;s center is higher than the red cylinder&#x27;s center? The blue ball top is high; the red cylinder top is lower. But the question is about landing (bottom contacting ground).
+
+Look at frame 9: red cylinder bottom is around the same height as green cylinder&#x27;s top portion, still clearly above ground. Blue ball bottom is around red cone&#x27;s base, which is near ground. So blue ball is lower in frame 9.
+
+Frame 10: blue ball bottom near ground (touching red cone area), red cylinder still a bit up.
+
+Frame 11: blue ball on ground, red cylinder on ground.
+
+Thus blue ball lands first. So answer A.
+
+Let me double check with shadows: in early frames there are two shadow blobs at bottom left (cast by the falling objects). As they land, shadows align under them. In frame 11, the blue ball&#x27;s shadow is right under it on left; red cylinder&#x27;s shadow under it. Hard.
+
+I&#x27;ll commit to A: blue ball lands first because in intermediate frames (9-10) the blue ball is already near the floor while the red cylinder is still elevated.
+
+Thus answer A.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/g0004_035.mp4"></video><div class=tag>g0004_035 · MAP-Elites gen 4</div></div><div><div class=q><div>Both the yellow ball and the orange cylinder are falling. Which one lands on the ground first?</div><div><span class="opt">A. neither lands before the video ends</span><span class="opt bad">B. the yellow ball</span><span class="opt ok">C. they land at the same time</span><span class="opt">D. the orange cylinder</span></div><div class=tag>g0004_035/landing_order/yellow_ball_1-orange_cylinder_2</div><details><summary>model reasoning (406 tokens)</summary><pre>The user wants to know which object lands first: the yellow ball or the orange cylinder. I need to track both across the 24 frames.
+
+Let me look at the frames. In frame 1, the yellow ball is high up, the orange cylinder is also up but a bit lower than the ball? Let&#x27;s check heights. Frame 1: yellow ball near top, orange cylinder below it. As frames progress, both fall.
+
+I need to find when each first touches the ground (when its shadow/base aligns with ground plane and it stops moving / appears at ground level).
+
+Let me track the yellow ball: frame 1 high, frame 5 still high, frame 9 medium, frame 10 lower, frame 11 near ground next to blue cylinder, frame 12 on ground (next to blue cylinder at ground level). So yellow ball lands around frame 11-12.
+
+Orange cylinder: frame 1 mid-height, frame 9 similar, frame 11 a bit lower, frame 12 lower, frame 13 near ground, frame 14 on ground. Let&#x27;s look carefully.
+
+Frame 11: yellow ball is at ground level (touching near blue cylinder). Orange cylinder is still elevated (mid). Frame 12: yellow ball on ground, orange cylinder lower but still above ground. Frame 13: orange cylinder near ground. Frame 14: orange cylinder on ground.
+
+Thus yellow ball lands before orange cylinder. So answer B (the yellow ball).
+
+Let me double check frame 11: yellow ball appears at same height as blue cylinder top? Actually blue cylinder is on ground. In frame 11 yellow ball is beside blue cylinder at roughly ground height. Orange cylinder in frame 11 is clearly above ground (elevated). So yellow lands first.
+
+Therefore answer B.
+
+Provide exactly one letter.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/g0006_035.mp4"></video><div class=tag>g0006_035 · MAP-Elites gen 6</div></div><div><div class=q><div>Both the yellow cylinder and the green-and-purple striped cylinder are falling. Which one lands on the ground first?</div><div><span class="opt">A. they land at the same time</span><span class="opt bad">B. the yellow cylinder</span><span class="opt ok">C. the green-and-purple striped cylinder</span><span class="opt">D. neither lands before the video ends</span></div><div class=tag>g0006_035/landing_order/yellow_cylinder_1-green_purple_striped_cylinder_3</div><details><summary>model reasoning (1022 tokens)</summary><pre>The user wants me to determine which cylinder lands first: the yellow one or the green-and-purple striped one. I need to look at the 24 frames and track the falling motion of each cylinder.
+
+Let me look carefully at the frames. In the early frames (1-4), both cylinders appear elevated with shadows beneath them, suggesting they are falling from the air. The yellow cylinder is in the foreground, the green-purple striped one is in the background.
+
+I need to track when each one&#x27;s shadow merges with its base / when it lands. Let&#x27;s look at the heights. In frame 1, the yellow cylinder&#x27;s bottom is above its shadow (there&#x27;s a gap with shadow below). The striped cylinder&#x27;s bottom also is above its shadow.
+
+Let me track frame by frame. Actually, this is a CLEVRER-style video. The cylinders are falling and landing. I need to compare landing times.
+
+Looking at the shadows: In frame 1, yellow cylinder shadow is a separate blob below it. The striped cylinder also has a shadow blob below-left. As frames progress, the objects get closer to their shadows (landing).
+
+Let me look at the yellow cylinder: In frame 1, gap between cylinder base and shadow. Frame 2 similar. Frame 3 similar. Frame 4 similar. By frame 5-6 the yellow cylinder seems to be touching? Hard.
+
+Actually, the camera is also moving (rotating) across frames, which complicates. The whole scene rotates. So I can&#x27;t just compare pixel heights.
+
+Let me think about typical CLEVRER questions: objects fall and bounce. The question asks which lands first. I should look at the moment each object first contacts the ground (shadow becomes directly under and base touches).
+
+Let me examine the yellow cylinder&#x27;s contact. In frames 1-3, the yellow cylinder appears to hover with shadow below. In frame 4, still hovering. Frame 5: hovering. Frame 6: hovering. Frame 7: hovering. Hmm.
+
+Maybe I should look at the striped cylinder: it&#x27;s larger and in background. Its shadow is to its left.
+
+This is too imprecise. Let me think about physics: both start at some height at frame 1. If both are falling under gravity from rest at different heights, the lower one lands first. In frame 1, the yellow cylinder&#x27;s base appears lower (closer to ground) than the striped cylinder&#x27;s base? The yellow cylinder base is around middle; striped base is higher up in image but it&#x27;s further away so perspective.
+
+Hmm, this is genuinely hard. Let me look at the shadows more carefully as indicators of distance from ground: a higher object has a shadow offset more? Not necessarily.
+
+Maybe the answer is that the yellow cylinder lands first because it&#x27;s lower. Let&#x27;s look at when shadows align.
+
+For the yellow cylinder: frame 12 (image 12) the shadow is right below and slightly left, base near it. Frame 13 the yellow cylinder&#x27;s base seems to touch ground (shadow directly under). Actually by frame 10-12 the yellow cylinder looks grounded.
+
+For striped cylinder: by frame 12-13 it also looks grounded.
+
+I think I&#x27;m overanalyzing. Let&#x27;s look at the early frames for the moment of first contact. The yellow cylinder in frame 1 has a clear gap (shadow separate). The striped cylinder in frame 1 also has gap.
+
+Let&#x27;s consider that the video shows them already falling and they land during the video. The question: which lands first. Likely the yellow one because it&#x27;s shorter/lower initially.
+
+I&#x27;ll commit to B) the yellow cylinder.
+
+Wait, but maybe the striped one is actually on the ground from the start and not falling? The question states both are falling. So both fall.
+
+Let&#x27;s look at vertical position relative to own shadow across frames to detect contact. When an object is directly above its shadow (centered), it&#x27;s at rest on ground. When offset, it&#x27;s in air (or camera angle). The camera rotates, so offset changes due to rotation too. Ugh.
+
+Given uncertainty, I&#x27;ll reason: the yellow cylinder is in front and appears to reach the ground earlier in the sequence (its shadow merges around frame 5-6) while the striped one merges later. So yellow lands first.
+
+Thus answer B.
+
+I&#x27;ll provide B.
+</pre></details></div></div></div><script>
+(async()=>{const vs=[...document.querySelectorAll('video[data-src]')];const el=document.getElementById('vl');
+let k=0;const show=()=>{el.textContent=`videos loaded ${k} / ${vs.length}`};show();
+for(const v of vs){try{const r=await fetch(v.dataset.src);v.src=URL.createObjectURL(await r.blob());}
+catch(e){v.src=v.dataset.src}k++;show();}})();
+</script></body></html>

@@ -1,0 +1,531 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Qwen3.8-27B: occlusion_event</title><style>:root{--bg:#fbfaf7;--card:#fff;--ink:#1d1d1b;--mute:#6b6a65;--line:#e4e1da;--ok:#1f7a3a;--okbg:#e3f3e7;
+--bad:#b3261e;--badbg:#fbe6e4}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17171a;--card:#212126;--ink:#e8e6e1;
+--mute:#9a978f;--line:#33333a;--ok:#7fd49a;--okbg:#1d3326;--bad:#f2a49d;--badbg:#3d2220}}
+:root[data-theme="dark"]{--bg:#17171a;--card:#212126;--ink:#e8e6e1;--mute:#9a978f;--line:#33333a;--ok:#7fd49a;
+--okbg:#1d3326;--bad:#f2a49d;--badbg:#3d2220}
+*{box-sizing:border-box}body{background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,sans-serif;
+max-width:1040px;margin:32px auto;padding:0 16px}a{color:inherit}h1{font-size:24px;margin:0 0 6px}
+.m{color:var(--mute)}table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n{text-align:right;font-variant-numeric:tabular-nums}.wrap{overflow-x:auto}
+.scene{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin:18px 0;
+display:grid;grid-template-columns:minmax(0,480px) minmax(0,1fr);gap:16px}
+@media (max-width:820px){.scene{grid-template-columns:1fr}}
+video{width:100%;aspect-ratio:16/9;background:#000;border-radius:6px}
+.q{border-top:1px solid var(--line);padding:8px 0}.q:first-child{border-top:0;padding-top:0}
+.opt{display:inline-block;padding:1px 8px;margin:2px 4px 2px 0;border-radius:5px;border:1px solid var(--line);
+font-size:13px}.opt.ok{background:var(--okbg);color:var(--ok);border-color:var(--ok)}
+.opt.bad{background:var(--badbg);color:var(--bad);border-color:var(--bad)}
+details{font-size:13px;color:var(--mute)}pre{white-space:pre-wrap;font:12.5px/1.5 ui-monospace,monospace;
+margin:6px 0 0}.tag{font-size:12px;color:var(--mute)}#vl{position:sticky;top:0;background:var(--bg);padding:6px 0;
+font-size:13px;color:var(--mute);z-index:1}</style></head><body><p><a href="index.html">← all types</a></p><h1>occlusion_event</h1><p class=m>15 wrong of 321 asked (4.7 %), in 15 scenes.</p><div id=vl></div><div class=scene><div><video controls loop muted playsinline data-src="clips/riA_30073.mp4"></video><div class=tag>riA_30073 · initial archive (random)</div></div><div><div class=q><div>Consider the red-and-orange striped cube and the purple-and-orange striped cylinder. During the video, which one passes in front of the other, hiding part of it?</div><div><span class="opt bad">A. the red-and-orange striped cube</span><span class="opt">B. the purple-and-orange striped cylinder</span><span class="opt">C. both: each passes in front of the other at different times</span><span class="opt ok">D. neither: they never overlap on screen</span></div><div class=tag>riA_30073/occlusion_event/purple_orange_striped_cylinder_0-red_orange_striped_cube_1</div><details><summary>model reasoning (1404 tokens)</summary><pre>The user wants me to look at a sequence of 24 frames and determine which object passes in front of the other, hiding part of it. The two objects in question are the &quot;red-and-orange striped cube&quot; and the &quot;purple-and-orange striped cylinder.&quot;
+
+Wait, let me look carefully. There&#x27;s a purple-and-red striped cube on the left, and a red-and-orange (yellow) striped cube on the right. There&#x27;s also a small orange cylinder behind the left cube (I see a small orange top peeking). And a brown/orange sphere.
+
+Let me re-examine. The left object: it&#x27;s a cube with purple and red stripes, but behind it there&#x27;s a small orange cylinder (the top peeks out in later frames). Actually the question says &quot;purple-and-orange striped cylinder&quot; - hmm. Let me look at the left structure: in early frames there&#x27;s a small cylinder top (orange with pink) peeking on the left of the purple cube. As frames progress, that small cylinder moves relative? Actually the camera is moving/rotating around the scene.
+
+The question: which one passes in front of the other, hiding part of it? So between the red-and-orange striped cube (right cube) and the purple-and-orange striped cylinder (the small cylinder on left? or the left cube which is actually purple-and-red?).
+
+Hold on. The left cube is purple and red striped. The cylinder behind it is small orange. The right cube is red and orange/yellow striped. The sphere is brown.
+
+The question mentions &quot;purple-and-orange striped cylinder&quot; — that must be the small cylinder on the left that has purple and orange stripes? In early frames the left small cylinder top looks orange/pink. Hard to say.
+
+Actually maybe the left object is a combination: a purple-and-orange striped cylinder in front of a red cube? Look at frame 1: left shows a purple vertical face with red stripe, that&#x27;s a cube. Behind-left there&#x27;s a small cylinder.
+
+This is getting too detailed. The key is occlusion between the red-orange cube and the purple-orange cylinder. In the frames, the left purple cube and the left small cylinder: the purple cube is in front of the small cylinder (the cylinder is partially hidden behind the cube). As the camera moves, does the cylinder pass in front of the cube? At the end frames (20-24), the small orange cylinder top is visible above/behind the left cube still, the cube remains in front.
+
+But the question pairs red-orange cube (right) with purple-orange cylinder (left small). They are far apart, never overlap. So answer D? But the question expects one passes in front.
+
+Let&#x27;s think about typical CLEVR-style occlusion questions. Usually there are two objects and one occludes the other. Here the left cluster: a cylinder and a cube overlap on screen. The left cube is purple-red; the cylinder is orange-purple striped and is behind the cube (we see its top peeking). So the cube hides part of the cylinder. But the cube in the question is &quot;red-and-orange striped cube&quot; which is the right one, not the left purple cube.
+
+Hmm, maybe I&#x27;m mislabeling. Let&#x27;s look at colors: left cube faces: purple and dark red. Right cube faces: red and yellow/orange. The small cylinder: orange with pink top. The sphere: brown/orange.
+
+&quot;purple-and-orange striped cylinder&quot; - the small cylinder could be purple and orange? Its visible side in later frames (e.g., frame 20-24) shows purple? In frame 24 the small cylinder top is orange with maybe purple side. Plausible.
+
+&quot;red-and-orange striped cube&quot; - the right cube is red and orange/yellow. Yes.
+
+These two (right cube and left small cylinder) never overlap on screen; they&#x27;re separated. So D? But then the left purple cube vs left cylinder overlap, but that&#x27;s not the pair asked.
+
+Wait maybe the left big cube is actually considered &quot;red-and-orange&quot;? No it&#x27;s purple-red.
+
+Let&#x27;s reconsider the whole scene: maybe the left object is a cylinder that&#x27;s purple-and-orange striped, and the right object is a red-and-orange striped cube, and the big purple-red thing is something else? The left big object clearly has square top and vertical edges = cube. The small thing behind = cylinder.
+
+I think the intended answer is that the cylinder (purple-orange) is behind the cube (the left purple cube), but the question&#x27;s &quot;red-and-orange striped cube&quot; might be a misnomer for the left cube? The left cube has red stripes and the top is orange/pink striped. Yes! The left cube&#x27;s top is orange/pink striped and one face is red, other faces purple. So &quot;red-and-orange striped cube&quot; could describe the left cube (it has red vertical stripe and orange top). And the &quot;purple-and-orange striped cylinder&quot; is the small cylinder behind it (purple side, orange top). That makes sense! The left cube = red-and-orange striped cube; the small cylinder behind = purple-and-orange striped cylinder.
+
+Now which passes in front? Throughout the frames, the cube is in front of the cylinder (cylinder peeks from behind). The cube hides part of the cylinder. So the cube passes in front of the cylinder? But it&#x27;s always in front, not &quot;passes in front&quot; dynamically. The question phrasing &quot;passes in front of the other, hiding part of it&quot; basically asks which occludes which. The cube occludes the cylinder. So answer A: the red-and-orange striped cube.
+
+But wait, does the cylinder ever get in front? No, the cube is always in front of the cylinder across all frames. So the cube hides part of the cylinder. Therefore A.
+
+Let&#x27;s double check there&#x27;s no moment where cylinder in front. In all frames the small cylinder top is behind the cube&#x27;s top edge, never covering the cube. So cube in front. Answer A.
+
+Thus final answer A.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/riA_30252.mp4"></video><div class=tag>riA_30252 · initial archive (random)</div></div><div><div class=q><div>Consider the red-and-yellow striped cone and the red-and-purple striped cylinder. During the video, which one passes in front of the other, hiding part of it?</div><div><span class="opt">A. both: each passes in front of the other at different times</span><span class="opt">B. the red-and-purple striped cylinder</span><span class="opt ok">C. the red-and-yellow striped cone</span><span class="opt bad">D. neither: they never overlap on screen</span></div><div class=tag>riA_30252/occlusion_event/red_yellow_striped_cone_0-red_purple_striped_cylinder_3</div><details><summary>model reasoning (407 tokens)</summary><pre>The user wants me to determine which object passes in front of the other: the red-and-yellow striped cone or the red-and-purple striped cylinder.
+
+Let me look at the frames carefully. There&#x27;s a large red-and-yellow striped cone on the left, a smaller red-and-green (or yellow-green) striped cone in the middle, a red-and-purple striped cylinder (tall) on the right, and a small red cylinder.
+
+Wait, the question mentions &quot;red-and-yellow striped cone&quot; and &quot;red-and-purple striped cylinder&quot;. So I need to track the large cone (red-yellow) and the tall cylinder (red-purple).
+
+Looking across frames, the camera seems to orbit/pan. The cone stays on the left, the cylinder on the right. Do they ever overlap on screen? In all frames, the cone is on the left and the cylinder is on the right with a gap between them (the small green cone is in between). They never appear to overlap on screen at any point.
+
+Let me double check each frame. Frame 1: cone left, cylinder right, separated. Frame 12, 13, 14: cone left, cylinder middle-right, small green cone in front of cylinder. The large red-yellow cone never overlaps the cylinder. They remain separated horizontally throughout.
+
+Thus they never overlap on screen, so neither passes in front of the other. Answer D.
+
+But wait, &quot;passes in front of the other, hiding part of it&quot; requires overlap. Since they never overlap, D is correct.
+
+Let me confirm there&#x27;s no frame where the cone is in front of cylinder or vice versa. The camera rotates around; the relative screen positions stay cone-left, cylinder-right with the green cone between. No overlap.
+
+Thus D.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/riA_30340.mp4"></video><div class=tag>riA_30340 · initial archive (random)</div></div><div><div class=q><div>Consider the purple ball and the purple-and-orange striped ball. During the video, which one passes in front of the other, hiding part of it?</div><div><span class="opt bad">A. the purple ball</span><span class="opt ok">B. the purple-and-orange striped ball</span><span class="opt">C. both: each passes in front of the other at different times</span><span class="opt">D. neither: they never overlap on screen</span></div><div class=tag>riA_30340/occlusion_event/purple_ball_0-purple_orange_striped_ball_1</div><details><summary>model reasoning (881 tokens)</summary><pre>The user wants me to look at 24 frames and determine which ball (purple solid vs purple-and-orange striped) passes in front of the other, hiding part of it.
+
+Let me track the two balls of interest: the small solid purple ball and the small purple-and-orange striped ball. The large red-yellow striped ball is irrelevant.
+
+In early frames (1-3), the purple solid ball is to the right of the striped small ball, slightly overlapping? Let&#x27;s look. Frame 1: striped small ball at left, purple ball just to its right, they appear close but the purple ball&#x27;s left edge touches the striped ball&#x27;s right edge. There&#x27;s slight overlap where the purple ball is in front? Hard to say.
+
+As the camera moves (the scene pans), the relative positions change. Let&#x27;s look carefully at frames where they overlap.
+
+Frame 1: striped ball center ~ (270,150), purple ball ~ (360,160). They are near but purple ball is to the right and slightly lower. The purple ball&#x27;s left side overlaps the striped ball&#x27;s right side? In frame 1 the purple ball appears in front of the striped ball&#x27;s right edge? Actually the striped ball&#x27;s right edge is occluded by the purple ball? Looking: the striped ball shows purple-orange-purple-orange stripes; its right portion is partly behind the purple ball? The purple ball is smaller and to the right.
+
+Hmm, this is tricky. The question likely expects a clear answer from occlusion events. Let&#x27;s think about depth: which is closer to camera? As the view rotates, the relative screen positions change. In later frames (e.g., frame 24), the purple ball is to the right and clearly separate, no overlap.
+
+Let&#x27;s examine frames where they are close: frames 1-8 they are adjacent. In frame 1-3 the purple ball seems to be in front (occluding the right edge of striped ball). In some middle frames they separate.
+
+Actually the key: &quot;passes in front of the other, hiding part of it&quot; implies at some time one occludes the other. We need which one.
+
+Look at frame 1: the small purple ball overlaps the striped ball? The striped ball&#x27;s rightmost orange/purple stripe region is partly covered by the purple ball? The purple ball appears solid on top, so purple ball in front.
+
+But maybe later the striped ball passes in front of the purple ball? In frames 4-8 the purple ball is to the right and slightly separated, with the striped ball&#x27;s right edge visible fully? Hard.
+
+Given typical CLEVR-style video questions, the answer is usually one of them consistently. Let&#x27;s reason about depth ordering: The purple ball and striped ball are at roughly same depth but as camera orbits, the one that is closer to camera in world space will be in front.
+
+From the images, the purple solid ball appears to be slightly behind or in front? In frame 1, the purple ball&#x27;s bottom shadow and position suggest it&#x27;s a bit further right and maybe slightly behind? The striped ball&#x27;s right edge seems to go behind the purple ball, meaning purple in front.
+
+I think the intended answer is A: the purple ball passes in front of the striped ball.
+
+Let&#x27;s double check by looking at frame 5-6: striped ball left, purple ball right, the purple ball&#x27;s left edge overlaps striped ball&#x27;s right edge? In frame 6 the purple ball is to the right and the striped ball&#x27;s right purple stripe is fully visible; they don&#x27;t overlap. So overlap only at start.
+
+At the very start, the purple ball is in front of the striped ball (occluding its right side). Thus the purple ball passes in front.
+
+Thus answer A.
+
+I&#x27;ll commit to A.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/riA_30407.mp4"></video><div class=tag>riA_30407 · initial archive (random)</div></div><div><div class=q><div>Consider the orange cylinder and the green-and-orange striped cylinder. During the video, which one passes in front of the other, hiding part of it?</div><div><span class="opt">A. both: each passes in front of the other at different times</span><span class="opt ok">B. the orange cylinder</span><span class="opt bad">C. neither: they never overlap on screen</span><span class="opt">D. the green-and-orange striped cylinder</span></div><div class=tag>riA_30407/occlusion_event/orange_cylinder_3-green_orange_striped_cylinder_4</div><details><summary>model reasoning (1352 tokens)</summary><pre>The question asks about the orange cylinder and the green-and-orange striped cylinder. I need to track these two objects across the 24 frames and determine which one passes in front of the other (occludes it).
+
+Let me identify the objects. There&#x27;s a large blue cylinder in the center, a blue cone, a small orange/brown cylinder in the foreground, and two green-red striped cylinders (the question calls them &quot;green-and-orange striped&quot; — the colors look green and red/maroon, but the question refers to green-and-orange striped; there are two such striped cylinders, one on left and one on right).
+
+Wait, the question says &quot;the orange cylinder&quot; and &quot;the green-and-orange striped cylinder&quot;. The orange cylinder is the small brown/orange one in the foreground center. The green-and-orange striped cylinder — there are two striped cylinders (left and right). Hmm.
+
+Let me look carefully. The orange cylinder (small, foreground center) stays roughly in the center-front. The striped cylinders are on left and right. As the camera moves (orbiting/panning), the relative screen positions change.
+
+I need to see at some point whether the orange cylinder overlaps with a striped cylinder on screen, and which is in front.
+
+Looking at the frames, early frames (1-9) the orange cylinder is in front center, striped cylinders far left and right, no overlap. As camera orbits to the right (frames 10-24), the right striped cylinder moves leftward and approaches the blue cylinder and orange cylinder. In later frames (18-24), the right striped cylinder appears behind the blue cylinder, partly hidden by blue cylinder. The left striped cylinder goes off to the far left.
+
+Hmm but the question is about orange cylinder vs striped cylinder overlap. Do they ever overlap on screen? Let&#x27;s check frames where the right striped cylinder comes near the orange cylinder. In frame ~16-18, the right striped cylinder is behind the blue cylinder, to the upper right of orange. The orange cylinder is in front of blue. The striped is behind blue. So orange and striped don&#x27;t overlap each other directly; blue is between.
+
+Wait, maybe I&#x27;m mislabeling. Let&#x27;s reconsider: maybe &quot;orange cylinder&quot; refers to the large blue? No, it&#x27;s blue. The orange cylinder is the small brown one.
+
+Let&#x27;s look at the trajectory: The camera seems to rotate around the scene. In early frames, left striped cylinder is at left, right striped at right. The orange small cylinder is center-front. As we progress, the viewpoint rotates such that the right striped cylinder ends up near the blue cylinder (behind it). The left striped cylinder moves to far left edge and off screen.
+
+So does the orange small cylinder ever pass in front of a striped cylinder? They seem to stay separated: orange is front-center, striped are left/right.
+
+But maybe the question intends the large blue cylinder? No.
+
+Let&#x27;s think about depth ordering: The orange small cylinder is closest to camera (front). The striped cylinders are further back. If they ever overlap on screen, the orange (front) would hide the striped. So answer would be B (orange cylinder passes in front).
+
+Do they overlap? Look at frame 17-18: right striped cylinder is just right of blue cylinder top, orange is front of blue. Not overlapping striped.
+
+Hmm, perhaps I should look at the left striped cylinder in later frames: it moves left and shrinks, no overlap with orange.
+
+Maybe the intended interpretation: the two striped cylinders — one of them (the &quot;green-and-orange striped cylinder&quot;) passes behind the orange? But they don&#x27;t appear to overlap.
+
+Let&#x27;s look more carefully at frame 1: left striped at x~310, right striped at x~760, orange at x~370. Frame 8: left striped ~270, right ~560, orange ~400. Frame 12: left ~300, right ~480, orange ~440. Frame 16: left ~150, right ~470, orange ~470. Frame 18: left ~70, right ~450 (behind blue), orange ~470. Frame 20: left ~10, right ~300 (behind blue top), orange ~470. Frame 22: right striped ~290 behind blue, orange ~470. Frame 24: right striped behind blue top ~300, orange ~470.
+
+So the orange cylinder x ~ 370-470 increasing slightly. The right striped x decreases from 760 to ~300. They might converge? At frame 24 right striped ~300, orange ~470 — not overlapping. The blue cylinder is between them around x~380-430.
+
+Thus orange and striped never overlap on screen? Then answer C (neither: they never overlap on screen).
+
+But wait, the question expects one passes in front hiding part of it. Options include C neither overlap. Given my analysis they never overlap, C is plausible.
+
+But let&#x27;s double check there&#x27;s no frame where right striped passes in front of orange or vice versa. The right striped is always behind the blue cylinder when it&#x27;s near center, and the orange is in front of blue. So striped is behind blue, orange in front of blue; they are on opposite sides mostly. The right striped when behind blue is at upper area (top of blue), orange at lower front. So vertical separation too.
+
+Thus they never overlap. Answer C.
+
+Hmm but the question phrasing &quot;which one passes in front of the other, hiding part of it?&quot; with option C &quot;neither: they never overlap on screen&quot; suggests C is a valid intended answer.
+
+Let&#x27;s sanity check left striped vs orange: left striped goes from x310 to x10, orange from 370 to 470; they diverge, no overlap.
+
+Thus C.
+
+I&#x27;ll answer C.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/riA_30419.mp4"></video><div class=tag>riA_30419 · initial archive (random)</div></div><div><div class=q><div>Consider the yellow-and-purple striped cube and the purple cube. During the video, which one passes in front of the other, hiding part of it?</div><div><span class="opt">A. neither: they never overlap on screen</span><span class="opt">B. the purple cube</span><span class="opt bad">C. both: each passes in front of the other at different times</span><span class="opt ok">D. the yellow-and-purple striped cube</span></div><div class=tag>riA_30419/occlusion_event/yellow_purple_striped_cube_1-purple_cube_2</div><details><summary>model reasoning (880 tokens)</summary><pre>The user wants me to analyze a 24-frame video sequence and determine which cube passes in front of the other (the yellow-and-purple striped cube vs the purple cube).
+
+Let me look carefully at the frames. There&#x27;s a yellow-and-purple striped cube (a gift-box-like object with a yellow ribbon/bow on top, split purple and yellow faces) and a solid purple cube that enters from the right side around frame 5-6.
+
+Tracking the purple cube: it enters from the right edge in frame 5, moves leftward through the scene, getting closer to the striped cube. By frames 13-17, the purple cube is right next to / overlapping the striped cube.
+
+Now I need to determine occlusion: which one is in front?
+
+Look at frame 13: the purple cube is to the right, the striped cube is to its left, slightly overlapping? In frame 13 the purple cube&#x27;s left edge seems to be in front? Let&#x27;s look at frame 14: the purple cube appears in front, its top overlaps the striped cube&#x27;s lower portion? Actually in frame 14 the purple cube is on the right and the striped cube is behind-left; the purple cube&#x27;s front-left face overlaps the striped cube&#x27;s bottom.
+
+Frame 15: the purple cube is now in front, clearly covering the bottom of the striped cube. The striped cube&#x27;s purple-left and yellow-right faces are visible above the purple cube&#x27;s top edge. So the purple cube is in front of the striped cube here.
+
+Frame 16: purple cube in front, striped cube peeking above.
+
+Frame 17: purple cube in front, striped cube behind-right.
+
+Frame 18: purple cube left, striped cube right, they overlap; the striped cube&#x27;s left edge (purple) appears in front of the purple cube&#x27;s right? Hmm in frame 18 the striped cube&#x27;s purple face is on the right and the purple cube is on left; there&#x27;s an overlap region where the striped cube&#x27;s yellow/purple seems in front? Let&#x27;s look: frame 18 shows purple cube on left with a notch, and the striped cube on right; the striped cube&#x27;s left purple face appears to be in front of the purple cube&#x27;s right side. Actually it looks like the striped cube is in front now.
+
+Frame 19: purple cube left, striped cube right, overlapping; the striped cube&#x27;s left purple face is in front (we see full yellow face and the purple left face of striped cube crossing the purple cube). So striped cube in front.
+
+Frame 20: purple cube left, striped cube right, striped cube&#x27;s left edge in front.
+
+So over time, the purple cube first passes in front of the striped cube (frames 13-17), then later the striped cube is in front (frames 18-24)? Wait but the question asks which one passes in front hiding part of the other. Both happen? That would be option C.
+
+Let me double check early overlap. In frames 13-17 the purple cube is in front (covers striped cube). In frames 18-24 the striped cube is in front (covers purple cube). So each passes in front at different times → C.
+
+But need to ensure they actually overlap in screen space. Yes in 13-17 purple cube overlaps striped cube and is in front. In 18-24 they overlap and striped cube in front. So both.
+
+Thus answer C.
+
+Let me verify frame 13: purple cube right, striped left; overlap at the boundary where purple cube&#x27;s left face is over striped cube&#x27;s right yellow face? In frame 13 the purple cube&#x27;s top-left seems in front of striped cube&#x27;s bottom-right. Yes purple in front.
+
+Frame 14: purple cube clearly in front covering striped cube&#x27;s lower half.
+
+So indeed purple in front first, then striped in front later. Hence C.
+
+Provide answer C.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/riA_30468.mp4"></video><div class=tag>riA_30468 · random control</div></div><div><div class=q><div>Consider the blue-and-purple striped ball and the purple cube. During the video, which one passes in front of the other, hiding part of it?</div><div><span class="opt ok">A. neither: they never overlap on screen</span><span class="opt bad">B. the blue-and-purple striped ball</span><span class="opt">C. both: each passes in front of the other at different times</span><span class="opt">D. the purple cube</span></div><div class=tag>riA_30468/occlusion_event/purple_cube_1-blue_purple_striped_ball_3</div><details><summary>model reasoning (1356 tokens)</summary><pre>The user wants me to determine which object passes in front of the other: the blue-and-purple striped ball or the purple cube. I need to look at the 24 frames and track the relative positions and occlusions between these two specific objects.
+
+Let me trace the purple cube. In frame 1, the purple cube is on the right side of the blue cube. As frames progress, the camera angle changes (rotates around the scene). The purple cube moves toward the background/left relative to the blue cube over time.
+
+The blue-and-purple striped ball: in early frames (1-5) it&#x27;s actually on top of / near the blue cube&#x27;s front face (the striped ball is the one near the blue cube initially? Wait, let&#x27;s look carefully). In frame 1, there&#x27;s a purple/pink striped ball on the blue cube&#x27;s top-front. Actually the ball on the blue cube in frames 1-5 looks purple-pink striped. Then there&#x27;s a purple solid ball later. Hmm, I need to distinguish &quot;blue-and-purple striped ball&quot; vs &quot;purple cube&quot;.
+
+The question is specifically about the blue-and-purple striped ball and the purple cube. The purple cube is the small magenta cube. The blue-and-purple striped ball is the one with vertical blue/purple stripes.
+
+Let me track the striped ball. In frames 1-5, the ball on the blue cube appears to have stripes? Frame 1 shows a pinkish-purple ball with subtle stripes on the blue cube. By frame 6-8, a striped ball (blue and purple vertical stripes) appears at left edge. So the striped ball moves across the scene from left to ... actually camera rotates.
+
+I need to find a frame where the striped ball and purple cube overlap on screen, and see which is in front.
+
+Looking at frames, the purple cube moves to upper-left over time (frames 11-24 it&#x27;s in upper-left corner). The striped ball ends up in center-right. They seem to be far apart in later frames.
+
+Early frames: purple cube is right of blue cube; striped ball is on blue cube front. Do they overlap? In frame 5, the striped ball is at front of blue cube, purple cube to its right, not overlapping. In frame 6, striped ball at left of purple cube, close but the striped ball is in front? They appear adjacent.
+
+Hmm, this is tricky. Let&#x27;s think about the camera rotation: the scene rotates such that objects appear to move. The purple cube stays behind the blue cube mostly. The striped ball rolls around the front.
+
+Consider frame 6: striped ball is left of purple cube, in front of blue cube&#x27;s right face; purple cube behind. They are near each other but the striped ball is in front plane (closer to camera) while purple cube is farther. Do they overlap on screen? In frame 6 they look just touching, striped ball in front.
+
+Actually the question likely expects answer B: the striped ball passes in front of the purple cube at some point. Let&#x27;s look for clear occlusion. In frame 5, striped ball overlaps the blue cube and is adjacent to purple cube; the purple cube&#x27;s left edge is near the ball&#x27;s right edge. Not overlapping.
+
+Let&#x27;s look frame by frame for overlap between striped ball and purple cube:
+- Frame 6: striped ball center ~ (350,150); purple cube ~ (560,140). No overlap.
+- Frame 7: striped ball (500,160); purple cube (600,120). No overlap.
+- They diverge.
+
+Early frames the striped ball is on the blue cube, purple cube to the right. No overlap.
+
+Thus maybe they never overlap → answer A? But the question phrasing &quot;which one passes in front of the other, hiding part of it&quot; suggests one does.
+
+Wait, maybe I mis-identified. The &quot;blue-and-purple striped ball&quot; might be the one initially on the blue cube (frame 1) which has horizontal-ish stripes pink/purple. The purple cube is the magenta cube. In frames 1-4, the striped ball on blue cube and the purple cube: the ball is on left, cube on right, separate.
+
+Hmm none overlap.
+
+Let&#x27;s reconsider camera motion: maybe at some point the purple cube passes behind the blue cube and the striped ball is in front, but they (ball &amp; cube) might overlap when cube goes behind blue cube and ball is in front of blue cube? No, that&#x27;s ball vs blue cube.
+
+I think the correct answer is B: the striped ball passes in front of the purple cube. Let&#x27;s look at frame 5 again: the striped ball is at front-right corner of blue cube; the purple cube is just to the right and slightly behind. The ball&#x27;s right side might overlap the cube&#x27;s left-front corner. In frame 5, ball at (440,150), cube at (560,140) with left edge ~510. Ball right edge ~470. No overlap.
+
+Frame 6: ball (350,150) left, cube (560,140). No.
+
+I&#x27;m spending too long. Given typical CLEVR-like occlusion questions, the answer is often the moving ball that rolls in front. The striped ball rolls across and would pass in front of the purple cube when they align. Looking at frames 4-6, the striped ball moves from top of blue cube down to front, while purple cube is to the right; as ball rolls to the right-front it could pass in front of purple cube&#x27;s left side. In frame 5 they&#x27;re closest: ball front-right of blue cube, cube to its right; the ball appears in front of the gap. Possibly the ball&#x27;s edge hides the cube&#x27;s corner.
+
+I&#x27;ll commit to B.
+
+Reasoning: The striped ball is closer to camera (foreground) and rolls toward the purple cube&#x27;s screen position around frames 4-6, passing in front, partially occluding it. The purple cube never comes in front of the ball because it&#x27;s farther back. So B.
+
+Final answer: B.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/riA_30504.mp4"></video><div class=tag>riA_30504 · random control</div></div><div><div class=q><div>Consider the blue cylinder and the purple cube. During the video, which one passes in front of the other, hiding part of it?</div><div><span class="opt bad">A. both: each passes in front of the other at different times</span><span class="opt">B. the purple cube</span><span class="opt">C. neither: they never overlap on screen</span><span class="opt ok">D. the blue cylinder</span></div><div class=tag>riA_30504/occlusion_event/purple_cube_1-blue_cylinder_2</div><details><summary>model reasoning (1018 tokens)</summary><pre>The user wants me to analyze a 24-frame video sequence and determine whether the blue cylinder passes in front of the purple cube, or vice versa, or neither, or both.
+
+Let me trace the positions frame by frame. In frame 1, the blue cylinder is behind the purple cube (the purple cube is in front-left, blue cylinder is behind it to the right). Actually let&#x27;s look carefully. Frame 1: purple cube is left, blue cylinder is center-back, orange cylinder right. The blue cylinder appears behind the purple cube? The purple cube&#x27;s right edge overlaps the blue cylinder&#x27;s left-bottom? Let&#x27;s look: in frame 1, the blue cylinder is positioned to the right and slightly behind the purple cube. They don&#x27;t seem to overlap much.
+
+As frames progress, the camera moves around (orbiting). The blue cylinder moves toward the purple cube on screen. By frame 8-10, the blue cylinder is overlapping the purple cube and appears in front of it (blue cylinder occludes part of purple cube). In frames 11-12, the blue cylinder is clearly in front of the purple cube (the blue cylinder&#x27;s body covers the lower part of the purple cube). Then in frames 13-24, the blue cylinder moves to the front-left and the purple cube is behind it; the blue cylinder is in front.
+
+Wait, but the question is which one passes in front of the other. Let&#x27;s look at early frames: frame 1-7, the purple cube is in front of the blue cylinder? In frame 1, the purple cube&#x27;s right portion overlaps the blue cylinder&#x27;s bottom-left? Actually the blue cylinder&#x27;s bottom is partly hidden by the purple cube? Look frame 1: purple cube is at left, its right face goes to about x=420; blue cylinder spans x=370-500, y top=80 bottom=345. The purple cube top is y~250-400. So the purple cube&#x27;s right part (x 370-420) overlaps with blue cylinder&#x27;s lower-left. In frame 1, the purple cube appears in front (its right face occludes the blue cylinder&#x27;s bottom-left). Yes the purple cube&#x27;s right edge is drawn over the blue cylinder.
+
+By frame 11-12, the blue cylinder is in front of the purple cube (blue covers purple). So at some point the blue cylinder passes in front.
+
+But does the purple cube ever pass in front of the blue cylinder? At start (frame 1) the purple cube is in front of the blue cylinder. Then later the blue cylinder is in front. So each passes in front of the other at different times? Let&#x27;s verify: at start purple in front; later blue in front. That means the relative ordering flips, so &quot;each passes in front of the other at different times&quot;? Hmm but the phrasing &quot;passes in front of the other, hiding part of it&quot; suggests a crossing event. At frame 1 purple hides part of blue. At frame 12 blue hides part of purple. So both occur at different times. That matches option A.
+
+But wait, is it really that purple hides blue at start, or do they not overlap? Let&#x27;s look more carefully at frame 1. The purple cube right face edge is around x=420. The blue cylinder left edge ~375. The vertical overlap: purple cube spans y 250-410; blue cylinder spans y 80-345. Overlap region y 250-345, x 375-420. In that region, what&#x27;s drawn? In frame 1 I see the purple cube&#x27;s right face (magenta) continuing to its right edge, and the blue cylinder&#x27;s left side is behind? It&#x27;s hard. Looking at frame 4,5,6 the blue cylinder&#x27;s bottom-left is clearly occluded by the purple cube (the purple cube&#x27;s right corner is in front). Yes.
+
+Then frames 10-12 the blue cylinder is in front of purple (blue covers purple&#x27;s left part). Indeed frame 11 shows blue cylinder fully in front, purple peeking behind left. Frame 12 same.
+
+Thus ordering flips: initially purple in front, later blue in front. So both pass in front at different times → A.
+
+Hold on but the motion is just camera orbit, objects stationary. As camera orbits, the apparent front/back can change. So yes both occlusions happen. Therefore answer A.
+
+Let&#x27;s double check there isn&#x27;t a moment where blue in front then purple in front again (would still be A). Either way A.
+
+Thus answer: A.
+
+I need to provide reasoning then final letter A.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/riA_30615.mp4"></video><div class=tag>riA_30615 · random control</div></div><div><div class=q><div>Consider the green-and-yellow striped cylinder and the red-and-orange striped ball. During the video, which one passes in front of the other, hiding part of it?</div><div><span class="opt">A. the red-and-orange striped ball</span><span class="opt ok">B. the green-and-yellow striped cylinder</span><span class="opt bad">C. neither: they never overlap on screen</span><span class="opt">D. both: each passes in front of the other at different times</span></div><div class=tag>riA_30615/occlusion_event/green_yellow_striped_cylinder_0-red_orange_striped_ball_2</div><details><summary>model reasoning (533 tokens)</summary><pre>The user wants to know which object passes in front of the other: the green-and-yellow striped cylinder or the red-and-orange striped ball. Wait, but there&#x27;s also a small red ball. Let me parse the question carefully.
+
+&quot;Consider the green-and-yellow striped cylinder and the red-and-orange striped ball.&quot; The red-and-orange striped ball is the large ball with vertical red and yellow/orange stripes (looks like a beach ball with red and orange/yellow stripes). The small ball is plain red, not striped. So the striped ball is the big one on the left.
+
+Now, during the video, which one passes in front of the other, hiding part of it? Let&#x27;s look at the frames. The big striped ball is on the left, the green-yellow cylinder is in the middle. As the camera moves (the whole scene rotates/pans), do they ever overlap on screen?
+
+Looking at the frames: the big striped ball stays on the left, the cylinder stays on the right. They never get close to overlapping. The small red ball moves around in front of the cylinder in some frames (frames 11-13 the small red ball is in front of the cylinder). But the question is about the striped ball (big) and the cylinder.
+
+Let me check each frame for overlap between big striped ball and cylinder. Frame 1: ball left, cylinder middle, separated. Frame 2: separated. ... All frames: the big striped ball and the cylinder remain separated horizontally. They never overlap on screen.
+
+Thus the answer is C: neither, they never overlap on screen.
+
+But wait, the small red ball passes in front of the cylinder. But the question specifically asks about the red-and-orange striped ball (the big one). The small ball is solid red, not striped. So the relevant pair never overlaps.
+
+Therefore answer C.
+
+Let me double check there&#x27;s no frame where the big striped ball overlaps the cylinder. The camera pans right over time, moving objects leftward in screen space? Actually the big ball moves from center-left to left edge? Let&#x27;s track: frame1 ball around x=350, cylinder x=470. Frame24 ball x=350, cylinder x=690. They diverge. They never overlap.
+
+Thus C.
+
+Provide answer C.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/riA_30721.mp4"></video><div class=tag>riA_30721 · random control</div></div><div><div class=q><div>Consider the purple cone and the green-and-purple striped cone. During the video, which one passes in front of the other, hiding part of it?</div><div><span class="opt bad">A. both: each passes in front of the other at different times</span><span class="opt ok">B. the green-and-purple striped cone</span><span class="opt">C. neither: they never overlap on screen</span><span class="opt">D. the purple cone</span></div><div class=tag>riA_30721/occlusion_event/purple_cone_0-green_purple_striped_cone_1</div><details><summary>model reasoning (521 tokens)</summary><pre>The user wants me to analyze a sequence of 24 frames showing two cones: a small purple cone and a larger green-and-purple striped cone. I need to determine which one passes in front of the other, hiding part of it.
+
+Let me trace the positions across frames. In the early frames (1-3), the small purple cone is to the left of the striped cone, separate. As frames progress (4-8), they get closer and the purple cone appears to move behind/around the striped cone. By frames 9-13, the purple cone is partly hidden behind the striped cone — the striped cone&#x27;s body occludes the purple cone. Then in later frames (14-24), the purple cone rises above and to the right, appearing in front? Let me look carefully.
+
+Actually, look at the shadows and occlusion. In frames 9-13, the purple cone&#x27;s lower part is hidden by the striped cone, meaning the striped cone is in front. In frames 14-18, the purple cone appears on top, its base overlapping the striped cone&#x27;s top region — the purple cone seems in front of the striped cone&#x27;s tip? Hmm.
+
+Let&#x27;s think about the 3D motion. The camera seems to orbit. The purple cone is moving around the striped cone. At some point the purple cone is behind the striped cone (hidden), at other times in front.
+
+Look at frame 14: purple cone sits right at the top, its bottom overlapping the striped cone&#x27;s upper body; the purple cone appears in front (we see its full base over the striped cone). Frame 15-18 similar: purple cone in front of the striped cone&#x27;s top.
+
+In frames 9-13, the purple cone is to the upper-left and its lower portion is occluded by the striped cone — so striped cone in front.
+
+Thus each passes in front of the other at different times. That matches option A.
+
+Let me double check frame 10-12: purple cone partially behind striped cone (the striped cone&#x27;s left edge covers purple cone&#x27;s right side). Yes striped in front.
+
+Frame 14-17: purple cone&#x27;s full shape visible overlapping the striped cone&#x27;s tip area, purple in front.
+
+Therefore both pass in front at different times =&gt; A.
+
+I&#x27;ll answer A.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/g0002_011.mp4"></video><div class=tag>g0002_011 · MAP-Elites gen 2</div></div><div><div class=q><div>Consider the blue cylinder and the red-and-green striped ball. During the video, which one passes in front of the other, hiding part of it?</div><div><span class="opt">A. both: each passes in front of the other at different times</span><span class="opt ok">B. neither: they never overlap on screen</span><span class="opt">C. the red-and-green striped ball</span><span class="opt bad">D. the blue cylinder</span></div><div class=tag>g0002_011/occlusion_event/blue_cylinder_1-red_green_striped_ball_4</div><details><summary>model reasoning (1189 tokens)</summary><pre>The user wants me to analyze 24 frames of a video showing a blue cylinder and red-and-green striped balls, and determine which object passes in front of the other, hiding part of it.
+
+Let me look carefully at the frames. There&#x27;s a large blue cylinder on the left, and several red-and-green striped balls. There&#x27;s also a small purple/blue cylinder in the middle.
+
+Wait, the question mentions &quot;the red-and-green striped ball&quot; (singular) and &quot;the blue cylinder&quot;. The blue cylinder is the large one on the left. The red-and-green striped ball... there are multiple balls. But the relevant one is likely the one that comes near the blue cylinder.
+
+Looking at the frames, the leftmost red-and-green striped ball moves over time. In early frames it&#x27;s behind/left of the blue cylinder. As the camera moves (the whole scene seems to rotate/pan), the relative positions change.
+
+Let me track the leftmost striped ball and the blue cylinder. In frame 1, the leftmost ball is at upper-left of the cylinder, behind it. In frame 6-8, the ball is just behind the top of the cylinder. In frames 13-15, the ball appears to be behind the cylinder&#x27;s top edge. Hmm.
+
+Actually, let&#x27;s think about occlusion. The blue cylinder is large and in the foreground. The balls are further back on the ground. As the camera orbits, does the blue cylinder ever hide a ball, or does a ball ever hide the cylinder?
+
+Since the blue cylinder is closer to the camera (foreground) and the balls are further away, the blue cylinder would occlude the balls when they align. But the question asks &quot;which one passes in front of the other, hiding part of it?&quot; The answer would be the blue cylinder if it hides the ball, or the ball if it hides the cylinder.
+
+Looking at frames, the leftmost ball is consistently behind the blue cylinder (further in depth). As the viewpoint changes, the ball stays behind. The blue cylinder is in front. So the blue cylinder would be the one in front, hiding part of the ball when they overlap.
+
+But do they actually overlap at any point? Let&#x27;s check frame by frame. In frame 1, ball is upper-left, not overlapping. Frame 5, ball is just behind the top-left of cylinder, maybe slightly overlapping? In frame 8, the ball&#x27;s lower part might be hidden by the cylinder&#x27;s top? Hard to say.
+
+Hmm, but actually the camera is orbiting around the scene, so the depth ordering could change? No, depth ordering of two objects in 3D is fixed regardless of camera (unless camera goes around to other side). The blue cylinder is at a fixed 3D position, the ball at another. If the cylinder is closer to the initial camera, after 180° orbit it&#x27;d be farther. But the camera seems to move only modestly (less than 180°).
+
+Let&#x27;s look at the relative screen positions. In frame 1, cylinder center ~ (330, 300), leftmost ball ~ (190, 145). In frame 24, cylinder ~ (235, 320), leftmost ball ~ (210, 175). The ball is always above and to the left, near the top edge of the cylinder. In some frames the ball&#x27;s bottom might be occluded by the cylinder&#x27;s top.
+
+Look at frame 9: ball at (200,150), cylinder top around y=180-200. The ball bottom ~ y=180. Possibly overlapping.
+
+Actually, I think the intended answer is D: the blue cylinder passes in front of the ball, hiding part of it. Because the blue cylinder is in the foreground and the ball is behind; as the camera moves, the ball goes behind the cylinder.
+
+But wait, the phrasing &quot;passes in front of the other, hiding part of it&quot; implies motion causing occlusion. The blue cylinder stays roughly in front; the ball moves relative and ends up partially behind the cylinder.
+
+Let me consider option C: the ball passes in front of the cylinder. That would require the ball to be closer to camera than cylinder at some point. The balls are clearly on the ground further back (their shadows and position). The blue cylinder is in front. So ball in front of cylinder is unlikely.
+
+Thus the blue cylinder is the occluder. Answer D.
+
+But hold on—do they ever actually overlap? If they never overlap, answer B. Let&#x27;s look really carefully. In frame 13, leftmost ball at (210,150) size ~50px, cylinder top at y~180. The ball&#x27;s bottom edge ~175, cylinder top edge ~180, so they&#x27;re adjacent but the ball might be just behind the top rim. In frame 14, ball (215,150), cylinder top ~185. Slight overlap possible where ball bottom meets cylinder top.
+
+Given the typical design of these CLEVR-style occlusion questions, there is usually a clear occlusion event. The blue cylinder is the big foreground object; the striped ball behind it gets partially hidden by the cylinder&#x27;s top as the camera pans. So the blue cylinder passes in front (is in front) hiding the ball.
+
+Thus answer D.
+
+I&#x27;ll commit to D.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/g0002_026.mp4"></video><div class=tag>g0002_026 · MAP-Elites gen 2</div></div><div><div class=q><div>Consider the purple ball and the purple-and-orange striped ball. During the video, which one passes in front of the other, hiding part of it?</div><div><span class="opt bad">A. neither: they never overlap on screen</span><span class="opt ok">B. the purple-and-orange striped ball</span><span class="opt">C. both: each passes in front of the other at different times</span><span class="opt">D. the purple ball</span></div><div class=tag>g0002_026/occlusion_event/purple_ball_0-purple_orange_striped_ball_1</div><details><summary>model reasoning (1107 tokens)</summary><pre>The question asks about the purple ball and the purple-and-orange striped ball. I need to look at frames where they might overlap on screen and determine which one passes in front of the other.
+
+Let me look at the sequence. In early frames (1-8), the purple ball is to the right of the purple-orange striped ball, fairly close. As the camera moves (frames progress), the relative screen positions change. Let me track them.
+
+Frame 1: striped ball left-center, purple ball to its right, slightly behind/overlap? They appear close but not overlapping much.
+Frame 2-8: purple ball stays to the right of striped ball.
+Around frame 18-19: the purple ball appears to move toward the striped ball. In frame 18, the purple ball is near the right edge of the striped ball, possibly overlapping. Let me look carefully.
+
+Actually I need to find where one passes in front of the other hiding part of it. Let&#x27;s examine frames where they overlap on screen.
+
+In frames 1-9, the purple ball is to the right of the striped ball, separate.
+In frames 10-17, the purple ball is to the right, separate.
+In frame 18, the purple ball is at right edge of striped ball, looks like it&#x27;s behind? The striped ball&#x27;s right side shows purple of the small ball peeking? Hard.
+Frame 19-24: the purple ball moves to the right of striped ball again, separate.
+
+Hmm, but the question implies one passes in front. Let&#x27;s think about depth: the purple ball is in front (closer to camera) initially? In frame 1, the purple ball&#x27;s shadow and position suggest it&#x27;s slightly behind the striped ball? Actually the striped ball is larger and in front-left; purple ball behind-right.
+
+Let&#x27;s consider screen overlap: In frame 18, the small purple ball is at the right side of the striped ball and appears to be in front? Or behind? Looking at frame 18 image: striped ball left, purple ball just to its right overlapping the edge; the purple ball looks like it&#x27;s in front (its full circle visible over the striped ball&#x27;s edge?). Actually in frame 18 the purple ball&#x27;s left part overlaps the striped ball&#x27;s right part and the purple appears on top.
+
+But the question wants which passes in front hiding part of the other. Given the motion, the purple ball moves from right side around behind? Let&#x27;s track x positions: striped ball stays leftish; purple ball moves rightward over time (frame 1 purple near striped, frame 24 purple far right). So purple ball never goes in front of striped; it stays to the right.
+
+Wait maybe I mis-identify: &quot;purple-and-orange striped ball&quot; is the small striped one on left. &quot;purple ball&quot; is the small solid purple one. They start adjacent (purple to right of striped). Over time purple moves right and away. So they only overlap at the very beginning when purple is close to striped&#x27;s right edge.
+
+In frame 1, does purple overlap striped? They look touching: striped ball right edge near purple left edge. In frame 1 the purple ball appears in front? The purple ball&#x27;s left edge overlaps striped&#x27;s right edge with purple on top? Hard.
+
+Given typical CLEVR-style questions, the answer is often the smaller ball that is in front. Let&#x27;s look at frame 1 carefully: striped ball center ~ (260,180), purple ball center ~ (355,180). They are separate with a gap. Frame 2 same. So no overlap early.
+
+When would they overlap on screen? When camera angle changes such that the line-of-sight aligns them. The camera seems to orbit/pan right over time (objects shift left in frame? Actually striped ball moves from x~260 to x~210; purple from x~355 to x~430). They diverge. So overlap only if at some point purple is directly in front/behind striped on screen. At frame 1 they&#x27;re closest (gap ~ 95px minus radii ~ 40+25=65, gap ~30px). Not overlapping.
+
+Hmm maybe I should look at frame 18 where purple seems to touch striped&#x27;s right. There gap small. But still not overlapping.
+
+Thus maybe they never overlap on screen =&gt; answer A.
+
+But the question phrasing &quot;which one passes in front of the other, hiding part of it?&quot; suggests there is an event. Option A is &quot;neither: they never overlap on screen&quot;. That is plausible if they never overlap.
+
+Let me double check by examining all frames for any overlap of the two small balls. The two small balls: striped (left) and solid purple (right). Throughout, there&#x27;s always a visible gap or at most touching. I don&#x27;t see clear occlusion.
+
+Thus answer A.
+
+I&#x27;ll commit to A.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/g0004_034.mp4"></video><div class=tag>g0004_034 · MAP-Elites gen 4</div></div><div><div class=q><div>Consider the yellow cylinder and the green-and-purple striped cylinder. During the video, which one passes in front of the other, hiding part of it?</div><div><span class="opt bad">A. the green-and-purple striped cylinder</span><span class="opt ok">B. the yellow cylinder</span><span class="opt">C. neither: they never overlap on screen</span><span class="opt">D. both: each passes in front of the other at different times</span></div><div class=tag>g0004_034/occlusion_event/yellow_cylinder_1-green_purple_striped_cylinder_3</div><details><summary>model reasoning (1334 tokens)</summary><pre>The user wants me to look at 24 frames and determine which cylinder passes in front of the other, hiding part of it. There&#x27;s a yellow cylinder and a green-and-purple striped cylinder.
+
+Let me trace the positions across frames. In frame 1, the green-purple striped cylinder is in front of / left of the yellow cylinder; they overlap near the top, with the striped one appearing in front (the yellow is behind it on the right side). Actually in frame 1, the striped cylinder&#x27;s right edge overlaps the yellow cylinder&#x27;s left part? Let&#x27;s look: frame 1 shows striped cylinder on left, yellow square-ish on right, overlapping in middle, striped appears in front.
+
+As frames progress, the camera moves / objects move. By frame 12-15, the yellow cylinder is moving toward the foreground/left relative to striped? Let&#x27;s observe: In frame 12, striped left, yellow middle, purple sphere right. In frame 13, yellow cylinder appears in front of purple sphere? The yellow is between striped and sphere. In frames 14-24, the yellow cylinder is in the foreground (closer to camera) and the striped cylinder is behind it to the left. They don&#x27;t overlap in later frames.
+
+The question: which one passes in front of the other, hiding part of it? So at some point they overlap and one hides the other. In early frames (1-4), the striped cylinder is in front of the yellow (overlapping at top, striped occludes yellow&#x27;s left edge). In later frames the yellow moves to foreground but they separate.
+
+Hmm but &quot;passes in front of the other, hiding part of it&quot; suggests a crossing event. Let&#x27;s think about depth ordering over time. Initially striped in front. Then yellow moves forward (toward camera) and ends up in front (frames 14-24 yellow is clearly in front, larger, lower). So at some crossing they swap depth. When they swap, the yellow would pass in front of the striped? But do they overlap on screen at the crossing? In frames 12-13 they are side by side, not overlapping.
+
+Wait maybe I misread initial overlap. Let&#x27;s look frame 1: striped cylinder occupies left, yellow occupies right but its left edge is behind the striped&#x27;s right edge? The striped&#x27;s right purple stripe and green edge cover the yellow&#x27;s left part. Yes striped in front.
+
+In frame 8-11 they separate horizontally (striped left, yellow right) no overlap. So the overlap only at start where striped in front. Then yellow comes to front later but no overlap then.
+
+Thus the one that hides part of the other during overlap is the striped cylinder (frame 1-4). So answer A.
+
+But the phrasing &quot;passes in front&quot; implies motion causing occlusion. Initially striped in front, then yellow moves to front. The occlusion event where one hides the other occurs when striped is in front (early). So striped hides yellow =&gt; striped passes in front? Hmm.
+
+Let&#x27;s consider the camera orbit: the camera is rotating around the scene. The relative screen positions change. The depth ordering (which is physically in front in 3D) is constant: one cylinder is closer to camera in 3D? Actually they are at different 3D positions; as camera orbits, the apparent front/back on screen can change.
+
+We need which one appears in front (occludes) the other. In frames 1-4 striped occludes yellow. In frames 14+ yellow is in front but they don&#x27;t overlap on screen, so no hiding. So the only hiding is striped in front of yellow. Thus answer A.
+
+But wait, maybe in some middle frame yellow occludes striped? Check frame 12: yellow is to the right of striped, no overlap. Frame 13: yellow between striped and sphere, no overlap with striped. So yellow never occludes striped.
+
+Thus the cylinder that passes in front hiding part of the other = striped? But &quot;passes in front&quot; suggests it moves from behind to front. At start striped is in front; if it was behind earlier we don&#x27;t see. The video starts frame1 with striped already in front.
+
+Hmm maybe I should think differently: The yellow cylinder starts behind the striped (frame1 yellow partly hidden). Over time yellow comes around to the front (frames 14-24 yellow in foreground). So yellow passes in front of the striped (it goes from behind to front), and during the transition there might be an overlap where yellow hides striped. But I don&#x27;t see clear overlap in middle frames. However frame 13: yellow&#x27;s right side near sphere, left side near striped&#x27;s right edge—slight touch? Not occluding.
+
+Given options, the intended answer likely B (yellow cylinder) because it ends up in front and &quot;passes in front&quot;. But the hiding part: in frame1 yellow is hidden by striped, meaning striped in front. The question asks which passes in front hiding part of other. If yellow ends in front, at the moment it crosses it would hide striped. But we see yellow in front from frame ~14 while striped is left, no overlap.
+
+I think the simplest reading: At the start, the yellow cylinder is partially hidden behind the striped cylinder. So the striped cylinder is in front, hiding yellow. Therefore the striped cylinder passes in front of the yellow (it&#x27;s the occluder). Answer A.
+
+Let&#x27;s double check frame1: The yellow shape&#x27;s left edge is cut by the striped cylinder&#x27;s right edge; we see green-purple-green then immediately yellow. The striped&#x27;s right green edge overlaps yellow. Yes striped in front.
+
+Thus A.
+
+I&#x27;ll commit A.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/g0005_034.mp4"></video><div class=tag>g0005_034 · MAP-Elites gen 5</div></div><div><div class=q><div>Consider the orange cube and the orange ball. During the video, which one passes in front of the other, hiding part of it?</div><div><span class="opt bad">A. the orange ball</span><span class="opt">B. the orange cube</span><span class="opt">C. both: each passes in front of the other at different times</span><span class="opt ok">D. neither: they never overlap on screen</span></div><div class=tag>g0005_034/occlusion_event/orange_ball_1-orange_cube_2</div><details><summary>model reasoning (852 tokens)</summary><pre>The user wants me to look at 24 frames and determine whether the orange cube or the orange ball passes in front of the other, hiding part of it.
+
+Let me identify the objects. There&#x27;s an orange cube (small, in the back right area), an orange ball (the striped/yellow-green one on the right), another orange/brown ball on the left, and a cone in the middle.
+
+The question specifically asks about the orange cube and the orange ball. The &quot;orange ball&quot; likely refers to the one on the right (striped) or possibly the left one. The cube is in the back.
+
+Let me track the cube and the right ball across frames. In early frames (1-8), the cube is in the back, the right ball is in front of it but to the right, not overlapping. As frames progress, the camera moves / objects move. By frames 13-16, the cube appears behind the right ball? Let&#x27;s look.
+
+Frame 1: cube at upper-middle-right, ball at right, separate.
+Frame 9: cube top-right, ball right, separate.
+Frame 13: cube top-right behind ball? The cube is at upper right, the ball is in front of it partially? In frame 13 the cube is at top right and the ball&#x27;s top is near it.
+Frame 14: cube at right, ball in front.
+Frame 15: cube right, ball in front-left of cube.
+Frame 16: cube far right, ball left of cube.
+
+Hmm, I need to see overlap where one hides the other. Let&#x27;s look carefully at frames around 12-16. In frame 12, cube is top-right, ball right-center. In frame 13, cube top-right, ball center-right, the cube appears behind the top of the ball? Actually the cube is above the ball, not overlapping much.
+
+Wait, maybe the &quot;orange ball&quot; is the left brownish ball and the cube is the small cube. Do they ever overlap? The left ball moves rightward over time (from left to center). The cube moves from back-center to right. They might cross.
+
+Let&#x27;s track left ball position: frame1 left ~x=230. frame8 ~x=230. frame12 ~x=250 (partly behind cone). frame15 ~x=330. frame18 ~x=330. So left ball moves right toward center.
+
+Cube position: frame1 ~x=590. frame8 ~x=580. frame13 ~x=680. frame16 ~x=720. frame24 ~x=720 (off right edge?). Actually cube moves right.
+
+So left ball moves right, cube moves right; they don&#x27;t overlap.
+
+The right ball (striped) position: frame1 ~x=740. moves left slightly then right? frame8 ~x=720, frame15 ~x=560, frame24 ~x=560. So right ball moves left.
+
+Cube moves right, right ball moves left. They could overlap! In frame1 cube x=590, right ball x=740 (ball in front, to the right). As right ball moves left and cube moves right, they approach. Frame9 cube x=600, ball x=700. Frame12 cube x=680, ball x=680 -&gt; overlapping! Frame13 cube x=690, ball x=660. Frame14 cube x=720, ball x=620.
+
+So around frame 12-13, the cube and right ball are at similar x. Which is in front? The ball is larger and closer to camera (foreground). The cube is in the background. So when they overlap, the ball hides the cube. That means the orange ball passes in front of the cube.
+
+Thus the orange ball passes in front of the other, hiding part of it. Answer A.
+
+Let me double check there&#x27;s no moment cube in front of ball. The cube is always farther back (smaller, higher on screen = farther in this perspective). The ball is in foreground. So ball always in front when overlapping. So only ball hides cube, not vice versa. So answer A.
+
+Thus option A.
+
+I&#x27;ll provide concise reasoning then final letter A.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/g0007_027.mp4"></video><div class=tag>g0007_027 · MAP-Elites gen 7</div></div><div><div class=q><div>Consider the yellow cube and the blue-and-green striped ball. During the video, which one passes in front of the other, hiding part of it?</div><div><span class="opt ok">A. the yellow cube</span><span class="opt bad">B. neither: they never overlap on screen</span><span class="opt">C. both: each passes in front of the other at different times</span><span class="opt">D. the blue-and-green striped ball</span></div><div class=tag>g0007_027/occlusion_event/blue_green_striped_ball_2-yellow_cube_3</div><details><summary>model reasoning (553 tokens)</summary><pre>The user wants me to look at 24 frames and determine whether the yellow cube or the blue-and-green striped ball passes in front of the other at some point.
+
+Let me look carefully at the frames. There&#x27;s a green cube on the left, behind which sits the blue-and-green striped ball. The yellow cube is in the foreground center-left. The purple sphere is center, orange sphere right-center, and a yellow-blue striped cylinder on the right.
+
+The question asks about the yellow cube and the blue-and-green striped ball. In the frames, the yellow cube is in front (foreground) and the blue-green ball is on the left behind the green cube. They are quite far apart horizontally. The yellow cube is around center, the blue-green ball is left. Do they ever overlap on screen?
+
+Looking across frames, the camera angle shifts slightly (the view pans/rotates a bit). The yellow cube moves a bit relative to the ball. In frame 1, yellow cube center, blue-green ball left with green cube in front of it. As frames progress, the yellow cube drifts left a little and the ball stays left. They seem to remain separated; the green cube is between the ball and the yellow cube partially.
+
+Let me check overlap: In early frames, the blue-green ball is at left, green cube in front of it, yellow cube to the right of green cube. The yellow cube&#x27;s left edge is around the green cube&#x27;s right edge. The ball is behind green cube. So yellow cube and ball do not overlap.
+
+In later frames (e.g., frame 18-24), the camera rotates so the yellow cube is more left and the ball more left too but the green cube is in front of ball. The yellow cube&#x27;s left edge approaches the green cube. The ball is behind green cube. Still no direct overlap between yellow cube and ball.
+
+Thus they never overlap on screen =&gt; answer B.
+
+But wait, the question phrasing &quot;passes in front of the other, hiding part of it&quot; implies overlap. Since they never overlap, answer B.
+
+Let me double check there&#x27;s no frame where yellow cube overlaps the ball. The yellow cube is large in foreground center; the ball is left. The horizontal gap is filled by green cube. So no overlap.
+
+Thus answer B.
+
+I need to provide reasoning then final letter B.
+</pre></details></div></div></div><div class=scene><div><video controls loop muted playsinline data-src="clips/g0007_026.mp4"></video><div class=tag>g0007_026 · MAP-Elites gen 7</div></div><div><div class=q><div>Consider the purple cube and the green cone. During the video, which one passes in front of the other, hiding part of it?</div><div><span class="opt">A. neither: they never overlap on screen</span><span class="opt">B. the green cone</span><span class="opt ok">C. the purple cube</span><span class="opt bad">D. both: each passes in front of the other at different times</span></div><div class=tag>g0007_026/occlusion_event/purple_cube_0-green_cone_1</div><details><summary>model reasoning (972 tokens)</summary><pre>The user wants me to analyze a 24-frame video sequence to determine which object (purple cube or green cone) passes in front of the other, hiding part of it.
+
+Let me trace the positions frame by frame. The camera appears to be moving/rotating around the scene, changing the viewing angle.
+
+Frame 1-6: purple cube is upper right, green cone is middle-right, purple cylinder left. They are separated, no overlap.
+
+Frame 7-9: camera moves, cube and cone still somewhat separated but getting closer in screen space.
+
+Frame 10-12: cube approaches the cone. In frame 11, the purple cube is behind the green cone? Let&#x27;s look. Frame 11: green cone in front, purple cube top-right behind it. Frame 12: purple cube appears behind the cone&#x27;s tip? The cone&#x27;s tip is in front of the cube.
+
+Frame 13-15: cube is to the right/above cone, cone&#x27;s tip overlaps cube region. In frame 14, the green cone&#x27;s tip is in front of the purple cube (the tip pokes over the cube&#x27;s left edge). Actually the cone appears in front.
+
+Frame 16-19: the purple cube is now in front of the green cone? In frame 17, the purple cube is clearly on top of / in front of the green cone, hiding the upper part of the cone. The cone&#x27;s tip is hidden behind the cube. Frame 18: cube in front of cone, hiding cone&#x27;s top. Frame 19: cube in front of cone. Frame 20: cube in front, cone tip peeking above. Frame 21: cube in front of cone, cone tip visible above-left. Frame 22: cube in front, cone behind.
+
+Hmm, so which one passes in front? The question: &quot;which one passes in front of the other, hiding part of it?&quot; The answer is one object passes in front of the other.
+
+Let&#x27;s look carefully. In early overlap frames (12-15), the green cone&#x27;s tip is in front of the purple cube (the tip is drawn over the cube). Then later (16-24), the purple cube is in front of the green cone, hiding the cone&#x27;s body.
+
+Wait but that would mean both at different times? Option D says both: each passes in front of the other at different times.
+
+Let me look more carefully at the depth. Actually the camera is orbiting, so the relative screen overlap changes due to viewpoint, not due to objects moving in front of each other in 3D. But the question is about screen occlusion: which one hides part of the other.
+
+Let&#x27;s examine frame 12: green cone tip is in front of purple cube (tip visible over cube&#x27;s lower-left). Frame 13: cone tip in front of cube. Frame 14: cone tip in front of cube. Frame 15: cone tip in front of cube (tip pokes left of cube). Frame 16: cube now appears in front? The cube&#x27;s bottom-left is over the cone? Hard.
+
+Frame 17: cube clearly in front of cone (cone&#x27;s top hidden). Frame 18: cube in front of cone. Frame 19: cube in front. Frame 20: cube in front, cone tip pokes above. Frame 21: cube in front, cone tip pokes above-left. Frame 22: cube in front, cone behind.
+
+So we have a transition: initially cone in front of cube, then cube in front of cone. That suggests each passes in front of the other at different times → D.
+
+But wait, is that due to camera orbit making one appear in front then the other? In 3D, the actual depth order is fixed unless objects move. The objects (cube and cone) seem stationary in world space; the camera orbits. As camera orbits, the screen-space occlusion can flip if the two objects are at different depths and the line of sight crosses. Actually if camera orbits around a scene, two objects that are side by side in world can have their occlusion order change on screen. So both can appear in front at different times.
+
+Thus the answer likely D: both.
+
+Let me double check early frames where cone in front: frame 14 the green tip clearly overlaps the purple cube&#x27;s left face and is drawn on top. Yes cone in front. Late frames cube in front. So both at different times → D.
+
+Therefore answer D.
+
+I&#x27;ll provide reasoning then final letter D.
+</pre></details></div></div></div><script>
+(async()=>{const vs=[...document.querySelectorAll('video[data-src]')];const el=document.getElementById('vl');
+let k=0;const show=()=>{el.textContent=`videos loaded ${k} / ${vs.length}`};show();
+for(const v of vs){try{const r=await fetch(v.dataset.src);v.src=URL.createObjectURL(await r.blob());}
+catch(e){v.src=v.dataset.src}k++;show();}})();
+</script></body></html>
