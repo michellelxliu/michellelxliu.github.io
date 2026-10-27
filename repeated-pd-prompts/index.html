@@ -1,0 +1,187 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Repeated PD prompt designs</title><style>
+:root{--bg:#fbfaf7;--panel:#fff;--ink:#1d1d1b;--mute:#6b6a65;--line:#e3e0d8;--acc:#2f5d8a;--acc-bg:#eef3f9;--warn:#a66a00;--code:#f4f2ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#17171a;--panel:#1f1f23;--ink:#e8e6e1;--mute:#9a978f;--line:#34343a;--acc:#8db8e8;--acc-bg:#1d2833;--warn:#ffcc80;--code:#26262b}}
+:root[data-theme=dark]{--bg:#17171a;--panel:#1f1f23;--ink:#e8e6e1;--mute:#9a978f;--line:#34343a;--acc:#8db8e8;--acc-bg:#1d2833;--warn:#ffcc80;--code:#26262b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--panel);border-bottom:1px solid var(--line);padding:8px 16px}
+header h1{font-size:17px;margin:0}header nav{display:flex;gap:10px;flex-wrap:wrap;font-size:13px;margin-top:4px}header nav a{color:var(--acc);text-decoration:none}
+main{max-width:980px;margin:auto;padding:16px}h2{margin-top:36px;border-bottom:1px solid var(--line);padding-bottom:4px}h3{margin-bottom:4px}
+table{border-collapse:collapse;margin:8px 0 16px;font-size:13.5px;width:100%;display:block;overflow-x:auto}td,th{border:1px solid var(--line);padding:4px 8px;text-align:left;vertical-align:top}th{background:var(--code)}
+pre{white-space:pre-wrap;word-break:break-word;background:var(--code);padding:10px;border-radius:6px;font:12.5px/1.45 ui-monospace,monospace;max-height:460px;overflow:auto}
+.id{font:600 11px ui-monospace,monospace;color:var(--mute);background:var(--code);padding:1px 5px;border-radius:4px;margin-right:6px}
+.box{border-left:3px solid var(--acc);background:var(--panel);padding:8px 12px;margin:10px 0}.warn{border-color:var(--warn)}
+.choice{border:1px solid var(--line);border-radius:8px;padding:8px 12px;margin:8px 0;background:var(--panel)}
+.choice textarea{width:100%;min-height:44px;margin-top:6px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px;font:inherit}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.seg button{border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:3px 10px;border-radius:14px;cursor:pointer;font-size:13px}
+.seg button.on{background:var(--acc);color:var(--bg);border-color:var(--acc)}
+button.main{background:var(--acc);color:var(--bg);border:0;border-radius:6px;padding:6px 14px;cursor:pointer}
+.muted{color:var(--mute)}svg text{fill:var(--ink);font:12px system-ui,sans-serif}svg .bx{fill:var(--panel);stroke:var(--line)}svg .hl{fill:var(--acc-bg);stroke:var(--acc)}svg line,svg path{stroke:var(--mute);fill:none}
+
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media (max-width:760px){.cols{grid-template-columns:1fr}}
+.cols h3{margin-top:0}.card{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--panel);min-width:0}
+.chartwrap{position:relative}.grid{stroke:var(--line)}.ax{font-size:12px}.xh{stroke:var(--mute);stroke-dasharray:2 3}
+polyline{fill:none;stroke-width:2;stroke-linejoin:round}circle{stroke:var(--panel);stroke-width:2}
+.s0{stroke:#2a78d6}.s1{stroke:#eb6834}.s2{stroke:#1baf7a}.s3{stroke:#eda100}.s4{stroke:#e87ba4}
+.m0{fill:#2a78d6}.m1{fill:#eb6834}.m2{fill:#1baf7a}.m3{fill:#eda100}.m4{fill:#e87ba4}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .s0{stroke:#3987e5}:root:not([data-theme=light]) .s1{stroke:#d95926}
+:root:not([data-theme=light]) .s2{stroke:#199e70}:root:not([data-theme=light]) .s3{stroke:#c98500}:root:not([data-theme=light]) .s4{stroke:#d55181}
+:root:not([data-theme=light]) .m0{fill:#3987e5}:root:not([data-theme=light]) .m1{fill:#d95926}:root:not([data-theme=light]) .m2{fill:#199e70}
+:root:not([data-theme=light]) .m3{fill:#c98500}:root:not([data-theme=light]) .m4{fill:#d55181}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;margin:4px 0 8px}.legend i{display:inline-block;width:22px;height:0;border-top:2px solid;margin-right:6px;vertical-align:middle}
+.legend i.dash{border-top-style:dashed}.legend i.sw0{border-color:#2a78d6}.legend i.sw1{border-color:#eb6834}.legend i.sw2{border-color:#1baf7a}.legend i.sw3{border-color:#eda100}.legend i.sw4{border-color:#e87ba4}
+.tip{position:absolute;pointer-events:none;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:12.5px;box-shadow:0 2px 8px rgba(0,0,0,.12);white-space:nowrap}
+.tip b{display:block;margin-bottom:2px}
+@media (max-width:600px){#ch .ax{font-size:22px}}
+</style></head><body>
+<header><h1>Networked Prisoner's Dilemma: our prompt design vs. the published LLM run</h1>
+<nav><a href="#result">Result</a><a href="#diffs">Differences</a><a href="#round1">Round 1 prompts</a><a href="#later">Later rounds</a><a href="#next">Next</a><a href="#notes">Notes</a></nav></header>
+<main>
+<p>We are replicating the human experiment of Gracia-Lázaro et al. (2012, PNAS; "GL12": 1,229 Spanish secondary-school
+students playing a weak Prisoner's Dilemma on networks) with LLM agents, building on Ferraz de Arruda et al. (2026,
+arXiv 2606.30454; "FdA26"), who ran the same game with llama4. This page sets our prompt design beside theirs, as both
+were sent to the same model (Llama 4 Scout) in our pilot of 27 October 2026.</p>
+
+<h2 id="result">Result: the two designs produce different games</h2>
+<p>Share of players cooperating in each round of Part I on the lattice. Our design keeps llama4 cooperating almost
+fully; FdA26's design, run by us, falls towards their published level after round 5; humans sit in between and decline slowly.</p>
+<div class="legend"><span><i class="sw0 dash"></i>Humans (GL12)</span><span><i class="sw1 dash"></i>FdA26 llama4, published run</span><span><i class="sw2"></i>Our arm (pilot)</span><span><i class="sw3"></i>FdA26 arm, chat route (pilot)</span><span><i class="sw4"></i>FdA26 arm, native route (pilot)</span></div><div class="chartwrap"><svg id="ch" viewBox="0 0 720 320" width="100%" role="img" aria-label="Share cooperating by round, rounds 1 to 10"><line x1="44" x2="704" y1="286.0" y2="286.0" class="grid"/><text x="38" y="290.0" text-anchor="end" class="ax">0.00</text><line x1="44" x2="704" y1="218.0" y2="218.0" class="grid"/><text x="38" y="222.0" text-anchor="end" class="ax">0.25</text><line x1="44" x2="704" y1="150.0" y2="150.0" class="grid"/><text x="38" y="154.0" text-anchor="end" class="ax">0.50</text><line x1="44" x2="704" y1="82.0" y2="82.0" class="grid"/><text x="38" y="86.0" text-anchor="end" class="ax">0.75</text><line x1="44" x2="704" y1="14.0" y2="14.0" class="grid"/><text x="38" y="18.0" text-anchor="end" class="ax">1.00</text><text x="44.0" y="304" text-anchor="middle" class="ax">1</text><text x="117.3" y="304" text-anchor="middle" class="ax">2</text><text x="190.7" y="304" text-anchor="middle" class="ax">3</text><text x="264.0" y="304" text-anchor="middle" class="ax">4</text><text x="337.3" y="304" text-anchor="middle" class="ax">5</text><text x="410.7" y="304" text-anchor="middle" class="ax">6</text><text x="484.0" y="304" text-anchor="middle" class="ax">7</text><text x="557.3" y="304" text-anchor="middle" class="ax">8</text><text x="630.7" y="304" text-anchor="middle" class="ax">9</text><text x="704.0" y="304" text-anchor="middle" class="ax">10</text><text x="374.0" y="318" text-anchor="middle" class="ax">Round (Part I, lattice)</text><polyline points="44.0,124.7 117.3,143.2 190.7,157.6 264.0,172.0 337.3,155.4 410.7,170.1 484.0,176.7 557.3,180.7 630.7,170.9 704.0,169.9" class="s0" stroke-dasharray="6 4"/><circle cx="44.0" cy="124.7" r="3.2" class="m0"/><circle cx="117.3" cy="143.2" r="3.2" class="m0"/><circle cx="190.7" cy="157.6" r="3.2" class="m0"/><circle cx="264.0" cy="172.0" r="3.2" class="m0"/><circle cx="337.3" cy="155.4" r="3.2" class="m0"/><circle cx="410.7" cy="170.1" r="3.2" class="m0"/><circle cx="484.0" cy="176.7" r="3.2" class="m0"/><circle cx="557.3" cy="180.7" r="3.2" class="m0"/><circle cx="630.7" cy="170.9" r="3.2" class="m0"/><circle cx="704.0" cy="169.9" r="3.2" class="m0"/><polyline points="44.0,95.6 117.3,169.9 190.7,203.9 264.0,231.3 337.3,188.6 410.7,169.9 484.0,202.5 557.3,200.3 630.7,222.9 704.0,195.7" class="s1" stroke-dasharray="6 4"/><circle cx="44.0" cy="95.6" r="3.2" class="m1"/><circle cx="117.3" cy="169.9" r="3.2" class="m1"/><circle cx="190.7" cy="203.9" r="3.2" class="m1"/><circle cx="264.0" cy="231.3" r="3.2" class="m1"/><circle cx="337.3" cy="188.6" r="3.2" class="m1"/><circle cx="410.7" cy="169.9" r="3.2" class="m1"/><circle cx="484.0" cy="202.5" r="3.2" class="m1"/><circle cx="557.3" cy="200.3" r="3.2" class="m1"/><circle cx="630.7" cy="222.9" r="3.2" class="m1"/><circle cx="704.0" cy="195.7" r="3.2" class="m1"/><polyline points="44.0,26.5 117.3,18.9 190.7,16.7 264.0,15.6 337.3,17.8 410.7,20.0 484.0,15.6 557.3,18.4 630.7,16.7 704.0,17.0" class="s2"/><circle cx="44.0" cy="26.5" r="3.2" class="m2"/><circle cx="117.3" cy="18.9" r="3.2" class="m2"/><circle cx="190.7" cy="16.7" r="3.2" class="m2"/><circle cx="264.0" cy="15.6" r="3.2" class="m2"/><circle cx="337.3" cy="17.8" r="3.2" class="m2"/><circle cx="410.7" cy="20.0" r="3.2" class="m2"/><circle cx="484.0" cy="15.6" r="3.2" class="m2"/><circle cx="557.3" cy="18.4" r="3.2" class="m2"/><circle cx="630.7" cy="16.7" r="3.2" class="m2"/><circle cx="704.0" cy="17.0" r="3.2" class="m2"/><polyline points="44.0,23.2 117.3,56.7 190.7,79.8 264.0,156.3 337.3,154.1 410.7,188.6 484.0,184.5 557.3,205.5 630.7,199.0 704.0,199.0" class="s3"/><circle cx="44.0" cy="23.2" r="3.2" class="m3"/><circle cx="117.3" cy="56.7" r="3.2" class="m3"/><circle cx="190.7" cy="79.8" r="3.2" class="m3"/><circle cx="264.0" cy="156.3" r="3.2" class="m3"/><circle cx="337.3" cy="154.1" r="3.2" class="m3"/><circle cx="410.7" cy="188.6" r="3.2" class="m3"/><circle cx="484.0" cy="184.5" r="3.2" class="m3"/><circle cx="557.3" cy="205.5" r="3.2" class="m3"/><circle cx="630.7" cy="199.0" r="3.2" class="m3"/><circle cx="704.0" cy="199.0" r="3.2" class="m3"/><polyline points="44.0,16.7 117.3,27.1 190.7,35.2 264.0,74.1 337.3,77.6 410.7,124.4 484.0,124.4 557.3,172.0 630.7,155.4 704.0,178.8" class="s4"/><circle cx="44.0" cy="16.7" r="3.2" class="m4"/><circle cx="117.3" cy="27.1" r="3.2" class="m4"/><circle cx="190.7" cy="35.2" r="3.2" class="m4"/><circle cx="264.0" cy="74.1" r="3.2" class="m4"/><circle cx="337.3" cy="77.6" r="3.2" class="m4"/><circle cx="410.7" cy="124.4" r="3.2" class="m4"/><circle cx="484.0" cy="124.4" r="3.2" class="m4"/><circle cx="557.3" cy="172.0" r="3.2" class="m4"/><circle cx="630.7" cy="155.4" r="3.2" class="m4"/><circle cx="704.0" cy="178.8" r="3.2" class="m4"/><line id="xh" x1="0" x2="0" y1="14" y2="286" class="xh" visibility="hidden"/><rect id="hit" x="44" y="14" width="660" height="272" fill="transparent"/></svg><div id="tip" class="tip" hidden></div></div>
+<p class="muted">Dashed: reference data (GL12's humans; FdA26's single published llama4 run, read from their figure).
+Solid: our pilot. Cooperation is counted as played (computer-chosen timeout moves included). Hover for values; the
+table below has every series, including the repeat reading and the heterogeneous network.</p>
+<table><tr><th>Series</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>Mean</th><th>RMSE vs FdA26 run</th></tr><tr><td>Humans (GL12, Fig. 2A)</td><td>0.59</td><td>0.53</td><td>0.47</td><td>0.42</td><td>0.48</td><td>0.43</td><td>0.40</td><td>0.39</td><td>0.42</td><td>0.43</td><td><b>0.46</b></td><td></td></tr><tr><td>FdA26 llama4, published run (Fig. 2a; one run)</td><td>0.70</td><td>0.43</td><td>0.30</td><td>0.20</td><td>0.36</td><td>0.43</td><td>0.31</td><td>0.32</td><td>0.23</td><td>0.33</td><td><b>0.36</b></td><td></td></tr><tr><td>Our arm, lattice (pilot, SGLang FP8)</td><td>0.95</td><td>0.98</td><td>0.99</td><td>0.99</td><td>0.99</td><td>0.98</td><td>0.99</td><td>0.98</td><td>0.99</td><td>0.99</td><td><b>0.98</b></td><td>0.64</td></tr><tr><td>Our arm, heterogeneous network (pilot)</td><td>0.93</td><td>0.97</td><td>0.99</td><td>0.99</td><td>0.99</td><td>0.99</td><td>0.99</td><td>0.99</td><td>0.99</td><td>0.98</td><td><b>0.98</b></td><td>0.64</td></tr><tr><td>FdA26 arm, chat route, summary after round 1 (pilot, Ollama Q4_K_M)</td><td>0.97</td><td>0.84</td><td>0.76</td><td>0.48</td><td>0.48</td><td>0.36</td><td>0.37</td><td>0.30</td><td>0.32</td><td>0.32</td><td><b>0.52</b></td><td>0.24</td></tr><tr><td>FdA26 arm, native /api/generate route (pilot)</td><td>0.99</td><td>0.95</td><td>0.92</td><td>0.78</td><td>0.77</td><td>0.59</td><td>0.59</td><td>0.42</td><td>0.48</td><td>0.39</td><td><b>0.69</b></td><td>0.38</td></tr><tr><td>FdA26 arm, chat route, description repeated every round (pilot)</td><td>0.97</td><td>0.93</td><td>0.86</td><td>0.76</td><td>0.69</td><td>0.63</td><td>0.62</td><td>0.59</td><td>0.58</td><td>0.56</td><td><b>0.72</b></td><td>0.38</td></tr></table>
+<div class="box">No version of FdA26's setup reproduces their round 1 (0.70): ours open at 0.97–0.99, with round-1 replies
+arguing for the "mutually beneficial" choice almost word for word. The chat route with a summary after round 1 is the
+closest (RMSE 0.24) and matches their level from round 6.</div>
+
+<h2 id="diffs">What differs between the two designs</h2>
+<table><tr><th style="width:16%">Element</th><th>Our design</th><th>FdA26 (their templates, as CrewAI sends them)</th></tr><tr><td><b>Message structure</b></td><td>A system message (the on-screen directions, then the persona) and one user message per round (the round screen).</td><td>No system message. CrewAI, with both of their templates set, sends one user message: their system template, &quot;Answer the task below in valid JSON format:&quot;, the task, and CrewAI&#x27;s expected-output lines. Ollama then applies the model&#x27;s default system prompt.</td></tr><tr><td><b>Directions</b></td><td>GL12&#x27;s directions in full, pages 1–9 before Part I (about 1,070 words): the experiment, two parts of 50–70 rounds, earnings paid in euros, the virtual network, fixed neighbours in Part I, payoffs, examples, timing.</td><td>A subset starting at &quot;Possible payoffs per neighbor&quot; (about 490 words): payoff table, examples, timing. No framing of the experiment, the parts, the network or real money.</td></tr><tr><td><b>Who the neighbours are</b></td><td>&quot;People&quot; / &quot;participants&quot; in GL12&#x27;s wording (the pilot&#x27;s cells did not add FdA26&#x27;s framing).</td><td>&quot;your neighbors (which are humans)&quot;.</td></tr><tr><td><b>Who the model is</b></td><td>A persona: a 17-year-old in the final year of secondary school in Aragón, in an experiment in the school&#x27;s computer room (rich cells add PISA-based background).</td><td>Nothing. Their role, backstory (high-school student, gender) and goal (&quot;maximize your own ECUs&quot;) are dropped by CrewAI when both templates are set.</td></tr><tr><td><b>Colours</b></td><td>One of five colour pairs per player; which colour cooperates, and the order shown, vary by player.</td><td>Always GREEN (cooperate) and BROWN (defect), GREEN listed first.</td></tr><tr><td><b>Each round&#x27;s feedback</b></td><td>Memory (iv): last round&#x27;s own choice, earnings and running total; each neighbour&#x27;s choice and scaled earnings; the round before; whether earnings were better or worse than usual; notable neighbours.</td><td>Previous round only: each neighbour&#x27;s choice and payoff, own choice and payoff. No totals, no longer history. In the repeat reading the full description is sent again every round.</td></tr><tr><td><b>Reply format</b></td><td>JSON only: {&quot;choice&quot;: …, &quot;reasoning&quot;: &quot;&lt;one or two sentences&gt;&quot;}.</td><td>JSON with choice and reasoning (plain text), plus CrewAI&#x27;s &quot;you MUST return the actual complete content as the final answer, not a summary&quot;.</td></tr><tr><td><b>Timeouts</b></td><td>10% of moves are the computer&#x27;s (as for GL12&#x27;s humans), shown as &quot;the system chose … for you&quot;.</td><td>None.</td></tr><tr><td><b>Model and sampling (pilot)</b></td><td>Llama 4 Scout FP8 on SGLang, temperature 0.8, top_p 1.0.</td><td>Llama 4 Scout Q4_K_M on Ollama v0.18.2 (their weights). Chat route: server defaults (temperature 1.0). Native route: Ollama&#x27;s defaults (0.8, top_k 40, top_p 0.9, repeat penalty 1.1).</td></tr></table>
+
+<h2 id="round1">Round 1: the full prompts</h2>
+<p class="muted">Rendered by the study's code. Long passages of GL12's and FdA26's directions are cut to their first
+words, with a word count. The example player's colours: YELLOW / BLUE (cooperate / defect).</p>
+<div class="cols"><div class="card"><h3>Our design</h3><p><b>System message</b></p><pre>The directions on your screen:
+
+This is an experiment designed to study how individuals make … [69 words of GL12 SI 1.3]
+
+Directions to participate in the experiment. This experiment consists of … [133 words of GL12 SI 1.3]
+
+A round. In each ROUND you will be placed in … [97 words of GL12 SI 1.3]
+
+Decision to make in every round. Every round, each of … [133 words of GL12 SI 1.3]
+
+Possible payoffs per neighbor. In the following table each row … [111 words of GL12 SI 1.3]
+
+This is the screen you will be seeing during the … [97 words of GL12 SI 1.3]
+(In this text version, the screen is described in words. Each round you see your own position in the center and your neighbors around it, and two buttons, BLUE and YELLOW, on the right. You choose a color by writing it in your reply.)
+
+These are some examples of what you could earn in … [78 words of GL12 SI 1.3]
+
+Round iteration. Remember that each part will consist of an … [272 words of GL12 SI 1.3]
+
+Part I of the experiment. In this part the system … [78 words of GL12 SI 1.3]
+
+About you: you are a young woman, 17 years old, in your final year of secondary school (2º de Bachillerato) in Aragón, Spain. Today you are taking part in an experiment in a computer room at your school, together with other students.</pre>
+<p><b>User message, round 1</b></p><pre>Part I begins. This is the first round.
+
+Choose your color for this round.
+Reply with a JSON object only, in this form: {&quot;choice&quot;: &quot;&lt;BLUE or YELLOW&gt;&quot;, &quot;reasoning&quot;: &quot;&lt;one or two sentences&gt;&quot;}</pre></div>
+<div class="card"><h3>FdA26</h3><p><b>System message</b>: none (Ollama applies the model's default).</p>
+<p><b>User message, round 1</b></p><pre>You are not expected to behave in any particular way. Whatever you do will determine the amount of money you can earn. You have a written version of this direction, which you can check at any stage of the experiment.
+Answer the task below in valid JSON format: Possible payoffs per neighbor. In the following table each row corresponds to … [487 words of FdA26 SI S1.4.1, adapted from GL12&#x27;s directions]
+
+This is the expected criteria for your final answer: String in a Json format ONLY with choice (GREEN or BROWN) and reasoning (plain text):
+{
+&quot;choice&quot;: ...,
+&quot;reasoning&quot;: &quot;...&quot;
+}
+you MUST return the actual complete content as the final answer, not a summary.</pre></div></div>
+
+<h2 id="later">Round 6: what a player sees after five rounds</h2>
+<div class="cols"><div class="card"><h3>Our design (memory iv)</h3><p class="muted">Same system message as round 1.</p><pre>Last round: you chose BLUE and earned 10 ECUs. Your total so far: 80 ECUs.
+Your 4 neighbors last round:
+- Neighbor 1: YELLOW, 0 ECUs
+- Neighbor 2: BLUE, 0 ECUs
+- Neighbor 3: BLUE, 10 ECUs
+- Neighbor 4: BLUE, 0 ECUs
+The round before: 1 of 4 neighbors chose YELLOW; you chose BLUE.
+Lately, about 3 in 10 of your neighbors&#x27; choices have been YELLOW, and that share is falling.
+Your earnings last round were worse than usual for you.
+Neighbors you noticed: Neighbor 3 mostly chooses BLUE; Neighbor 1 mostly chooses YELLOW; Neighbor 4 mostly chooses BLUE; Neighbor 2 mostly chooses BLUE.
+
+Choose your color for this round.
+Reply with a JSON object only, in this form: {&quot;choice&quot;: &quot;&lt;BLUE or YELLOW&gt;&quot;, &quot;reasoning&quot;: &quot;&lt;one or two sentences&gt;&quot;}</pre></div>
+<div class="card"><h3>FdA26, summary after round 1</h3><pre>You are not expected to behave in any particular way. Whatever you do will determine the amount of money you can earn. You have a written version of this direction, which you can check at any stage of the experiment.
+Answer the task below in valid JSON format: Now, you have to answer again:
+This is round 5.
+In the previous round, your neighbors made the following choices:
+Neighbor choices in the previous round:
+Neighbor 1: choice = BROWN, payoff = 10.
+Neighbor 2: choice = GREEN, payoff = 0.
+Neighbor 3: choice = GREEN, payoff = 0.
+Neighbor 4: choice = BROWN, payoff = 0.
+Your choice and payoff in the previous round was: choice = BROWN, payoff = 20.
+Based on this information, make your choice for this round.
+
+This is the expected criteria for your final answer: String in a Json format ONLY with choice (GREEN or BROWN) and reasoning (plain text):
+{
+&quot;choice&quot;: ...,
+&quot;reasoning&quot;: &quot;...&quot;
+}
+you MUST return the actual complete content as the final answer, not a summary.</pre>
+<h3>FdA26, description repeated every round</h3><pre>You are not expected to behave in any particular way. Whatever you do will determine the amount of money you can earn. You have a written version of this direction, which you can check at any stage of the experiment.
+Answer the task below in valid JSON format: Possible payoffs per neighbor. In the following table each row corresponds to … [487 words of FdA26 SI S1.4.1, adapted from GL12&#x27;s directions]
+Now, you have to answer again:
+This is round 5.
+In the previous round, your neighbors made the following choices:
+Neighbor choices in the previous round:
+Neighbor 1: choice = BROWN, payoff = 10.
+Neighbor 2: choice = GREEN, payoff = 0.
+Neighbor 3: choice = GREEN, payoff = 0.
+Neighbor 4: choice = BROWN, payoff = 0.
+Your choice and payoff in the previous round was: choice = BROWN, payoff = 20.
+Based on this information, make your choice for this round.
+
+This is the expected criteria for your final answer: String in a Json format ONLY with choice (GREEN or BROWN) and reasoning (plain text):
+{
+&quot;choice&quot;: ...,
+&quot;reasoning&quot;: &quot;...&quot;
+}
+you MUST return the actual complete content as the final answer, not a summary.</pre></div></div>
+
+<h2 id="next">Next: which element keeps llama4 cooperating?</h2>
+<p>A small diagnostic cell changes our design one element at a time towards FdA26's (the rows of the table above):
+directions subset, persona removed, "(which are humans)", fixed GREEN/BROWN, previous-round-only feedback, reply
+format, sampling. Each version runs a few rounds of the lattice; the element that moves round-1 cooperation from about
+0.97 towards 0.6 is the one that matters.</p>
+
+<h2 id="notes">Notes</h2>
+<ul>
+<li>Our pilot's system message carried the heading "About you:" twice (a template bug, since fixed); the prompt shown
+here is the corrected one.</li>
+<li>FdA26's code and CrewAI version are unpublished; their arm is rebuilt from their SI S1.4.1 and CrewAI's source
+(1.11.0, the same in 0.150.0). The chat route is CrewAI 1.12+; the native route is CrewAI before 1.12 via LiteLLM.</li>
+<li>Human curve: recovered from GL12 Fig. 2A; FdA26 curve: recovered from FdA26 Fig. 2a. Both are read from the vector
+figures; checks against published numbers pass.</li>
+<li>Copyright: GL12's directions (SI 1.3) and FdA26's description (SI S1.4.1) are cut to short quotes; FdA26's short
+templates are quoted for comparison. No student data appears on this page.</li>
+</ul>
+</main><script>
+const C = {"humans": [0.593, 0.525, 0.472, 0.419, 0.48, 0.426, 0.402, 0.387, 0.423, 0.427], "fda26_pub": [0.7, 0.427, 0.302, 0.201, 0.358, 0.427, 0.307, 0.315, 0.232, 0.332], "base_lattice": [0.954, 0.982, 0.99, 0.994, 0.986, 0.978, 0.994, 0.984, 0.99, 0.989], "base_het": [0.929, 0.975, 0.988, 0.995, 0.995, 0.992, 0.993, 0.992, 0.99, 0.985], "fda26_chat": [0.966, 0.843, 0.758, 0.477, 0.485, 0.358, 0.373, 0.296, 0.32, 0.32], "fda26_gen": [0.99, 0.952, 0.922, 0.779, 0.766, 0.594, 0.594, 0.419, 0.48, 0.394], "fda26_chat_repeat": [0.968, 0.933, 0.861, 0.758, 0.686, 0.634, 0.616, 0.587, 0.582, 0.563]}, S = [["humans", "Humans (GL12)"], ["fda26_pub", "FdA26 llama4, published run"], ["base_lattice", "Our arm (pilot)"], ["fda26_chat", "FdA26 arm, chat route (pilot)"], ["fda26_gen", "FdA26 arm, native route (pilot)"]];
+const svg = document.getElementById('ch'), tip = document.getElementById('tip'), xh = document.getElementById('xh');
+const L = 44, W = 720, R = 16;
+document.getElementById('hit').addEventListener('mousemove', e => {
+  const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+  const p = pt.matrixTransform(svg.getScreenCTM().inverse());
+  const r = Math.max(1, Math.min(10, Math.round(1 + (p.x - L) * 9 / (W - L - R))));
+  const x = L + (r - 1) * (W - L - R) / 9;
+  xh.setAttribute('x1', x); xh.setAttribute('x2', x); xh.setAttribute('visibility', 'visible');
+  tip.innerHTML = '<b>Round ' + r + '</b>' + S.map(s => s[1] + ': ' + C[s[0]][r - 1].toFixed(2)).join('<br>');
+  tip.hidden = false;
+  const box = svg.getBoundingClientRect(), wrap = svg.parentNode.getBoundingClientRect();
+  const px = (x / W) * box.width;
+  tip.style.left = Math.min(px + 12, box.width - tip.offsetWidth - 4) + 'px';
+  tip.style.top = '8px';
+});
+document.getElementById('hit').addEventListener('mouseleave', () => { tip.hidden = true; xh.setAttribute('visibility', 'hidden'); });
+</script></body></html>
