@@ -258,23 +258,30 @@ function sceneOrigin(id){
          `(chosen as elite of <i>${esc(s.parent_cell)}</i>)<br>move: <b>${esc(mv.kind)}</b>${mv.slot!==undefined?' (object '+mv.slot+')':''}${fr}`;
 }
 function videoFor(id){ return (D.scenes[id]||{}).video ? `<video src="videos/${encodeURIComponent(id)}.mp4" controls loop autoplay muted playsinline></video>` : `<p class="empty">No local video for ${esc(id)}.</p>`; }
+function eliteRuns(arm, k){ const out=[]; D.arms[arm].forEach((sn,g)=>{ const id=sn.cells[k]||null, last=out[out.length-1];
+  if(last && last.id===id) last.g1=g; else out.push({id, g0:g, g1:g}); }); return out; }
 function detail(){
   const el=document.getElementById('detail');
   if(!S.cell){ el.innerHTML='<p class="empty">Click any square to inspect its elite.</p>'+changesList(); bindChanges(el); return; }
   const k=S.cell, w=cellWords(k);
   let h=`<h2>${esc(w.t)} · “${esc(w.c)}”</h2><div class="kv">margin bin <b>${esc(w.m)}</b>: ${esc(w.mtxt)} <span title="${esc(w.T.margin.quantity)}">(${esc(w.T.margin.quantity)})</span><br>size bin <b>${esc(w.s)}</b>: ${esc(w.stxt)}</div>`;
-  h+=`<div style="margin-top:8px" class="kv">This cell's elite at each step (click a box to view it):</div>`;
+  h+=`<div style="margin-top:8px" class="kv">This cell's elite at each step (click a box to view it). A cell keeps its elite until a child replaces it (↑) or first fills it (+), so boxes joined together show the same scene:</div>`;
   [['me','MAP-Elites'],['random','Random']].forEach(([a,name])=>{
     h+=`<div class="lineage"><span class="lab">${name}</span>`;
     D.arms[a].forEach((sn,g)=>{ const id=sn.cells[k], e=id&&D.elites[id], ch=sn.changes[k];
       const on = (S.view? S.view.arm===a&&S.view.g===g : a===S.arm && g===Math.min(S.gen,D.arms[a].length-1));
       const bg=e?seq(e.fitness):css('--surface'), fg=e&&e.fitness>0.5?'#fff':css('--ink');
-      h+=`<div class="lin${on?' on':''}" data-a="${a}" data-g="${g}" style="background:${bg};color:${fg}" title="${genName(a,g)}${e?': '+esc(e.scene)+' fitness '+e.fitness.toFixed(2):': empty'}">${g}${ch?`<span class="chg">${ch==='new'?'+':'↑'}</span>`:''}</div>`; });
+      const brk=g>0 && D.arms[a][g-1].cells[k]!==id;
+      h+=`<div class="lin${on?' on':''}" data-a="${a}" data-g="${g}" style="background:${bg};color:${fg}${brk?';margin-left:12px':g>0?';margin-left:-3px':''}" title="${genName(a,g)}${e?': '+esc(e.scene)+' fitness '+e.fitness.toFixed(2):': empty'}">${g}${ch?`<span class="chg">${ch==='new'?'+':'↑'}</span>`:''}</div>`; });
     h+='</div>';
+    const rs=eliteRuns(a,k);
+    h+=`<div class="kv" style="margin-left:78px">${rs.length===1&&rs[0].id?`${esc(D.elites[rs[0].id].scene)} at every step (never replaced)`:
+      rs.map(r=>`${r.id?esc(D.elites[r.id].scene):'empty'} (${r.g0===r.g1?'step '+r.g0:'steps '+r.g0+'–'+r.g1})`).join(' → ')}</div>`;
   });
   const va=S.view?S.view.arm:S.arm, vg=S.view?S.view.g:Math.min(S.gen,D.arms[va].length-1);
   const id=D.arms[va][vg].cells[k], e=id&&D.elites[id];
-  h+=`<div class="kv" style="margin-top:10px">Showing the ${va==='me'?'MAP-Elites':'random-control'} elite at <b>${genName(va,vg)}</b>.</div>`;
+  const run=eliteRuns(va,k).find(r=>vg>=r.g0&&vg<=r.g1);
+  h+=`<div class="kv" style="margin-top:10px">Showing the ${va==='me'?'MAP-Elites':'random-control'} elite at <b>${genName(va,vg)}</b>${run&&run.g0!==run.g1?` (the same ${e?'scene':'empty cell'} at steps ${run.g0}–${run.g1})`:''}.</div>`;
   if(!e){ h+='<p class="empty">The cell is empty at this step.</p>'; }
   else{
     const nw=Math.round(e.fitness*e.n_q);
