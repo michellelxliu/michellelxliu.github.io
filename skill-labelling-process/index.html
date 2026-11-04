@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Skill labelling process</title><meta name="description" content="The new ledger-based skill-labelling process for video-benchmark questions: plan-then-lookup labeller, curator, blind parent judges, and L1s induced after labelling.">
+<style>
+:root{--bg:#fbfaf7;--fg:#1d1d1b;--muted:#5f5e58;--line:#dedbd2;--card:#ffffff;--accent:#2f5d8a;--hi:#eef3f8;--good:#2e7d4f;--bad:#a8432f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#161615;--fg:#ecebe6;--muted:#a3a19a;--line:#3a3935;--card:#1f1f1d;--accent:#8db6df;--hi:#232a31;--good:#7cc79a;--bad:#e08d7a}}
+:root[data-theme="dark"]{--bg:#161615;--fg:#ecebe6;--muted:#a3a19a;--line:#3a3935;--card:#1f1f1d;--accent:#8db6df;--hi:#232a31;--good:#7cc79a;--bad:#e08d7a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:26px;line-height:1.25;margin:0 0 6px}
+h2{font-size:19px;margin:40px 0 8px;padding-top:8px;border-top:1px solid var(--line)}
+h3{font-size:16px;margin:24px 0 6px}
+p,li{max-width:76ch}
+.sub{color:var(--muted);margin:0 0 20px}
+.note{color:var(--muted);font-size:13px}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--card);margin:10px 0 6px}
+table{border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums;width:100%}
+th,td{padding:6px 9px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+th{position:sticky;top:0;background:var(--card);font-weight:600;color:var(--muted);vertical-align:bottom;white-space:normal;min-width:70px}
+td:first-child,th:first-child{text-align:left;position:sticky;left:0;background:var(--card)}
+tr.hl td{background:var(--hi)}
+tr.hl td:first-child{background:var(--hi);font-weight:600}
+tbody tr:last-child td{border-bottom:0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:18px 0}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.kpi b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.kpi span{color:var(--muted);font-size:13px}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 16px;font-size:14px}
+dt{font-weight:600}dd{margin:0;color:var(--muted)}
+nav{font-size:14px;margin:10px 0 0}nav a{color:var(--accent);margin-right:14px}
+a{color:var(--accent)}
+code{font-size:13px;background:var(--hi);padding:1px 4px;border-radius:4px}
+.flow{display:grid;gap:10px;margin:16px 0}
+.step{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:12px 16px}
+.step h3{margin:0 0 4px}.step p{margin:4px 0}
+.step .who{color:var(--muted);font-size:13px}
+.arrow{color:var(--muted);text-align:center;font-size:18px;line-height:1}
+details{background:var(--card);border:1px solid var(--line);border-radius:8px;margin:8px 0;padding:8px 14px}
+summary{cursor:pointer;font-weight:600}
+summary .c{color:var(--muted);font-weight:400}
+.l2{margin:8px 0 8px 6px}.l2 .d{color:var(--muted);font-size:13px}
+.l3{color:var(--fg);font-size:13px;margin:2px 0 0 14px}
+</style></head><body><main>
+<h1>Skill labelling: the new process</h1>
+<p class="sub">How each video-benchmark question now gets its skill labels (L1 › L2 › L3). Piloted on 300 questions
+from 27 benchmarks, 2026-11-04. The labeller never sees the video: it works from the question, the options and the correct answer.</p>
+<nav><a href="#flow">Process</a><a href="#old">What changed</a><a href="#tree">Resulting tree</a><a href="#growth">Ledger growth</a><a href="#cost">Pilot numbers</a><a href="#open">Not settled yet</a></nav>
+<h2 id="flow">Process</h2><div class="flow">
+<div class="step"><h3>1 · Plan, then look up (labeller)</h3><p class="who">Claude Sonnet 5.5, 5 questions per call</p>
+<p>For each question the labeller writes the step-by-step plan someone watching the video would follow to reach the correct
+answer, one skill per step, with the evidence each step uses. It then looks each step's skill up in the <b>skill ledger</b>:
+it cites an existing L2 › L3 node, or proposes a new one (<code>NEW L2</code> / <code>NEW L3</code>) with its nearest existing node and how it differs.</p></div>
+<div class="arrow">↓</div>
+<div class="step"><h3>2 · The ledger</h3><p class="who">a tree with fixed node IDs and exactly one parent per node</p>
+<p>It starts empty and grows during labelling. Labellers see a frozen snapshot of it (names + one-line definitions) during each epoch.
+There is <b>no L1 level during labelling</b>: L2s sit under a hidden root, so no top-level category is primed.</p></div>
+<div class="arrow">↓</div>
+<div class="step"><h3>3 · Curator, after every epoch</h3><p class="who">Claude Sonnet 5.5, one call per epoch</p>
+<p>Decides each proposal: accept it as a new node (with a general name and a definition that says how it differs from its nearest sibling) or merge it
+into a node that means the same skill. Questions labelled with a merged proposal follow it to the surviving node.</p></div>
+<div class="arrow">↓</div>
+<div class="step"><h3>4 · Blind parent judges, after every epoch</h3><p class="who">3 Claude Sonnet 5.5 judges, majority of 2 of 3</p>
+<p>Each new L3 is placed under an L2 by three judges who see shuffled candidates under random codes, with no node IDs, current
+parent or votes. 2 of 3 agreeing on a different parent moves the node; at two re-judge epochs every L3 is checked again.
+Validated on planted misplaced nodes: 111/112 L3s placed correctly.</p></div>
+<div class="arrow">↓</div>
+<div class="step"><h3>5 · L1s induced after labelling</h3><p class="who">3 independent Claude Sonnet 5.5 inducers + 1 naming call</p>
+<p>Once all questions are labelled, each inducer groups the final L2s into broad categories (no target count, no catch-all
+category). The three groupings are combined by consensus (average-linkage on co-assignment, merge above 0.5), and a naming call names and defines each group.
+Agreement between inducers is reported as ARI.</p></div>
+</div>
+<h2 id="old">What changed from the previous labels</h2>
+<div class="wrap"><table><thead><tr><th>previous (prompts v5/v6)</th><th>new</th></tr></thead><tbody>
+<tr><td style="white-space:normal">free-text L1 › L2 › L3 names per question</td><td style="white-space:normal;text-align:left">names cited from a shared ledger with fixed IDs</td></tr>
+<tr><td style="white-space:normal">the same skill under several spellings and parents</td><td style="white-space:normal;text-align:left">a curator merges synonyms; each node has one parent</td></tr>
+<tr><td style="white-space:normal">20 fixed L1 categories given to the labeller</td><td style="white-space:normal;text-align:left">no L1s during labelling; L1s induced from the finished L2s</td></tr>
+<tr><td style="white-space:normal">parents set by whoever proposed the node</td><td style="white-space:normal;text-align:left">parents checked by blind judges</td></tr>
+</tbody></table></div>
+<h2 id="tree">Resulting tree on the 300 pilot questions</h2>
+<p>11 induced L1s · 22 L2s · 56 L3s. Counts are questions (of 300) with at least one step under the node.
+Inducer agreement ARI 0.89 / 0.89 / 1.00. Not yet reviewed.</p>
+<details><summary>Visual Recognition <span class="c">· 204 questions · 5 L2</span></summary><p class="note">Identifying and describing what is visible in the video, such as objects, their properties, the scene or event, people&#x27;s emotions and on-screen text.</p><div class="l2"><b>Object Recognition</b> <span class="note">(127)</span><div class="d">Identifying what an object or object part is and locating the queried one in the scene</div><div class="l3">› Finding the queried object <span class="note">(71)</span></div><div class="l3">› Identifying the category of an object <span class="note">(46)</span></div><div class="l3">› Recognizing parts of a mechanical system <span class="note">(6)</span></div><div class="l3">› Identifying parts or features of an object <span class="note">(4)</span></div><div class="l3">› Recognizing which objects are paired with each other <span class="note">(3)</span></div><div class="l3">› Recognizing team or group identity <span class="note">(2)</span></div><div class="l3">› Recognizing a named landmark or place <span class="note">(1)</span></div></div><div class="l2"><b>Object Attribute Identification</b> <span class="note">(74)</span><div class="d">Perceiving visual properties of objects (colour, pattern, texture, size)</div><div class="l3">› Identifying object color <span class="note">(46)</span></div><div class="l3">› Identifying object shape <span class="note">(19)</span></div><div class="l3">› Identifying person clothing or appearance attributes <span class="note">(18)</span></div><div class="l3">› Identifying object material <span class="note">(14)</span></div><div class="l3">› Identifying surface pattern or texture of a material <span class="note">(2)</span></div></div><div class="l2"><b>Event and Scene Understanding</b> <span class="note">(41)</span><div class="d">Recognizing what kind of event or setting a video shows as a whole</div><div class="l3">› Recognizing the type of event shown <span class="note">(18)</span></div><div class="l3">› Recognizing the setting or environment shown <span class="note">(16)</span></div><div class="l3">› Identifying the outcome of an event <span class="note">(8)</span></div></div><div class="l2"><b>Scene Text Reading</b> <span class="note">(7)</span><div class="d">Reading text or captions shown in the video frames</div><div class="l3">› Reading text shown in the scene <span class="note">(7)</span></div></div><div class="l2"><b>Emotion and Affect Recognition</b> <span class="note">(6)</span><div class="d">Inferring a person&#x27;s emotional state from expression, posture and behaviour</div><div class="l3">› Recognizing a person&#x27;s emotion <span class="note">(6)</span></div></div></details>
+<details><summary>Motion and Action Perception <span class="c">· 131 questions · 3 L2</span></summary><p class="note">Perceiving how objects, people and the camera move and distinguishing between similar actions or movements.</p><div class="l2"><b>Fine-Grained Action Discrimination</b> <span class="note">(81)</span><div class="d">Telling apart similar actions or body movements of agents</div><div class="l3">› Telling apart similar hand-object actions <span class="note">(49)</span></div><div class="l3">› Telling apart similar body movements of a person <span class="note">(28)</span></div><div class="l3">› Telling apart different actions of an animal <span class="note">(6)</span></div><div class="l3">› Telling apart similar hand or finger movements <span class="note">(2)</span></div></div><div class="l2"><b>Motion Perception</b> <span class="note">(43)</span><div class="d">Perceiving whether and how objects or people move (moving vs stationary, direction)</div><div class="l3">› Judging direction of motion <span class="note">(20)</span></div><div class="l3">› Judging whether an object is moving or stationary <span class="note">(16)</span></div><div class="l3">› Judging rotational direction of motion <span class="note">(3)</span></div><div class="l3">› Comparing speeds of moving objects <span class="note">(3)</span></div><div class="l3">› Judging overall playback speed of the video <span class="note">(1)</span></div></div><div class="l2"><b>Camera Motion Perception</b> <span class="note">(10)</span><div class="d">Perceiving how the camera itself moves (pan, tilt, zoom, tracking)</div><div class="l3">› Telling moving camera from static camera <span class="note">(5)</span></div><div class="l3">› Telling apart types of camera movement <span class="note">(4)</span></div><div class="l3">› Judging direction of camera translation <span class="note">(1)</span></div></div></details>
+<details><summary>Temporal Localization and Ordering <span class="c">· 73 questions · 2 L2</span></summary><p class="note">Locating when events occur in the video and understanding the order in which they happen.</p><div class="l2"><b>Temporal Sequence Understanding</b> <span class="note">(45)</span><div class="d">Understanding the order of events and what happens before or after a given one</div><div class="l3">› Ordering scenes or events in time <span class="note">(29)</span></div><div class="l3">› Identifying what happens right after a given event <span class="note">(15)</span></div><div class="l3">› Identifying what happens right before a given event <span class="note">(1)</span></div></div><div class="l2"><b>Event Boundary Detection</b> <span class="note">(44)</span><div class="d">Locating when a described event starts or happens in the video</div><div class="l3">› Finding the moment a described event happens <span class="note">(44)</span></div></div></details>
+<details><summary>Tracking Change Over Time <span class="c">· 37 questions · 2 L2</span></summary><p class="note">Following objects and their states across time to keep their identity and detect how they change.</p><div class="l2"><b>Identity Persistence</b> <span class="note">(23)</span><div class="d">Keeping track of the same object across time, occlusion and motion</div><div class="l3">› Following objects through the whole video <span class="note">(23)</span></div></div><div class="l2"><b>Change Identification</b> <span class="note">(14)</span><div class="d">Detecting how a property or state of an object, person or environment changes over time</div><div class="l3">› Noticing change in scene lighting <span class="note">(6)</span></div><div class="l3">› Noticing change in object state <span class="note">(4)</span></div><div class="l3">› Noticing change in object position or configuration <span class="note">(3)</span></div><div class="l3">› Noticing change of environment or setting <span class="note">(1)</span></div></div></details>
+<details><summary>Physical Reasoning <span class="c">· 30 questions · 2 L2</span></summary><p class="note">Reasoning about the physical laws, forces and mechanics that govern what is shown and whether it is plausible.</p><div class="l2"><b>Physical Plausibility Judgment</b> <span class="note">(20)</span><div class="d">Judging whether what is shown obeys physical laws (gravity, permanence, trajectories)</div><div class="l3">› Detecting violations of intuitive physics <span class="note">(20)</span></div></div><div class="l2"><b>Mechanics and Force Reasoning</b> <span class="note">(10)</span><div class="d">Reasoning about how forces, mass and connections between objects produce motion</div><div class="l3">› Identifying the cause of an object&#x27;s motion <span class="note">(6)</span></div><div class="l3">› Understanding force transmission between connected objects <span class="note">(4)</span></div></div></details>
+<details><summary>Hypothetical and Predictive Reasoning <span class="c">· 26 questions · 2 L2</span></summary><p class="note">Reasoning about situations that are not shown, either what would happen under a change or what will happen next.</p><div class="l2"><b>Future Prediction</b> <span class="note">(15)</span><div class="d">Predicting what will happen beyond the shown footage from the current state</div><div class="l3">› Predicting what happens next after the video ends <span class="note">(15)</span></div></div><div class="l2"><b>Counterfactual Reasoning</b> <span class="note">(11)</span><div class="d">Predicting what would happen if a scene property or event were changed</div><div class="l3">› Predicting the outcome of removing an object <span class="note">(8)</span></div><div class="l3">› Predicting the outcome of a changed object property <span class="note">(3)</span></div></div></details>
+<details><summary>Quantity and Counting <span class="c">· 23 questions · 2 L2</span></summary><p class="note">Determining how many items there are and comparing numerical values or magnitudes.</p><div class="l2"><b>Counting</b> <span class="note">(22)</span><div class="d">Determining how many objects or events there are, including items that appear or accumulate over time</div><div class="l3">› Counting objects <span class="note">(14)</span></div><div class="l3">› Counting repeated events or actions <span class="note">(8)</span></div></div><div class="l2"><b>Quantity and Magnitude Comparison</b> <span class="note">(1)</span><div class="d">Comparing the values or magnitudes of items (which is larger, higher, more)</div><div class="l3">› Comparing numerical values <span class="note">(1)</span></div></div></details>
+<details><summary>Spatial Reasoning <span class="c">· 10 questions · 1 L2</span></summary><p class="note">Judging where things are relative to each other or to a viewpoint.</p><div class="l2"><b>Relative Position and Spatial Reasoning</b> <span class="note">(10)</span><div class="d">Judging spatial relations between objects or relative to a viewpoint (direction, left/right, front/behind)</div><div class="l3">› Judging spatial relations between objects or locations <span class="note">(6)</span></div><div class="l3">› Judging direction of an object from a given viewpoint <span class="note">(2)</span></div><div class="l3">› Judging which way an object or person is facing <span class="note">(2)</span></div></div></details>
+<details><summary>Outside Knowledge Application <span class="c">· 9 questions · 1 L2</span></summary><p class="note">Applying factual or rule-based knowledge from beyond the video to interpret what is shown.</p><div class="l2"><b>Domain Knowledge Application</b> <span class="note">(9)</span><div class="d">Applying outside factual or rule knowledge (law, sports rules, conventions) to what is shown</div><div class="l3">› Applying sports rules and game knowledge <span class="note">(5)</span></div><div class="l3">› Applying technical or scientific knowledge <span class="note">(3)</span></div><div class="l3">› Applying legal principles to a situation <span class="note">(1)</span></div></div></details>
+<details><summary>Intention and Cause Inference <span class="c">· 8 questions · 1 L2</span></summary><p class="note">Inferring the goals, motives or reasons behind behaviour and situations.</p><div class="l2"><b>Intention and Cause Inference</b> <span class="note">(8)</span><div class="d">Inferring the goal, purpose or reason behind a person&#x27;s behaviour or a situation</div><div class="l3">› Inferring the goal of a person&#x27;s action <span class="note">(7)</span></div><div class="l3">› Inferring the cause of an observed event or phenomenon <span class="note">(1)</span></div></div></details>
+<details><summary>Audio Understanding <span class="c">· 1 questions · 1 L2</span></summary><p class="note">Understanding the speech and sounds carried by the video&#x27;s audio track.</p><div class="l2"><b>Speech and Audio Understanding</b> <span class="note">(1)</span><div class="d">Understanding what is said or heard in the video&#x27;s audio track (speech, sounds)</div><div class="l3">› Understanding spoken content <span class="note">(1)</span></div></div></details>
+<h2 id="growth">Ledger growth by epoch</h2><p>Nodes surviving at the end, by the epoch they were created.</p><div class="wrap"><table><thead><tr><th>epoch</th><th>new L2</th><th>new L3</th><th>L2 total</th><th>L3 total</th></tr></thead><tbody><tr><td>1</td><td>9</td><td>11</td><td>9</td><td>11</td></tr><tr><td>2</td><td>2</td><td>4</td><td>11</td><td>15</td></tr><tr><td>3</td><td>3</td><td>5</td><td>14</td><td>20</td></tr><tr><td>4</td><td>3</td><td>12</td><td>17</td><td>32</td></tr><tr><td>5</td><td>3</td><td>11</td><td>20</td><td>43</td></tr><tr><td>6</td><td>1</td><td>5</td><td>21</td><td>48</td></tr><tr><td>7</td><td>0</td><td>3</td><td>21</td><td>51</td></tr><tr><td>8</td><td>0</td><td>0</td><td>21</td><td>51</td></tr><tr><td>9</td><td>0</td><td>2</td><td>21</td><td>53</td></tr><tr><td>10</td><td>1</td><td>2</td><td>22</td><td>55</td></tr><tr><td>11</td><td>0</td><td>1</td><td>22</td><td>56</td></tr></tbody></table></div>
+<h2 id="cost">Pilot numbers (300 questions)</h2>
+<div class="wrap"><table><thead><tr><th>measure</th><th>value</th></tr></thead><tbody>
+<tr><td>labels written / malformed</td><td>300 / 0</td></tr>
+<tr><td>plan steps per question</td><td>2.22</td></tr>
+<tr><td>judge moves</td><td>0</td></tr>
+<tr><td>wall time</td><td>15 min labelling + ≈ 2 min induction</td></tr>
+<tr><td>calls (labeller / curator / judges)</td><td>60 / 10 / 30</td></tr>
+<tr><td>API-equivalent cost, labeller / curator / judges</td><td>$7.00 / $1.08 / $2.31</td></tr>
+<tr><td>API-equivalent cost per question, before caching fix</td><td>$0.035</td></tr>
+<tr><td>labeller call cost after the prompt-caching fix (measured on 4 calls)</td><td>≈ 63 % lower</td></tr>
+</tbody></table></div>
+<p class="note">Runs used a Claude subscription (no billed spend). API-equivalent costs are what the same tokens would cost at API prices.</p>
+<h2 id="open">Not settled yet</h2><ul>
+<li>Questions per labeller call: 5 (as above) or 20 (≈ 43 % cheaper per question, but 1.91 vs 2.22 steps per question).</li>
+<li>Deduplicating repeated questions (same question and option set) before labelling: 40 % fewer questions to label.</li>
+<li>The prompt-caching fix changes the labeller's input; its labels have not yet been checked against the pilot's.</li>
+<li>Review of the induced L1s.</li>
+</ul>
+<p class="note" style="margin-top:48px"><a href="../">← all pages</a> · built 2026-11-04</p>
+</main></body></html>
