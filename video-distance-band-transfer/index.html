@@ -126,6 +126,28 @@ with the untrained model. Tier-2 training data; epoch 5 chosen by a pre-register
 <tr><td><span class="m" tabindex="0">Within-set spread (× base)<span class="tip"><b>Within-label-set spread.</b> Mean (1 − cosine) between questions with an identical skill set, relative to the base model. A collapse check: values far below 1 would mean the encoder squashes all questions of a skill into one point.<span class="k"><b>Reading ours:</b> 1.44: no collapse. Same-skill questions are actually more spread out than under the base model, so the encoder still distinguishes questions within a skill.</span></span></span></td><td>1.00</td><td>1.44</td></tr>
 </table></div>
 
+<h3>Other encoders we trained (for comparison only)</h3>
+<div class="callout"><b>These are NOT the encoder used on this page.</b> Every band and arm above was chosen with the tier-2 anchored encoder
+(first row). The other rows are runs we trained along the way and did not use to pick training questions: the unanchored encoders
+(<span class="m" tabindex="0">λ = 0<span class="tip"><b>λ (anchor weight).</b> Weight of the loss term that keeps the encoder's pairwise cosines correlated with the frozen base model's (1 − Pearson). λ = 0 means no anchor: the encoder is free to reorganise its geometry around the skill labels.<span class="k"><b>Reading ours:</b> without the anchor, base r falls to 0.43–0.50 and nothing else improves much; λ = 0.0003 keeps base r ≥ 0.5 at almost no cost in sel. Large λ (1, 3) pins the encoder to the base model (base r 0.97) and it barely learns (sel 0.26–0.28).</span></span></span>)
+and the encoders trained with the pairwise term
+(<span class="m" tabindex="0">w ≠ 0<span class="tip"><b>w (pairwise-term weight).</b> Weight of a second loss term that pulls each pair of questions in a batch toward a target cosine equal to the Ochiai overlap of their skill sets. w = 0 trains only question-to-skill-node similarity (term 1).<span class="k"><b>Reading ours:</b> w = 1 raises sel and Ochiai Spearman, but same-skill questions collapse together (spread 0.51× base) and the grid R² drops to 0.024, so w = 0 was chosen.</span></span></span>).</div>
+<div class="wrap"><table>
+<tr><th>Encoder</th><th><span class="m" tabindex="0">Tier<span class="tip"><b>Tier.</b> Which training set: tier 1 uses every labelled training question; tier 2 holds out 16 sibling L3 skills entirely (for the held-out-skill test), so it has fewer questions and a different validation split.<span class="k"><b>Reading ours:</b> validation numbers are only comparable within a tier, because the two tiers validate on different questions (compare each row with its own tier's frozen-base row).</span></span></span></th><th>w</th><th>λ</th><th>Checkpoint (step)</th><th>Node AUROC train / held-out wording</th><th>sel</th><th>Ochiai Spearman</th><th>base r</th><th>Spread (× base)</th><th><span class="m" tabindex="0">Grid CV R² (form B)<span class="tip"><b>Grid CV R², form B.</b> The same transfer-prediction test as the table below (56 arms × 124 targets, video gains), run on each checkpoint. Bar to beat: 0.065.<span class="k"><b>Reading ours:</b> post hoc for these checkpoints (only the anchored encoders were pre-registered). No encoder beats 0.065; the best are the tier-2 runs at 0.061. Grid R² rises with sel, except for the collapsed w = 1 run.</span></span></span></th></tr>
+<tr style="background:var(--hi)"><td><b>Used: tier-2 anchored</b> (t2_w0_lam0.0003_ep5)</td><td>2</td><td>0</td><td>0.0003</td><td>epoch 5 (3,879)</td><td>0.987 / 0.977</td><td>0.403</td><td>0.517</td><td>0.602</td><td>1.44</td><td>0.061</td></tr>
+<tr><td>Tier-2 unanchored (t2_w0_lam0)</td><td>2</td><td>0</td><td>0</td><td>best sel (3,799)</td><td>0.987 / 0.976</td><td>0.402</td><td>0.516</td><td>0.496</td><td>1.42</td><td>0.061</td></tr>
+<tr><td class="note">Frozen base, tier-2 validation</td><td>2</td><td>–</td><td>–</td><td>–</td><td>0.778 / 0.779</td><td>0.215</td><td>0.263</td><td>1.000</td><td>1.00</td><td>0.008</td></tr>
+<tr><td>Tier-1 unanchored (t1_w0_lam0)</td><td>1</td><td>0</td><td>0</td><td>best sel (5,744)</td><td>0.990 / 0.979</td><td>0.426</td><td>0.574</td><td>0.431</td><td>1.47</td><td>0.059</td></tr>
+<tr><td>Tier-1, w = 1, unanchored (t1_w1_lam0)</td><td>1</td><td>1</td><td>0</td><td>best sel (3,199)</td><td>0.970 / 0.950</td><td>0.459</td><td>0.681</td><td>0.347</td><td>0.51</td><td>0.024</td></tr>
+<tr><td>Tier-1, w = 1, λ = 1 (t1_w1_lam1)</td><td>1</td><td>1</td><td>1</td><td>best sel (1,399)</td><td>0.934 / 0.917</td><td>0.277</td><td>0.277</td><td>0.974</td><td>0.82</td><td>0.011</td></tr>
+<tr><td>Tier-1, w = 1, λ = 3 (t1_w1_lam3)</td><td>1</td><td>1</td><td>3</td><td>best sel (1,399)</td><td>0.895 / 0.880</td><td>0.262</td><td>0.245</td><td>0.975</td><td>0.87</td><td>0.011</td></tr>
+<tr><td class="note">Frozen base, tier-1 validation</td><td>1</td><td>–</td><td>–</td><td>–</td><td>0.788 / 0.787</td><td>0.241</td><td>0.225</td><td>1.000</td><td>1.00</td><td>0.008</td></tr>
+</table></div>
+<p class="note">All runs: gte-modernbert-base, full fine-tuning, 5 epochs at most. The w = 1 runs and the λ = 1 / 3 runs come from the first
+trial grid, which used early stopping on sel (patience 5 × 200 steps), so they stopped early. Grid R² for every row except the used
+encoder is post hoc (not a pre-registered test). Unmentioned trial runs (w = 0 with λ 0.001–3, and longer 10-epoch runs) are in the
+project log.</p>
+
 <h3>Grid test: does encoder similarity predict measured transfer?</h3>
 <p>The pre-registered test uses a separate grid of measured fine-tuning gains: 56 training arms × 124 target sets, Qwen3.5-9B.
 Each arm–target cell is predicted from the encoder's similarity between the arm's questions and the target's items
