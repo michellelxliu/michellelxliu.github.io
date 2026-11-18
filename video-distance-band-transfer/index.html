@@ -43,8 +43,7 @@ tree-aware skill encoder. Three targets: Video-TT, HumanVBench, SUTD-TrafficQA. 
 <span class="m" tabindex="0" data-tip="demo">dashed term<span class="tip"><b>Like this.</b> Each dashed term opens a definition and a note on how to read our numbers for it.</span></span>
 for its definition and how to read our numbers.</p>
 
-<div class="callout"><b>Status.</b> Video-TT and HumanVBench are complete. SUTD-TrafficQA is still being scored: the unmatched Q10 arm
-has 1 of 3 seeds at epoch 2, and unmatched Q5/Q10 have no epoch-1 scores yet. Those points will move.</div>
+<div class="callout"><b>Status.</b> Complete: every arm on all three targets has 3 seeds scored at both epochs.</div>
 
 <h2>Design in one paragraph</h2>
 <p>The 49k-question training pool is ordered by similarity to the target's query questions using the trained encoder (round-robin over
@@ -107,7 +106,7 @@ mean ± SD over 3 seeds; all test items with frames.</p>
 <tr><th>Target (test items)</th><th>Untrained</th><th>Q1 (nearest)</th><th>Matched M2</th><th>Matched M5</th><th>Matched M10</th><th>Unmatched Q5</th><th>Unmatched Q10</th></tr>
 <tr><td>Video-TT (582)</td><td>41.5</td><td class="b">46.8 ± 1.5</td><td>43.6 ± 3.0</td><td>44.7 ± 1.7</td><td>44.2 ± 1.3</td><td>41.1 ± 1.9</td><td>42.8 ± 0.4</td></tr>
 <tr><td>HumanVBench (1,804)</td><td>56.3</td><td>60.7 ± 0.4</td><td>60.5 ± 1.2</td><td>59.3 ± 1.6</td><td>60.3 ± 1.5</td><td class="b">61.1 ± 0.1</td><td>58.6 ± 0.9</td></tr>
-<tr><td>SUTD-TrafficQA (2,000)</td><td>46.4</td><td>47.2 ± 1.0</td><td class="b">50.5 ± 0.7</td><td>49.2 ± 1.0</td><td>49.0 ± 0.1</td><td>49.2 ± 0.5</td><td>48.7 (1 seed)</td></tr>
+<tr><td>SUTD-TrafficQA (2,000)</td><td>46.4</td><td>47.2 ± 1.0</td><td class="b">50.5 ± 0.7</td><td>49.2 ± 1.0</td><td>49.0 ± 0.1</td><td>49.2 ± 0.5</td><td>48.8 ± 0.5</td></tr>
 </table></div>
 <ul>
 <li><b>Video-TT:</b> Q1 is best. The unmatched far arms fall to the untrained level, while the matched bands keep about 3 points of the gain,
@@ -150,10 +149,10 @@ Aqua: unmatched arms (Q1, Q5, Q10), offset slightly right. Faint dots: individua
 <figcaption><b>HumanVBench, epoch 1.</b></figcaption></figure>
 
 <figure><img src="fig/sutd_e2.png" alt="SUTD-TrafficQA band curves at epoch 2: all test items, without template tasks, template tasks only." loading="lazy">
-<figcaption><b>SUTD-TrafficQA, epoch 2:</b> all test items, without template tasks, and template tasks only. Unmatched Q10 is 1 seed so far.</figcaption></figure>
+<figcaption><b>SUTD-TrafficQA, epoch 2:</b> all test items, without template tasks, and template tasks only.</figcaption></figure>
 
-<figure><img src="fig/sutd_e1.png" alt="SUTD-TrafficQA band curves at epoch 1, matched bands only." loading="lazy">
-<figcaption><b>SUTD-TrafficQA, epoch 1</b> (unmatched arms not yet scored at epoch 1).</figcaption></figure>
+<figure><img src="fig/sutd_e1.png" alt="SUTD-TrafficQA band curves at epoch 1." loading="lazy">
+<figcaption><b>SUTD-TrafficQA, epoch 1.</b> Every trained arm sits within about 1 point of the untrained model.</figcaption></figure>
 
 <h2>The encoder that chose the bands</h2>
 <p>Tree-aware skill encoder <code>t2_w0_lam0.0003_ep5</code>: gte-modernbert-base, fully fine-tuned to place each question near the
