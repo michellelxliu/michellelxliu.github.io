@@ -53,6 +53,7 @@ ul.notable li{margin:4px 0}
 <main>
 <div class="theme seg" role="group" aria-label="theme"><button data-t="light">Light</button><button data-t="dark">Dark</button></div>
 <h1>Where does narrow fine-tuning help? K = 12 cluster transfer on two video LLMs</h1>
+<p><b>Companion page:</b> <a href="interpretation.html">What is in each cluster? Four readings</a> (skill-label enrichment, nearest skill-node names, centroid hierarchy, language-model names) and how far they agree.</p>
 <p class="lede">63,610 video multiple-choice questions from 27 benchmarks were split into 12 clusters by k-means, in three ways:
 in the <b>skill-encoder</b> embedding space (a sentence embedder fine-tuned on LLM skill labels), in the <b>frozen
 embedding</b> space it started from (gte-modernbert-base), and at <b>random</b> with the same cluster sizes (the control).
@@ -62,7 +63,6 @@ Models: Qwen3.5-9B and Gemma-4-12B-it, after 1 pass (34 steps) or 4 passes (136 
 <p class="note">All numbers are accuracy changes in percentage points against the same model before fine-tuning, averaged over the two seeds.
 Data: <a href="data.json">data.json</a>. Cluster names were written by a language model from sample questions and checked by a blind
 sorting test (78 % / 77 % of held-out items placed in the right cluster); the random partition has no names.</p>
-<p class="note"><b>What is in each cluster?</b> <a href="interpretation.html">Four readings of the clusters</a>: skill-label enrichment, nearest skill-node names, centroid hierarchy and the language-model names, and how far they agree.</p>
 
 <h2>1–2. Trained-on × scored-on matrices</h2>
 <p>Columns are the cluster an adapter was trained on; rows are the cluster it was scored on; the boxed diagonal is the adapter's own cluster.
