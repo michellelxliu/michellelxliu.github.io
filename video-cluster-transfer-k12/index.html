@@ -57,7 +57,7 @@ in the <b>skill-encoder</b> embedding space (a sentence embedder fine-tuned on L
 embedding</b> space it started from (gte-modernbert-base), and at <b>random</b> with the same cluster sizes (the control).
 For each cluster, a LoRA adapter was trained on 544 of its questions (2 seeds) and every adapter was scored on the
 held-out questions of all 12 clusters (7,399 items, split by source video), with the video and blind (question only).
-Models: Qwen3.5-9B and Gemma-4-12B-it, after 1 pass (34 steps) and after 4 passes (136 steps; passes 2–4 use reworded questions).</p>
+Models: Qwen3.5-9B and Gemma-4-12B-it, after 1 pass (34 steps) or 4 passes (136 steps; passes 2–4 use reworded questions); each figure has a <b>Training</b> toggle between the two.</p>
 <p class="note">All numbers are accuracy changes in percentage points against the same model before fine-tuning, averaged over the two seeds.
 Data: <a href="data.json">data.json</a>. Cluster names were written by a language model from sample questions and checked by a blind
 sorting test (78 % / 77 % of held-out items placed in the right cluster); the random partition has no names.</p>
@@ -164,8 +164,10 @@ function sel(container, label, key, opts, state, onchange){
 const label = (p, g) => { const L = D.labels[p][g]; return L.name ? `g${g} · ${L.name}` : `g${g} · ${bname(L.top_bench)} ${Math.round(100*L.top_share)}%`; };
 
 /* ---------- figures 1-2: matrices ---------- */
-const M = {part:"encoder", arm:"video", bench:"all", centre:"raw", vals:"on"};
+const M = {step:34, part:"encoder", arm:"video", bench:"all", centre:"raw", vals:"on"};
+const PASS = [[34,"1 pass"],[136,"4 passes"]];
 const mctl = document.getElementById("mctl");
+seg(mctl, "Training", "step", PASS, M, renderM);
 seg(mctl, "Clusters", "part", [["encoder","Skill encoder"],["base","Frozen embedding"],["random","Random"]], M, () => { M.bench = benchOpts().some(o => o[0] === M.bench) ? M.bench : "all"; bsel.fill(benchOpts()); renderM(); });
 seg(mctl, "Input", "arm", [["video","Video"],["blind","Blind"]], M, renderM);
 const benchOpts = () => { const avail = Object.keys(D.matrices.qwen_1[M.part].video); return [["all","All benchmarks"]].concat(avail.filter(b => b !== "all").sort((a,b) => D.bench_n[b] < D.bench_n[a] ? -1 : 1).map(b => [b, `${bname(b)} only (${D.bench_n[b]} items)`])); };
@@ -175,7 +177,7 @@ seg(mctl, "Values", "vals", [["on","Show"],["off","Hide"]], M, renderM);
 
 function renderM(){
   const grid = document.getElementById("mgrid"); grid.innerHTML = "";
-  D.sets.forEach(set => {
+  D.sets.filter(s => s.step === M.step).forEach(set => {
     const src = D.matrices[set.key][M.part][M.arm][M.bench] || D.matrices[set.key][M.part][M.arm].all;
     const raw = src.M, n = src.n;
     const rowOther = raw.map((r, j) => { const o = r.filter((v, g) => v !== null && g !== j); return o.length ? o.reduce((a, b) => a + b, 0) / o.length : null; });
@@ -218,8 +220,9 @@ function renderM(){
 }
 
 /* ---------- figure 3: cluster-pair similarity scatter ---------- */
-const C = {part:"encoder", arm:"video", space:"enc", kind:"centroid", fe:"fe"};
+const C = {step:34, part:"encoder", arm:"video", space:"enc", kind:"centroid", fe:"fe"};
 const sctl = document.getElementById("sctl");
+seg(sctl, "Training", "step", PASS, C, renderS);
 seg(sctl, "Clusters", "part", [["encoder","Skill encoder"],["base","Frozen embedding"],["random","Random"]], C, renderS);
 seg(sctl, "Input", "arm", [["video","Video"],["blind","Blind"]], C, renderS);
 seg(sctl, "Similarity space", "space", [["enc","Skill encoder"],["base","Frozen embedding"]], C, renderS);
@@ -231,8 +234,8 @@ function renderS(){
   const grid = document.getElementById("sgrid"); grid.innerHTML = "";
   const sets = D.sets.map(set => { const c = D.cluster[set.key][C.part][C.arm], s = c.S[`${C.space}|${C.kind}`];
     return {set, c, x: C.fe === "fe" ? s.fe : s.raw, y: C.fe === "fe" ? c.T_fe : c.T, r: C.fe === "fe" ? s.r_fe : s.r_raw}; });
-  const ally = sets.flatMap(s => s.y), ylo = Math.min(...ally), yhi = Math.max(...ally);
-  sets.forEach(({set, c, x, y, r}) => {
+  const ally = sets.flatMap(s => s.y), ylo = Math.min(...ally), yhi = Math.max(...ally);  // y range shared by both passes
+  sets.filter(s => s.set.step === C.step).forEach(({set, c, x, y, r}) => {
     const p = document.createElement("div"); p.className = "panel";
     p.innerHTML = `<h3>${set.label}</h3><div class="sub">r = ${fmt(r, 2)} over 132 cells</div>`;
     const W = 520, H = 300, L = 46, R = 10, T = 8, B = 38;
@@ -260,16 +263,17 @@ function renderS(){
 }
 
 /* ---------- figure 4: fifths ---------- */
-const F = {arm:"video", part:"all"};
+const F = {step:34, arm:"video", part:"all"};
 const fctl = document.getElementById("fctl");
+seg(fctl, "Training", "step", PASS, F, renderF);
 seg(fctl, "Input", "arm", [["video","Video"],["blind","Blind"]], F, renderF);
 seg(fctl, "Adapters", "part", [["all","All 72"],["encoder","Skill-encoder clusters"],["base","Frozen-embedding clusters"],["random","Random partition"]], F, renderF);
 function renderF(){
   const grid = document.getElementById("fgrid"); grid.innerHTML = "";
   const get = (k, e) => D.fifths[k][F.arm][`${e}|${F.part}`];
   const vals = D.sets.flatMap(s => ["enc", "base"].flatMap(e => { const d = get(s.key, e); return d.mean.flatMap((m, i) => [m - d.se[i], m + d.se[i]]); }));
-  const ylo = Math.min(0, ...vals), yhi = Math.max(0, ...vals), pad = (yhi - ylo) * .08;
-  D.sets.forEach(set => {
+  const ylo = Math.min(0, ...vals), yhi = Math.max(0, ...vals), pad = (yhi - ylo) * .08;  // y range shared by both passes
+  D.sets.filter(s => s.step === F.step).forEach(set => {
     const p = document.createElement("div"); p.className = "panel";
     const e = get(set.key, "enc"), b = get(set.key, "base");
     p.innerHTML = `<h3>${set.label}</h3><div class="sub">closest → farthest fifth: encoder ${fmt(e.mean[0])} → ${fmt(e.mean[4])}, frozen ${fmt(b.mean[0])} → ${fmt(b.mean[4])} pts</div>`;
