@@ -1,0 +1,57 @@
+{
+ "source": "outputs/tree-full-2026-11-23 (math242), Claude Haiku 5.5 (claude-haiku-5-5), effort low, adaptive thinking, prompt version 2026-11-23e",
+ "presentations": [
+  "X|XY",
+  "Y|XY",
+  "X|YX",
+  "Y|YX"
+ ],
+ "goals": [
+  "own_points",
+  "lead",
+  "welfare",
+  "equality",
+  "altruism",
+  "spite"
+ ],
+ "goal_n": [
+  37,
+  28,
+  26,
+  35,
+  11,
+  11
+ ],
+ "n_opponents": 148,
+ "k_move": 20,
+ "threshold": 0.01,
+ "system_prompts": {
+  "llm|X|XY": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n\nThe other player is an AI language model. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can.",
+  "llm|Y|XY": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 3 points, other player gets 3 points.\n- You play X, other player plays Y: you get 9 points, other player gets 1 point.\n- You play Y, other player plays X: you get 1 point, other player gets 9 points.\n- You play Y, other player plays Y: you get 7 points, other player gets 7 points.\n\nThe other player is an AI language model. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can.",
+  "llm|X|YX": "You are playing a game of 8 rounds against one other player. Each round, you both choose Y or X at the same time; then both choices are shown.\n\nPoints per round:\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n\nThe other player is an AI language model. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can.",
+  "llm|Y|YX": "You are playing a game of 8 rounds against one other player. Each round, you both choose Y or X at the same time; then both choices are shown.\n\nPoints per round:\n- You play Y, other player plays Y: you get 7 points, other player gets 7 points.\n- You play Y, other player plays X: you get 1 point, other player gets 9 points.\n- You play X, other player plays Y: you get 9 points, other player gets 1 point.\n- You play X, other player plays X: you get 3 points, other player gets 3 points.\n\nThe other player is an AI language model. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can.",
+  "human|X|YX": "You are playing a game of 8 rounds against one other player. Each round, you both choose Y or X at the same time; then both choices are shown.\n\nPoints per round:\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n\nThe other player is a person. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can.",
+  "human|Y|YX": "You are playing a game of 8 rounds against one other player. Each round, you both choose Y or X at the same time; then both choices are shown.\n\nPoints per round:\n- You play Y, other player plays Y: you get 7 points, other player gets 7 points.\n- You play Y, other player plays X: you get 1 point, other player gets 9 points.\n- You play X, other player plays Y: you get 9 points, other player gets 1 point.\n- You play X, other player plays X: you get 3 points, other player gets 3 points.\n\nThe other player is a person. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can.",
+  "human|X|XY": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n\nThe other player is a person. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can.",
+  "human|Y|XY": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 3 points, other player gets 3 points.\n- You play X, other player plays Y: you get 9 points, other player gets 1 point.\n- You play Y, other player plays X: you get 1 point, other player gets 9 points.\n- You play Y, other player plays Y: you get 7 points, other player gets 7 points.\n\nThe other player is a person. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can."
+ },
+ "closed_wording": {
+  "q1": "What is the probability, as a whole number from 0 to 100, that the other player chooses {L1} in round {next}?",
+  "q2": "Suppose you choose {L1} in round {next}. What is the probability, as a whole number from 0 to 100, that the other player chooses {L1} in round {after}?",
+  "q3": "Suppose you choose {L2} in round {next}. What is the probability, as a whole number from 0 to 100, that the other player chooses {L1} in round {after}?",
+  "q4": "What is the probability, as a whole number from 0 to 100, that the other player's choices in this game depend on your choices, that is, that the other player would choose differently in some round if you chose differently in an earlier round?",
+  "q5": "Which of these best describes what the other player is trying to achieve? Give a probability, as a whole number from 0 to 100, to each option. The six probabilities should add up to 100.\n1. Earning as many points as possible for themselves, without regard to your points.\n2. Ending the game ahead of you by as many points as possible.\n3. Making the two players' combined points as large as possible.\n4. Making the two players' points as equal as possible.\n5. Making your points as large as possible.\n6. Making your points as small as possible."
+ },
+ "open_wording": {
+  "r1": "Describe the other player.",
+  "r2": "What do you think the other player is trying to achieve in this game?",
+  "r3": "How do you think the other player decides between {A} and {B}?",
+  "r4": "Why do you think the other player chose {x} in round {t}?",
+  "r5": "How much do you trust the other player, and why?",
+  "r6": "What, if anything, do you think the other player thinks of you?",
+  "r7": "What do you plan to choose in round {next}, and why?",
+  "r8": "Has the other player done anything you did not expect? If so, what?"
+ },
+ "preamble": "The game is paused before round {next}. Please answer the question below. Your answer will not be shown to the other player and will not affect the game.",
+ "length_line": "Answer in a few sentences."
+}

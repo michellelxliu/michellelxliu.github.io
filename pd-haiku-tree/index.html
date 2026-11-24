@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Haiku Game Tree</title>
+<meta name="description" content="Claude Haiku 5.5 in an 8-round Prisoner's Dilemma against 148 LLM-written opponents: the game tree of its moves, with its closed and open questionnaire answers at every history.">
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #898781;
+  --grid: #e1e0d9; --axis: #c3c2b7; --ring: rgba(11,11,11,0.10);
+  --coop: #2a78d6; --defect: #e34948; --mid: #f0efec; --wash: rgba(42,120,214,0.08);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink2: #c3c2b7; --muted: #898781;
+    --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10);
+    --coop: #3987e5; --defect: #e66767; --mid: #383835; --wash: rgba(57,135,229,0.14);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink2: #c3c2b7; --muted: #898781;
+  --grid: #2c2c2a; --axis: #383835; --ring: rgba(255,255,255,0.10);
+  --coop: #3987e5; --defect: #e66767; --mid: #383835; --wash: rgba(57,135,229,0.14);
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { max-width: 1400px; margin: 0 auto; padding: 24px 16px 8px; }
+h1 { font-size: 22px; margin: 0 0 6px; font-weight: 650; }
+.lede { color: var(--ink2); margin: 0; max-width: 820px; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin: 14px 0 6px; }
+.seg { display: inline-flex; border: 1px solid var(--axis); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: transparent; color: var(--ink2); padding: 6px 12px; font: inherit; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
+.btn { border: 1px solid var(--axis); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 5px 11px; font: inherit; cursor: pointer; }
+.btn:hover, .seg button:hover:not([aria-pressed="true"]) { background: var(--wash); }
+label.chk { color: var(--ink2); display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 22px; color: var(--ink2); font-size: 13px; align-items: center; }
+.legend svg { vertical-align: middle; }
+main { max-width: 1400px; margin: 0 auto; padding: 8px 16px 40px; display: grid; grid-template-columns: minmax(0, 1fr) 440px; gap: 16px; align-items: start; }
+@media (max-width: 980px) { main { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--surface); border: 1px solid var(--ring); border-radius: 12px; }
+#treebox { overflow: auto; max-height: calc(100vh - 210px); min-height: 360px; position: relative; }
+@media (max-width: 980px) { #treebox { max-height: 70vh; } }
+#panel { padding: 16px 18px; position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow: auto; }
+@media (max-width: 980px) { #panel { position: static; max-height: none; } }
+svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+.node { cursor: pointer; }
+.node:focus { outline: none; }
+.node:focus-visible circle.dot { stroke: var(--ink); stroke-width: 2.5; }
+.link { fill: none; stroke: var(--axis); }
+.link.off { stroke-dasharray: 4 3; }
+.elab { font-size: 11px; fill: var(--ink2); font-variant-numeric: tabular-nums; }
+.rlab { font-size: 10.5px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+.more { font-size: 13px; font-weight: 600; fill: var(--ink2); }
+#tip { position: fixed; pointer-events: none; background: var(--surface); color: var(--ink); border: 1px solid var(--ring);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.12); border-radius: 8px; padding: 7px 10px; font-size: 13px; max-width: 280px; display: none; z-index: 10; }
+#tip .k { color: var(--ink2); }
+h2 { font-size: 17px; margin: 0 0 4px; font-weight: 650; }
+h3 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink2); margin: 16px 0 6px; font-weight: 600; }
+.sub { color: var(--ink2); font-size: 13px; }
+table.hist { border-collapse: collapse; font-size: 13px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+table.hist td, table.hist th { padding: 2px 10px 2px 0; text-align: left; }
+table.hist th { color: var(--muted); font-weight: 500; }
+.sq { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: 0; }
+.big { font-size: 26px; font-weight: 650; }
+.row { display: grid; grid-template-columns: 150px 1fr 44px; gap: 8px; align-items: center; font-size: 13px; margin: 3px 0; }
+.row .v { text-align: right; font-variant-numeric: tabular-nums; }
+.row .l { color: var(--ink2); }
+.bar { height: 10px; display: flex; gap: 2px; }
+.bar span { display: block; height: 100%; border-radius: 2px; }
+details { border-top: 1px solid var(--grid); padding: 8px 0; }
+details > summary { cursor: pointer; font-weight: 600; list-style: none; display: block; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "▸"; color: var(--muted); font-size: 12px; transition: transform .15s; display: inline-block; margin-right: 7px; }
+details[open] > summary::before { transform: rotate(90deg); }
+details > summary .s { font-weight: 400; color: var(--ink2); font-size: 13px; }
+details details { border-top: 0; padding: 4px 0 4px 14px; }
+details details > summary { font-weight: 500; font-size: 14px; }
+.qtext { color: var(--ink2); font-size: 12.5px; margin: 2px 0 6px; }
+.ans { margin: 6px 0 10px; font-size: 14px; }
+.chip { display: inline-block; font-size: 11px; color: var(--ink2); border: 1px solid var(--axis); border-radius: 10px; padding: 0 7px; margin-bottom: 3px; }
+pre.prompt { white-space: pre-wrap; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--page); border: 1px solid var(--ring); border-radius: 8px; padding: 10px; color: var(--ink2); }
+.note { font-size: 12.5px; color: var(--muted); }
+footer { max-width: 1400px; margin: 0 auto; padding: 0 16px 40px; color: var(--muted); font-size: 12.5px; }
+#loading { padding: 40px; color: var(--ink2); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Haiku's game tree: how it plays, and what it says about its opponent</h1>
+  <p class="lede">Claude Haiku 5.5 played an 8-round Prisoner's Dilemma (both cooperate: 7 each; both defect: 3 each;
+  defecting on a cooperator: 9 vs 1) against 148 opponent strategies written by LLMs. Each dot is a point in the game.
+  Click a dot to open the rounds after it and to see what Haiku does next and what it said about the other player there.</p>
+  <div class="controls">
+    <span class="sub">Haiku was told the other player is</span>
+    <div class="seg" role="group" aria-label="Opponent identity">
+      <button data-id="llm" aria-pressed="true">an AI language model</button>
+      <button data-id="human" aria-pressed="false">a person</button>
+    </div>
+    <button class="btn" id="bPath">Open the most common game</button>
+    <button class="btn" id="bReset">Collapse</button>
+    <label class="chk"><input type="checkbox" id="cOff"> Show moves Haiku itself would not make</label>
+  </div>
+  <div class="legend" aria-label="Legend">
+    <span><svg width="110" height="14" aria-hidden="true"><defs><linearGradient id="lg"><stop offset="0" stop-color="var(--defect)"/><stop offset=".5" stop-color="var(--mid)"/><stop offset="1" stop-color="var(--coop)"/></linearGradient></defs><rect x="0" y="2" width="110" height="10" rx="3" fill="url(#lg)" stroke="var(--axis)"/></svg>
+      Haiku's chance of cooperating next: 0% → 100%</span>
+    <span><svg width="40" height="14" aria-hidden="true"><line x1="0" y1="7" x2="40" y2="7" stroke="var(--axis)" stroke-width="7"/></svg> thicker = more games pass through (the % next to each move)</span>
+    <span><svg width="40" height="14" aria-hidden="true"><line x1="0" y1="7" x2="40" y2="7" stroke="var(--axis)" stroke-width="1.5" stroke-dasharray="4 3"/></svg> a move Haiku would not make (asked about anyway)</span>
+    <span>Edge label: Haiku's move / the opponent's move (C = cooperate, D = defect). A “+” means more rounds are inside; a hollow dot is the end of the game.</span>
+  </div>
+</header>
+<main>
+  <div class="card" id="treebox"><div id="loading">Loading the tree…</div></div>
+  <aside class="card" id="panel" aria-live="polite"></aside>
+</main>
+<footer id="foot"></footer>
+<div id="tip" role="tooltip"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+const MOVES = ["CC", "CD", "DC", "DD"];
+const PAY = { CC: [7, 7], CD: [1, 9], DC: [9, 1], DD: [3, 3] };
+const PRES = ["X = cooperate, X listed first", "Y = cooperate, X listed first", "X = cooperate, Y listed first", "Y = cooperate, Y listed first"];
+const PRES_SHORT = ["X=C · X first", "Y=C · X first", "X=C · Y first", "Y=C · Y first"];
+const GOAL_NAMES = ["Own points", "Beat Haiku", "Joint points", "Equal points", "Haiku's points (altruist)", "Lower Haiku's points (spite)"];
+const Q5_NAMES = ["Its own points", "Ending ahead of Haiku", "Combined points", "Equal points", "Haiku's points", "Making Haiku's points small"];
+const ROW = 30, COL = 132, ML = 34, MT = 24;
+let meta, data = {}, ident = "llm", expanded = new Set([""]), selected = "", showOff = false, color;
+const openCache = {};
+
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function setColor() { color = d3.piecewise(d3.interpolateLab, [css("--defect"), css("--mid"), css("--coop")]); }
+const pct = x => x == null ? "–" : Math.round(x * 100) + "%";
+const fmtReach = r => r == null ? "" : r >= 0.1 ? Math.round(r * 100) + "%" : r >= 0.001 ? (r * 100).toFixed(1) + "%" : r > 0 ? "<0.1%" : "0%";
+const rounds = h => h ? h.split(".") : [];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const mean = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : null;
+
+function kids(h) {
+  const d = data[ident];
+  return MOVES.map(m => h ? h + "." + m : m).filter(c => d[c] && (showOff || d[c].on));
+}
+function build(h) {
+  const n = { h };
+  if (expanded.has(h)) { const k = kids(h); if (k.length) n.children = k.map(build); }
+  return n;
+}
+
+let svg, gLinks, gNodes, last = {};
+function initSvg() {
+  const box = document.getElementById("treebox"); box.innerHTML = "";
+  svg = d3.select(box).append("svg").attr("role", "img").attr("aria-label", "Game tree");
+  gLinks = svg.append("g"); gNodes = svg.append("g");
+}
+
+function render(anchor) {
+  const box = document.getElementById("treebox");
+  const before = anchor && last[anchor] ? last[anchor].x - box.scrollTop : null;
+  const root = d3.hierarchy(build(""));
+  d3.tree().nodeSize([ROW, COL]).separation((a, b) => a.parent === b.parent ? 1 : 1.25)(root);
+  let x0 = Infinity, x1 = -Infinity, dmax = 0;
+  root.each(n => { x0 = Math.min(x0, n.x); x1 = Math.max(x1, n.x); dmax = Math.max(dmax, n.depth); });
+  root.each(n => { n.x = n.x - x0 + MT; n.y = n.depth * COL + ML; });
+  svg.attr("width", Math.max(dmax * COL + ML + 110, 400)).attr("height", x1 - x0 + 2 * MT);
+  const d = data[ident];
+  const pos = {}; root.each(n => pos[n.data.h] = n);
+  const parentOld = n => { let p = n.parent; while (p && !last[p.data.h]) p = p.parent; return p ? last[p.data.h] : { x: n.x, y: n.y }; };
+  const tr = svg.transition().duration(260);
+
+  const lk = d3.linkHorizontal().x(p => p.y).y(p => p.x);
+  gLinks.selectAll("path").data(root.links(), l => l.target.data.h).join(
+    en => en.append("path").attr("class", l => "link" + (d[l.target.data.h].on ? "" : " off"))
+      .attr("d", l => { const o = parentOld(l.target); return lk({ source: o, target: o }); }),
+    up => up, ex => ex.remove())
+    .attr("class", l => "link" + (d[l.target.data.h].on ? "" : " off"))
+    .attr("stroke-width", l => d[l.target.data.h].on ? 1.2 + 9 * Math.sqrt(d[l.target.data.h].reach || 0) : 1.4)
+    .transition(tr).attr("d", l => lk({ source: l.source, target: l.target }));
+
+  const nodes = gNodes.selectAll("g.node").data(root.descendants(), n => n.data.h).join(en => {
+    const g = en.append("g").attr("class", "node").attr("tabindex", 0)
+      .attr("transform", n => { const o = parentOld(n); return `translate(${o.y},${o.x})`; });
+    g.append("text").attr("class", "elab").attr("text-anchor", "end").attr("x", -11).attr("y", -6);
+    g.append("circle").attr("class", "dot").attr("r", 7.5);
+    g.append("text").attr("class", "rlab").attr("text-anchor", "end").attr("x", -11).attr("y", 16);
+    g.append("text").attr("class", "more").attr("x", 11).attr("y", 4).text("+");
+    g.on("click", (e, n) => activate(n.data.h))
+      .on("keydown", (e, n) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); activate(n.data.h); } })
+      .on("mousemove", (e, n) => tip(e, n.data.h)).on("mouseleave", () => tipEl.style.display = "none");
+    return g;
+  }, up => up, ex => ex.remove());
+  nodes.transition(tr).attr("transform", n => `translate(${n.y},${n.x})`);
+  nodes.attr("aria-label", n => label(n.data.h));
+  nodes.select(".elab").each(function (n) {
+    const r = rounds(n.data.h), el = d3.select(this); el.selectAll("tspan").remove();
+    if (!r.length) return;
+    el.append("tspan").text(r[r.length - 1][0] + "/" + r[r.length - 1][1]);
+    el.append("tspan").attr("class", "rlab").text("  " + fmtReach(d[n.data.h].reach));
+  });
+  nodes.select("text.rlab").text(n => n.data.h === "" ? "start" : "");
+  nodes.select(".more").style("display", n => !expanded.has(n.data.h) && kids(n.data.h).length ? null : "none");
+  nodes.select("circle.dot")
+    .attr("fill", n => d[n.data.h].p == null ? "var(--surface)" : color(d[n.data.h].p))
+    .attr("stroke", n => n.data.h === selected ? "var(--ink)" : "var(--ink2)")
+    .attr("stroke-width", n => n.data.h === selected ? 3 : 1)
+    .attr("r", n => n.data.h === selected ? 8.5 : 7.5);
+  last = {}; root.each(n => last[n.data.h] = { x: n.x, y: n.y });
+  if (before != null && last[anchor]) box.scrollTop = last[anchor].x - before;
+}
+
+function label(h) {
+  const r = rounds(h), n = data[ident][h];
+  if (!r.length) return "Start of the game. Haiku cooperates first with " + pct(n.p);
+  const m = r[r.length - 1];
+  return `After round ${r.length}: Haiku ${m[0] === "C" ? "cooperated" : "defected"}, opponent ${m[1] === "C" ? "cooperated" : "defected"}. ` +
+    (n.p == null ? "Game over." : `Haiku cooperates next with ${pct(n.p)}.`) + ` Reached in ${fmtReach(n.reach)} of games.`;
+}
+
+const tipEl = document.getElementById("tip");
+function tip(e, h) {
+  const n = data[ident][h], r = rounds(h);
+  tipEl.innerHTML = `<div><b>${r.length ? "After round " + r.length : "Start"}</b> ${r.length ? "· " + r.map(x => x[0] + "/" + x[1]).join(" ") : ""}</div>` +
+    (n.p == null ? `<div class="k">Game over</div>` : `<div><span class="k">Haiku cooperates next:</span> ${pct(n.p)}</div>`) +
+    `<div><span class="k">Games reaching here:</span> ${h ? fmtReach(n.reach) : "all"}</div>` +
+    (n.on ? "" : `<div class="k">A move Haiku would not make</div>`);
+  tipEl.style.display = "block";
+  const w = tipEl.offsetWidth, ht = tipEl.offsetHeight;
+  tipEl.style.left = Math.min(e.clientX + 14, innerWidth - w - 8) + "px";
+  tipEl.style.top = Math.min(e.clientY + 14, innerHeight - ht - 8) + "px";
+}
+
+function activate(h) {
+  if (selected === h && expanded.has(h)) collapse(h); else expanded.add(h);
+  selected = h; render(h); panel();
+}
+function collapse(h) { for (const k of [...expanded]) if (k === h || k.startsWith(h ? h + "." : "")) expanded.delete(k); if (h === "") expanded.add(""); }
+
+// ---------- panel ----------
+function moveBar(c, dd) {
+  const t = c + dd || 1;
+  return `<div class="bar"><span style="width:${100 * c / t}%;background:var(--coop)"></span><span style="width:${100 * dd / t}%;background:var(--defect)"></span></div>`;
+}
+function strip(vals) {
+  const W = 200, H = 20, m = mean(vals.map(v => v[1]));
+  const sx = v => 6 + v * (W - 12);
+  let s = `<svg width="${W}" height="${H}" aria-hidden="true"><line x1="6" x2="${W - 6}" y1="10" y2="10" stroke="var(--grid)" stroke-width="2"/>`;
+  for (const x of [0, .5, 1]) s += `<line x1="${sx(x)}" x2="${sx(x)}" y1="5" y2="15" stroke="var(--axis)"/>`;
+  const seen = {};
+  for (const [pi, v] of vals) { const k = Math.round(v * 100); seen[k] = (seen[k] || 0) + 1; const off = (seen[k] - 1) * 3; s += `<circle cx="${sx(v) + off}" cy="10" r="4" fill="var(--coop)" stroke="var(--surface)" stroke-width="1.5"><title>${PRES[pi]}: ${Math.round(v * 100)}%</title></circle>`; }
+  s += `<line x1="${sx(m)}" x2="${sx(m)}" y1="2" y2="18" stroke="var(--ink)" stroke-width="2"/></svg>`;
+  return s;
+}
+
+function panel() {
+  const h = selected, n = data[ident][h], r = rounds(h), t = r.length, q = n.q || {};
+  let you = 0, them = 0;
+  let rows = r.map((m, i) => { const p = PAY[m]; you += p[0]; them += p[1];
+    const w = c => `<span class="sq" style="background:var(${c === "C" ? "--coop" : "--defect"})"></span>${c === "C" ? "cooperate" : "defect"}`;
+    return `<tr><td>${i + 1}</td><td>${w(m[0])}</td><td>${w(m[1])}</td><td>${p[0]} – ${p[1]}</td></tr>`; }).join("");
+  let html = `<h2>${t ? "After round " + t + " of 8" : "Before round 1"}</h2>`;
+  html += `<div class="sub">Opponent described as ${ident === "llm" ? "an AI language model" : "a person"}${n.on ? "" : " · <b>a history Haiku would not produce itself</b>"}</div>`;
+  if (t) html += `<table class="hist"><tr><th>Round</th><th>Haiku</th><th>Opponent</th><th>Points</th></tr>${rows}<tr><th></th><th></th><th>Total</th><th>${you} – ${them}</th></tr></table>`;
+
+  html += `<h3>Haiku's next move</h3>`;
+  if (n.p == null) html += `<div class="sub">The game is over.</div>`;
+  else {
+    html += `<div><span class="big">${pct(n.p)}</span> <span class="sub">cooperate, over ${meta.k_move} draws (5 per label presentation)</span></div>`;
+    if (n.cnt) html += n.cnt.map((c, i) => `<div class="row"><span class="l">${PRES_SHORT[i]}</span>${moveBar(c[0], c[1])}<span class="v">${c[0]}/${c[0] + c[1]}</span></div>`).join("");
+    html += `<div class="note">Blue = cooperate, red = defect. The moves are called X and Y; which one means cooperate, and which is listed first, is varied.</div>`;
+  }
+
+  html += `<h3>How often games get here</h3>`;
+  html += h ? `<div><b>${fmtReach(n.reach)}</b> <span class="sub">of all games (${n.nopp} of ${meta.n_opponents} opponents can reach it)</span></div>` : `<div class="sub">Every game starts here.</div>`;
+  if (h) html += `<details><summary>By the opponent's goal <span class="s">(what its writer was asked to aim for)</span></summary>` +
+    n.rg.map((v, i) => `<div class="row"><span class="l">${GOAL_NAMES[i]} <span class="note">(${meta.goal_n[i]})</span></span><div class="bar"><span style="width:${Math.max(v * 100, v > 0 ? 1 : 0)}%;background:var(--ink2)"></span></div><span class="v">${fmtReach(v)}</span></div>`).join("") + `</details>`;
+
+  // closed
+  const q1 = q.q1 ? mean(q.q1.map(v => v[1])) : null;
+  html += `<details id="dClosed"><summary>Closed questions <span class="s">${q1 != null ? "· expects the opponent to cooperate next: " + pct(q1) : ""}</span></summary>`;
+  html += `<div class="note">8 answers per question (2 per label presentation), converted to “cooperate” whatever the label. Dots = answers, black tick = mean. Hover a dot for its presentation.</div>`;
+  const items = [["q1", "Opponent cooperates next round", "q1"], ["cc", "…in the round after, if Haiku cooperates next", "q2"], ["cd", "…in the round after, if Haiku defects next", "q3"], ["q4", "Opponent's choices depend on Haiku's", "q4"]];
+  for (const [k, lab, w] of items) if (q[k]) html += `<div class="row" title="${esc(meta.closed_wording[w])}"><span class="l">${lab}</span>${strip(q[k])}<span class="v">${pct(mean(q[k].map(v => v[1])))}</span></div>`;
+  if (q.q5) {
+    const m = [0, 1, 2, 3, 4, 5].map(i => mean(q.q5.map(v => v[1][i])));
+    html += `<div class="qtext" style="margin-top:10px">What is the opponent trying to achieve? (mean probability)</div>` +
+      m.map((v, i) => `<div class="row"><span class="l">${Q5_NAMES[i]}</span><div class="bar"><span style="width:${v * 100}%;background:var(--coop)"></span></div><span class="v">${pct(v)}</span></div>`).join("");
+  }
+  html += `<details><summary>Exact wording</summary>${["q1", "q2", "q3", "q4", "q5"].map(w => `<div class="qtext"><b>${w.toUpperCase()}.</b> ${esc(meta.closed_wording[w]).replace(/\n/g, "<br>")}</div>`).join("")}<div class="note">Q2 and Q3 ask about a fixed letter; above they are rearranged as “if Haiku cooperates / defects”.</div></details>`;
+  html += `</details>`;
+
+  html += `<details id="dOpen"><summary>Open questions <span class="s">· Haiku's own words, 4 answers each</span></summary><div id="openBody" class="sub">Loading…</div></details>`;
+  html += `<details id="dPrompt"><summary>The prompt Haiku saw <span class="s">(X = cooperate, X listed first)</span></summary><div id="promptBody"></div></details>`;
+  document.getElementById("panel").innerHTML = html;
+  const dOpen = document.getElementById("dOpen"), dPrompt = document.getElementById("dPrompt");
+  dOpen.addEventListener("toggle", () => dOpen.open && loadOpen(h));
+  dPrompt.addEventListener("toggle", () => dPrompt.open && loadOpen(h));
+  if (panel.keep) for (const id of panel.keep) { const el = document.getElementById(id); if (el) el.open = true; }
+}
+// keep the user's open sections open when they click another node
+document.getElementById("panel").addEventListener("toggle", () => {
+  panel.keep = ["dClosed", "dOpen", "dPrompt"].filter(id => document.getElementById(id)?.open);
+}, true);
+
+function itemText(iid, h) {
+  const r = rounds(h), t = r.length;
+  const base = meta.open_wording[iid];
+  return base.replace("{A} and {B}", "cooperating and defecting").replace("{next}", t + 1).replace("{t}", t)
+    .replace("{x}", r.length ? (r[t - 1][1] === "C" ? "to cooperate" : "to defect") : "");
+}
+
+async function loadOpen(h) {
+  const key = ident + "|" + h;
+  try {
+    if (!openCache[key]) {
+      const res = await fetch(`data/open/${ident}/${h ? h.replace(/\./g, "-") : "root"}.json`);
+      if (!res.ok) throw new Error(res.status);
+      openCache[key] = await res.json();
+    }
+  } catch (e) { const b = document.getElementById("openBody"); if (b) b.textContent = "Could not load the answers (" + e.message + ")."; return; }
+  if (selected !== h) return;
+  const o = openCache[key];
+  const ob = document.getElementById("openBody");
+  if (ob && ob.dataset.h !== key) {
+    ob.dataset.h = key; ob.className = "";
+    ob.innerHTML = `<div class="note">One answer under each of the four label presentations; the chip says which letter meant cooperate. Haiku was asked to answer in a few sentences.</div>` +
+      Object.keys(meta.open_wording).filter(k => o.items[k]).map(k =>
+        `<details><summary>${esc(itemText(k, h))}</summary>${o.items[k].map(([pi, txt]) => `<div class="ans"><span class="chip">${PRES_SHORT[pi]}</span><div>${esc(txt).replace(/\n+/g, "<br>")}</div></div>`).join("")}</details>`).join("");
+  }
+  const pb = document.getElementById("promptBody");
+  if (pb && !pb.dataset.done) {
+    pb.dataset.done = 1;
+    const sp = meta.system_prompts[ident + "|X|XY"] || "";
+    pb.innerHTML = `<div class="qtext">System prompt</div><pre class="prompt">${esc(sp)}</pre><div class="qtext">History block</div><pre class="prompt">${esc(o.history_text || "")}</pre>` +
+      `<div class="note">Each question was then asked on its own after “${esc(meta.preamble.replace("{next}", rounds(h).length + 1))}”.</div>`;
+  }
+}
+
+// ---------- controls ----------
+function mostCommon() {
+  expanded = new Set([""]); let h = "";
+  for (;;) { const k = kids(h).filter(c => data[ident][c].on); if (!k.length) break; expanded.add(h);
+    h = k.reduce((a, b) => (data[ident][b].reach > data[ident][a].reach ? b : a)); }
+  selected = h; render(); panel();
+  const node = last[h]; const box = document.getElementById("treebox"); if (node) { box.scrollTop = node.x - box.clientHeight / 2; box.scrollLeft = node.y - box.clientWidth + 120; }
+}
+document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+  ident = b.dataset.id; document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  // keep the same open branches where they exist in the other tree
+  expanded = new Set([...expanded].filter(h => data[ident][h])); expanded.add("");
+  if (!data[ident][selected]) selected = "";
+  gNodes.selectAll("*").remove(); gLinks.selectAll("*").remove(); last = {};
+  render(); panel();
+}));
+document.getElementById("bPath").onclick = mostCommon;
+document.getElementById("bReset").onclick = () => { expanded = new Set([""]); selected = ""; render(); panel(); document.getElementById("treebox").scrollTo(0, 0); };
+document.getElementById("cOff").onchange = e => { showOff = e.target.checked; if (!showOff && !data[ident][selected].on) selected = ""; render(selected); panel(); };
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { setColor(); render(); });
+
+Promise.all([fetch("data/meta.json").then(r => r.json()), fetch("data/tree-llm.json").then(r => r.json()), fetch("data/tree-human.json").then(r => r.json())])
+  .then(([m, a, b]) => {
+    meta = m; data.llm = a; data.human = b; setColor(); initSvg(); render(); panel();
+    document.getElementById("foot").innerHTML = `Data: ${esc(meta.source)}. ${Object.keys(a).length.toLocaleString()} histories (told AI) and ${Object.keys(b).length.toLocaleString()} (told person); a branch is kept when Haiku plays it in at least ${meta.threshold * 100}% of draws, plus one-move deviations asked about anyway. “Games reaching here” weights each opponent and each label presentation equally. Thinking summaries are not shown. The API gives no token probabilities.`;
+  })
+  .catch(e => { document.getElementById("loading").textContent = "Could not load the data: " + e.message; });
+</script>
+</body>
+</html>
