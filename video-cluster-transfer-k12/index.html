@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cluster Transfer K=12</title>
+<style>
+:root{
+  --bg:#fbfaf7;--surface:#fcfcfb;--ink:#1d1d1b;--ink2:#52514e;--mute:#8a8984;--rule:#e4e2dc;--grid:#ecebe6;
+  --neutral:#f0efec;--s1:#2a78d6;--s2:#eb6834;--btn:#f1efe9;--btn-on:#1d1d1b;--btn-on-ink:#fbfaf7;--na:#f6f5f1;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#17171a;--surface:#1a1a19;--ink:#e8e6e1;--ink2:#c3c2b7;--mute:#8e8c85;--rule:#33332f;--grid:#2a2a27;
+  --neutral:#383835;--s1:#3987e5;--s2:#d95926;--btn:#26262a;--btn-on:#e8e6e1;--btn-on-ink:#17171a;--na:#222220;}}
+:root[data-theme="dark"]{
+  --bg:#17171a;--surface:#1a1a19;--ink:#e8e6e1;--ink2:#c3c2b7;--mute:#8e8c85;--rule:#33332f;--grid:#2a2a27;
+  --neutral:#383835;--s1:#3987e5;--s2:#d95926;--btn:#26262a;--btn-on:#e8e6e1;--btn-on-ink:#17171a;--na:#222220;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;margin:0}
+main{max-width:1240px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:26px;line-height:1.25;margin:0 0 8px}
+h2{font-size:19px;margin:48px 0 6px;padding-top:16px;border-top:1px solid var(--rule)}
+p,li{color:var(--ink2);max-width:860px}
+.lede{font-size:16px}
+a{color:inherit}
+code{font-size:13px;background:var(--btn);padding:1px 4px;border-radius:4px}
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:14px 0 6px;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:5;border-bottom:1px solid var(--rule)}
+.ctl{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink2)}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--btn);color:var(--ink);font:inherit;font-size:13px;padding:5px 10px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button[aria-pressed="true"]{background:var(--btn-on);color:var(--btn-on-ink)}
+select{font:inherit;font-size:13px;background:var(--btn);color:var(--ink);border:1px solid var(--rule);border-radius:8px;padding:5px 8px;max-width:100%}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 28px;margin-top:12px}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel h3{font-size:14px;margin:0;font-weight:600}
+.panel .sub{font-size:12.5px;color:var(--ink2);margin:2px 0 6px;min-height:1.4em}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{fill:var(--ink2);font-family:inherit}
+.legend{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink2);margin-top:10px;flex-wrap:wrap}
+.ramp{width:220px;height:10px;border-radius:3px}
+.key{display:inline-flex;align-items:center;gap:6px}
+.sw{width:14px;height:3px;border-radius:2px;display:inline-block}
+#tip{position:fixed;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid var(--rule);border-radius:8px;padding:8px 10px;font-size:12.5px;line-height:1.45;max-width:340px;box-shadow:0 4px 18px rgba(0,0,0,.14);opacity:0;transition:opacity .08s;z-index:20}
+#tip b{font-weight:600}
+.note{font-size:13px;color:var(--mute)}
+ul.notable li{margin:4px 0}
+.theme{float:right;margin:0 0 8px 12px}
+</style>
+</head>
+<body>
+<main>
+<div class="theme seg" role="group" aria-label="theme"><button data-t="light">Light</button><button data-t="dark">Dark</button></div>
+<h1>Where does narrow fine-tuning help? K = 12 cluster transfer on two video LLMs</h1>
+<p class="lede">63,610 video multiple-choice questions from 27 benchmarks were split into 12 clusters by k-means, in three ways:
+in the <b>skill-encoder</b> embedding space (a sentence embedder fine-tuned on LLM skill labels), in the <b>frozen
+embedding</b> space it started from (gte-modernbert-base), and at <b>random</b> with the same cluster sizes (the control).
+For each cluster, a LoRA adapter was trained on 544 of its questions (2 seeds) and every adapter was scored on the
+held-out questions of all 12 clusters (7,399 items, split by source video), with the video and blind (question only).
+Models: Qwen3.5-9B and Gemma-4-12B-it, after 1 pass (34 steps) and after 4 passes (136 steps; passes 2–4 use reworded questions).</p>
+<p class="note">All numbers are accuracy changes in percentage points against the same model before fine-tuning, averaged over the two seeds.
+Data: <a href="data.json">data.json</a>. Cluster names were written by a language model from sample questions and checked by a blind
+sorting test (78 % / 77 % of held-out items placed in the right cluster); the random partition has no names.</p>
+
+<h2>1–2. Trained-on × scored-on matrices</h2>
+<p>Columns are the cluster an adapter was trained on; rows are the cluster it was scored on; the boxed diagonal is the adapter's own cluster.
+<b>Row-centred</b> subtracts, from each row, the mean change that the other clusters' adapters produce on it, so a uniformly blue or red row
+(a cluster every adapter helps or hurts) turns neutral and the diagonal shows own-cluster gain beyond that. <b>Benchmark</b> restricts the scored
+items to one benchmark (its rows only; cells with fewer than 20 test items are blank), which asks whether "own cluster" just means "own benchmark".</p>
+<div class="controls" id="mctl"></div>
+<div class="grid" id="mgrid"></div>
+<div class="legend" id="mleg"></div>
+<p class="note">Panel subtitles are unweighted means over the shown cells (the item-weighted within-benchmark contrast is in BUILD_LOG 2026-11-24).
+Colour is capped at ±15 points; hover a cell for its exact value and item count.</p>
+
+<h2>3. Does cluster-pair similarity predict cross-cluster transfer?</h2>
+<p>Each dot is one off-diagonal cell (adapter trained on cluster <i>i</i>, scored on cluster <i>j</i>; 132 per panel). The x-axis is how similar
+the adapter's training questions are to cluster <i>j</i>'s test questions: the cosine between their mean embeddings (<b>centroid</b>) or the mean,
+over test questions, of the cosine to the nearest training question (<b>nearest neighbour</b>), in either embedding space.
+With <b>cluster effects removed</b> (the primary analysis), both axes are residuals after removing a trained-on and a scored-on cluster effect,
+so the question is: for a given scored-on cluster, does the closer adapter help more, beyond that adapter helping everywhere?</p>
+<div class="controls" id="sctl"></div>
+<div class="grid" id="sgrid"></div>
+<p class="note">r = Pearson correlation over the 132 cells shown. Each partition was fitted in one space, so its clusters are compact in that space; compare
+the two partitions. The random partition has no cluster structure: its r is a noise reference.</p>
+
+<h2>4. Item-level: gain by distance to the training set</h2>
+<p>For every adapter and every scored item, distance = mean cosine distance to the 10 nearest training questions. Items are split into fifths of distance
+<b>within each adapter × benchmark</b> (so benchmark identity cannot carry the effect); the line is the mean accuracy change in each fifth, closest to
+farthest, with ±1 SE clustered by source video. Items whose exact question text was in the adapter's training set are left out.</p>
+<div class="controls" id="fctl"></div>
+<div class="grid" id="fgrid"></div>
+<div class="legend"><span class="key"><span class="sw" style="background:var(--s1)"></span>skill-encoder space</span><span class="key"><span class="sw" style="background:var(--s2)"></span>frozen-embedding space</span></div>
+<p class="note">The skill encoder was trained on these items' skill labels, so its distances have seen the items; on benchmarks the encoder never saw, the item-level slopes were ≈ 0 in both spaces (earlier band-adapter run).</p>
+
+<h2>What stands out</h2>
+<ul class="notable" id="notable">
+<li><b>The PhysBench cluster (g8 in the encoder partition) inflates the averages.</b> Its own-cluster gain on Qwen is +24 (1 pass) and +38 (4 passes); without it Qwen's own − other gap is +4.5 / +6.1 instead of +6.0 / +8.6.</li>
+<li><b>After 1 pass, most of Gemma's off-cluster loss is one adapter.</b> The g8 adapter lowers every other cluster (mean −16, down to −27); without it Gemma's off-cluster change is −0.6, not −1.8. After 4 passes the loss is spread over almost every adapter.</li>
+<li><b>Holding the benchmark fixed keeps most of the diagonal.</b> Within CLEVRER, TemporalBench, PhysBench or Perception Test, the own-cluster cell is on average 2 to 23 points above the other adapters in its row (row-centred view), though it is not always the single best cell (Perception Test: own best in 1–3 of 7 rows). Benchmark identity does not explain the locality; what remains confounded is that clusters within a benchmark also separate question templates.</li>
+<li><b>Cluster-pair similarity barely predicts which other clusters an adapter helps</b> (r ≤ 0.3 after cluster effects, and the larger values sit in different partitions on the two models), while <b>item-level distance does</b>: on Qwen the farthest fifth gains about half as much as the rest; on Gemma after 4 passes every fifth loses and the farthest loses most.</li>
+<li><b>Without video, the extra passes add gains that cannot be visual.</b> Switch the matrices to <i>blind</i>: the own-cluster diagonal grows with passes on both models.</li>
+</ul>
+<p class="note">Source: Infinigen-Exploration, <code>experiments/skill_dynamics/ct_site_data.py</code> (data export, self-checked against the analysis tables); scores from runs logged 2026-11-21 to 11-24. Adapter accuracy only; no per-letter probabilities are used here.</p>
+</main>
+<div id="tip" role="tooltip"></div>
+<script>
+(async function(){
+const D = await (await fetch("data.json")).json();
+const K = 12, CAP = 15;
+const BN = {"clevrer":"CLEVRER","temporalbench":"TemporalBench","physbench":"PhysBench","perception-test":"Perception Test","mvbench":"MVBench",
+  "motionbench":"MotionBench","tomato":"TOMATO","mvp":"MVP","velociti":"VELOCITI","tvbench":"TVBench","timeblind":"TimeBlind","videovista":"VideoVista",
+  "next-qa":"NExT-QA","vinoground":"Vinoground","videoniah-vnbench":"VNBench","physion":"Physion","intphys2":"IntPhys 2","dsi-bench":"DSI-Bench"};
+const bname = b => BN[b] || b;
+const PN = {encoder:"skill-encoder clusters", base:"frozen-embedding clusters", random:"random partition"};
+const tip = document.getElementById("tip");
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmt = (v,d=1) => (v>0?"+":v<0?"−":"") + Math.abs(v).toFixed(d);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function showTip(e, html){ tip.innerHTML = html; tip.style.opacity = 1; moveTip(e); }
+function moveTip(e){ const w = tip.offsetWidth, h = tip.offsetHeight; let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + w > innerWidth - 8) x = e.clientX - w - 14; if (y + h > innerHeight - 8) y = e.clientY - h - 14; tip.style.left = x + "px"; tip.style.top = y + "px"; }
+function hideTip(){ tip.style.opacity = 0; }
+const S = "http://www.w3.org/2000/svg";
+function el(tag, attrs = {}, parent){ const n = document.createElementNS(S, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; }
+
+// theme toggle
+const root = document.documentElement;
+function setTheme(t){ root.dataset.theme = t; document.querySelectorAll(".theme button").forEach(b => b.setAttribute("aria-pressed", b.dataset.t === t)); try{localStorage.setItem("theme-ct12", t)}catch(e){} renderAll(); }
+document.querySelectorAll(".theme button").forEach(b => b.onclick = () => setTheme(b.dataset.t));
+let saved = null; try{ saved = localStorage.getItem("theme-ct12"); }catch(e){}
+const isDark = () => root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+document.querySelectorAll(".theme button").forEach(b => b.setAttribute("aria-pressed", b.dataset.t === (saved || (isDark() ? "dark" : "light"))));
+if (saved) root.dataset.theme = saved;
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => renderAll());
+
+// diverging scale: red (loss) - neutral gray - blue (gain)
+const hex = h => [1,3,5].map(i => parseInt(h.slice(i, i + 2), 16));
+function divColor(v){
+  const neg = isDark() ? ["#e66767","#7a3b38"] : ["#b2182b","#e8a08f"], pos = isDark() ? ["#5a7fb0","#6aa4ee"] : ["#8fb5dd","#1f5fa8"];
+  const mid = hex(isDark() ? "#383835" : "#f0efec");
+  const t = Math.max(-1, Math.min(1, v / CAP));
+  const stops = t < 0 ? [mid, hex(neg[1]), hex(neg[0])] : [mid, hex(pos[0]), hex(pos[1])];
+  const a = Math.abs(t) * 2, i = Math.min(1, Math.floor(a)), f = a - i;
+  const c = stops[i].map((x, k) => Math.round(x + (stops[i + 1][k] - x) * f));
+  return `rgb(${c})`;
+}
+function inkOn(rgb){ const [r,g,b] = rgb.match(/\d+/g).map(Number); const L = (0.2126*r + 0.7152*g + 0.0722*b) / 255; return L > 0.55 ? "#1d1d1b" : "#f4f3ef"; }
+
+// generic control builder
+function seg(container, label, key, opts, state, onchange){
+  const w = document.createElement("div"); w.className = "ctl"; w.innerHTML = `<span>${label}</span>`;
+  const g = document.createElement("div"); g.className = "seg"; g.setAttribute("role", "group");
+  opts.forEach(([v, t]) => { const b = document.createElement("button"); b.textContent = t; b.setAttribute("aria-pressed", state[key] === v);
+    b.onclick = () => { state[key] = v; g.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); onchange(); }; g.appendChild(b); });
+  w.appendChild(g); container.appendChild(w); return g;
+}
+function sel(container, label, key, opts, state, onchange){
+  const w = document.createElement("label"); w.className = "ctl"; w.innerHTML = `<span>${label}</span>`;
+  const s = document.createElement("select"); w.appendChild(s); container.appendChild(w);
+  const fill = o => { s.innerHTML = o.map(([v, t]) => `<option value="${esc(v)}"${v === state[key] ? " selected" : ""}>${esc(t)}</option>`).join(""); };
+  fill(opts); s.onchange = () => { state[key] = s.value; onchange(); }; return {s, fill};
+}
+const label = (p, g) => { const L = D.labels[p][g]; return L.name ? `g${g} · ${L.name}` : `g${g} · ${bname(L.top_bench)} ${Math.round(100*L.top_share)}%`; };
+
+/* ---------- figures 1-2: matrices ---------- */
+const M = {part:"encoder", arm:"video", bench:"all", centre:"raw", vals:"on"};
+const mctl = document.getElementById("mctl");
+seg(mctl, "Clusters", "part", [["encoder","Skill encoder"],["base","Frozen embedding"],["random","Random"]], M, () => { M.bench = benchOpts().some(o => o[0] === M.bench) ? M.bench : "all"; bsel.fill(benchOpts()); renderM(); });
+seg(mctl, "Input", "arm", [["video","Video"],["blind","Blind"]], M, renderM);
+const benchOpts = () => { const avail = Object.keys(D.matrices.qwen_1[M.part].video); return [["all","All benchmarks"]].concat(avail.filter(b => b !== "all").sort((a,b) => D.bench_n[b] < D.bench_n[a] ? -1 : 1).map(b => [b, `${bname(b)} only (${D.bench_n[b]} items)`])); };
+const bsel = sel(mctl, "Scored items", "bench", benchOpts(), M, renderM);
+seg(mctl, "Cells", "centre", [["raw","Change vs untrained"],["row","Row-centred"]], M, renderM);
+seg(mctl, "Values", "vals", [["on","Show"],["off","Hide"]], M, renderM);
+
+function renderM(){
+  const grid = document.getElementById("mgrid"); grid.innerHTML = "";
+  D.sets.forEach(set => {
+    const src = D.matrices[set.key][M.part][M.arm][M.bench] || D.matrices[set.key][M.part][M.arm].all;
+    const raw = src.M, n = src.n;
+    const rowOther = raw.map((r, j) => { const o = r.filter((v, g) => v !== null && g !== j); return o.length ? o.reduce((a, b) => a + b, 0) / o.length : null; });
+    const V = raw.map((r, j) => r.map(v => v === null ? null : (M.centre === "row" ? v - rowOther[j] : v)));
+    const own = [], oth = [];
+    V.forEach((r, j) => r.forEach((v, g) => { if (v !== null) (g === j ? own : oth).push(v); }));
+    const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : NaN;
+    const p = document.createElement("div"); p.className = "panel";
+    const sub = M.centre === "row" ? `own cluster beyond its row: mean ${fmt(mean(own))} pts` : `own ${fmt(mean(own))}, other ${fmt(mean(oth))}, gap ${fmt(mean(own) - mean(oth))} pts`;
+    p.innerHTML = `<h3>${set.label}</h3><div class="sub">${sub}${M.bench !== "all" ? ` · ${n.filter(x => x >= D.min_cell).length} of 12 clusters have ≥ ${D.min_cell} ${bname(M.bench)} items` : ""}</div>`;
+    const LW = 182, cs = 30, top = 4, W = LW + K * cs + 4, H = top + K * cs + 34;
+    const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `${set.label} transfer matrix`}, p);
+    for (let j = 0; j < K; j++){
+      const t = el("text", {x: LW - 6, y: top + j * cs + cs / 2 + 3.5, "text-anchor": "end", "font-size": 9.5}, svg);
+      let s = label(M.part, j); if (s.length > 32) s = s.slice(0, 31) + "…"; t.textContent = s;
+      if (M.bench !== "all" && n[j] < D.min_cell) t.setAttribute("opacity", .4);
+      el("title", {}, t).textContent = label(M.part, j) + ` (${n[j]} scored items)`;
+      for (let g = 0; g < K; g++){
+        const v = V[j][g], x = LW + g * cs, y = top + j * cs;
+        const fill = v === null ? css("--na") : divColor(v);
+        const r = el("rect", {x: x + 1, y: y + 1, width: cs - 2, height: cs - 2, rx: 2, fill}, svg);
+        if (v !== null && M.vals === "on"){
+          const tx = el("text", {x: x + cs / 2, y: y + cs / 2 + 3.2, "text-anchor": "middle", "font-size": 8.6, "font-weight": g === j ? 700 : 400, style: `fill:${inkOn(fill)}`}, svg);
+          tx.textContent = (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(Math.abs(v) >= 10 ? 0 : 1);
+        }
+        r.addEventListener("mousemove", e => showTip(e, v === null ? `<b>${esc(label(M.part, j))}</b><br>${n[j]} ${esc(bname(M.bench))} items: too few (&lt; ${D.min_cell})` :
+          `<b>Trained on</b> ${esc(label(M.part, g))}<br><b>Scored on</b> ${esc(label(M.part, j))}${M.bench !== "all" ? ", " + esc(bname(M.bench)) + " items only" : ""}<br>` +
+          `${M.centre === "row" ? `row-centred <b>${fmt(v, 2)}</b> pts (raw ${fmt(raw[j][g], 2)}, row's other mean ${fmt(rowOther[j], 2)})` : `accuracy change <b>${fmt(v, 2)}</b> pts`}<br><span class="note">${n[j]} scored items × 2 seeds</span>`));
+        r.addEventListener("mouseleave", hideTip);
+      }
+      el("rect", {x: LW + j * cs + .5, y: top + j * cs + .5, width: cs - 1, height: cs - 1, rx: 2, fill: "none", stroke: css("--ink"), "stroke-width": 1.4, "pointer-events": "none"}, svg);
+    }
+    for (let g = 0; g < K; g++){ const t = el("text", {x: LW + g * cs + cs / 2, y: top + K * cs + 13, "text-anchor": "middle", "font-size": 9.5}, svg); t.textContent = "g" + g; el("title", {}, t).textContent = label(M.part, g); }
+    const xl = el("text", {x: LW + K * cs / 2, y: top + K * cs + 29, "text-anchor": "middle", "font-size": 10.5}, svg); xl.textContent = "trained on (cluster) →";
+    grid.appendChild(p);
+  });
+  const leg = document.getElementById("mleg");
+  const stops = [-15, -10, -5, 0, 5, 10, 15].map(v => divColor(v)).join(",");
+  leg.innerHTML = `<span>−15 or less</span><span class="ramp" style="background:linear-gradient(90deg,${stops})"></span><span>+15 or more points</span><span class="note">· rows: scored-on cluster · boxed: own cluster · grey: too few items</span>`;
+}
+
+/* ---------- figure 3: cluster-pair similarity scatter ---------- */
+const C = {part:"encoder", arm:"video", space:"enc", kind:"centroid", fe:"fe"};
+const sctl = document.getElementById("sctl");
+seg(sctl, "Clusters", "part", [["encoder","Skill encoder"],["base","Frozen embedding"],["random","Random"]], C, renderS);
+seg(sctl, "Input", "arm", [["video","Video"],["blind","Blind"]], C, renderS);
+seg(sctl, "Similarity space", "space", [["enc","Skill encoder"],["base","Frozen embedding"]], C, renderS);
+seg(sctl, "Measure", "kind", [["centroid","Centroid"],["nn","Nearest neighbour"]], C, renderS);
+seg(sctl, "Cluster effects", "fe", [["fe","Removed"],["raw","Kept (raw)"]], C, renderS);
+function axisTicks(lo, hi, n = 5){ const step0 = (hi - lo) / n, mag = Math.pow(10, Math.floor(Math.log10(step0))), step = [1, 2, 2.5, 5, 10].map(m => m * mag).find(s => s >= step0);
+  const out = []; for (let v = Math.ceil(lo / step) * step; v <= hi + 1e-9; v += step) out.push(+v.toFixed(10)); return {ticks: out, step}; }
+function renderS(){
+  const grid = document.getElementById("sgrid"); grid.innerHTML = "";
+  const sets = D.sets.map(set => { const c = D.cluster[set.key][C.part][C.arm], s = c.S[`${C.space}|${C.kind}`];
+    return {set, c, x: C.fe === "fe" ? s.fe : s.raw, y: C.fe === "fe" ? c.T_fe : c.T, r: C.fe === "fe" ? s.r_fe : s.r_raw}; });
+  const ally = sets.flatMap(s => s.y), ylo = Math.min(...ally), yhi = Math.max(...ally);
+  sets.forEach(({set, c, x, y, r}) => {
+    const p = document.createElement("div"); p.className = "panel";
+    p.innerHTML = `<h3>${set.label}</h3><div class="sub">r = ${fmt(r, 2)} over 132 cells</div>`;
+    const W = 520, H = 300, L = 46, R = 10, T = 8, B = 38;
+    const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `${set.label} similarity vs transfer`}, p);
+    const xlo = Math.min(...x), xhi = Math.max(...x), xp = (xhi - xlo) * .05, yp = (yhi - ylo) * .05;
+    const sx = v => L + (v - (xlo - xp)) / ((xhi + xp) - (xlo - xp)) * (W - L - R), sy = v => T + ((yhi + yp) - v) / ((yhi + yp) - (ylo - yp)) * (H - T - B);
+    const xt = axisTicks(xlo - xp, xhi + xp), yt = axisTicks(ylo - yp, yhi + yp);
+    yt.ticks.forEach(v => { el("line", {x1: L, x2: W - R, y1: sy(v), y2: sy(v), stroke: v === 0 ? css("--mute") : css("--grid"), "stroke-width": 1}, svg);
+      const t = el("text", {x: L - 6, y: sy(v) + 3.5, "text-anchor": "end", "font-size": 10}, svg); t.textContent = (v > 0 ? "+" : "") + +v.toFixed(2); });
+    xt.ticks.forEach(v => { const t = el("text", {x: sx(v), y: H - B + 15, "text-anchor": "middle", "font-size": 10}, svg); t.textContent = +v.toFixed(3); });
+    const xl = el("text", {x: L + (W - L - R) / 2, y: H - 6, "text-anchor": "middle", "font-size": 10.5}, svg);
+    xl.textContent = `${C.kind === "centroid" ? "centroid cosine" : "nearest-neighbour cosine"}, ${C.space === "enc" ? "skill-encoder" : "frozen"} space${C.fe === "fe" ? " (residual)" : ""}`;
+    const yl = el("text", {x: 12, y: T + (H - T - B) / 2, "text-anchor": "middle", "font-size": 10.5, transform: `rotate(-90 12 ${T + (H - T - B) / 2})`}, svg);
+    yl.textContent = `accuracy change, pts${C.fe === "fe" ? " (residual)" : ""}`;
+    // least-squares line
+    const mx = x.reduce((a, b) => a + b) / x.length, my = y.reduce((a, b) => a + b) / y.length;
+    const b1 = x.reduce((a, v, i) => a + (v - mx) * (y[i] - my), 0) / x.reduce((a, v) => a + (v - mx) ** 2, 0);
+    el("line", {x1: sx(xlo), x2: sx(xhi), y1: sy(my + b1 * (xlo - mx)), y2: sy(my + b1 * (xhi - mx)), stroke: css("--ink2"), "stroke-width": 2, "stroke-dasharray": "5 4"}, svg);
+    x.forEach((xv, k) => { const [i, j] = c.cells[k];
+      const dot = el("circle", {cx: sx(xv), cy: sy(y[k]), r: 4.2, fill: css("--s1"), "fill-opacity": .75, stroke: css("--surface"), "stroke-width": 1.2}, svg);
+      dot.addEventListener("mousemove", e => showTip(e, `<b>Trained on</b> ${esc(label(C.part, i))}<br><b>Scored on</b> ${esc(label(C.part, j))}<br>similarity ${xv.toFixed(3)} · change ${fmt(y[k], 2)} pts${C.fe === "fe" ? " (residuals)" : ""}<br><span class="note">raw change ${fmt(c.T[k], 2)} pts</span>`));
+      dot.addEventListener("mouseleave", hideTip); });
+    grid.appendChild(p);
+  });
+}
+
+/* ---------- figure 4: fifths ---------- */
+const F = {arm:"video", part:"all"};
+const fctl = document.getElementById("fctl");
+seg(fctl, "Input", "arm", [["video","Video"],["blind","Blind"]], F, renderF);
+seg(fctl, "Adapters", "part", [["all","All 72"],["encoder","Skill-encoder clusters"],["base","Frozen-embedding clusters"],["random","Random partition"]], F, renderF);
+function renderF(){
+  const grid = document.getElementById("fgrid"); grid.innerHTML = "";
+  const get = (k, e) => D.fifths[k][F.arm][`${e}|${F.part}`];
+  const vals = D.sets.flatMap(s => ["enc", "base"].flatMap(e => { const d = get(s.key, e); return d.mean.flatMap((m, i) => [m - d.se[i], m + d.se[i]]); }));
+  const ylo = Math.min(0, ...vals), yhi = Math.max(0, ...vals), pad = (yhi - ylo) * .08;
+  D.sets.forEach(set => {
+    const p = document.createElement("div"); p.className = "panel";
+    const e = get(set.key, "enc"), b = get(set.key, "base");
+    p.innerHTML = `<h3>${set.label}</h3><div class="sub">closest → farthest fifth: encoder ${fmt(e.mean[0])} → ${fmt(e.mean[4])}, frozen ${fmt(b.mean[0])} → ${fmt(b.mean[4])} pts</div>`;
+    const W = 520, H = 260, L = 46, R = 70, T = 8, B = 38;
+    const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `${set.label} gain by distance fifth`}, p);
+    const sx = i => L + 18 + i * (W - L - R - 36) / 4, sy = v => T + ((yhi + pad) - v) / ((yhi + pad) - (ylo - pad)) * (H - T - B);
+    axisTicks(ylo - pad, yhi + pad).ticks.forEach(v => { el("line", {x1: L, x2: W - R, y1: sy(v), y2: sy(v), stroke: v === 0 ? css("--mute") : css("--grid")}, svg);
+      const t = el("text", {x: L - 6, y: sy(v) + 3.5, "text-anchor": "end", "font-size": 10}, svg); t.textContent = (v > 0 ? "+" : "") + +v.toFixed(2); });
+    ["1 closest", "2", "3", "4", "5 farthest"].forEach((s, i) => { const t = el("text", {x: sx(i), y: H - B + 15, "text-anchor": "middle", "font-size": 10}, svg); t.textContent = s; });
+    const xl = el("text", {x: L + (W - L - R) / 2, y: H - 6, "text-anchor": "middle", "font-size": 10.5}, svg); xl.textContent = "fifth of kNN distance to the training set (within adapter × benchmark)";
+    const yl = el("text", {x: 12, y: T + (H - T - B) / 2, "text-anchor": "middle", "font-size": 10.5, transform: `rotate(-90 12 ${T + (H - T - B) / 2})`}, svg); yl.textContent = "accuracy change, pts";
+    [["enc", e, "--s1", "encoder", -3], ["base", b, "--s2", "frozen", 3]].forEach(([k, d, col, nm, off]) => {
+      const c = css(col);
+      d.mean.forEach((m, i) => el("line", {x1: sx(i) + off, x2: sx(i) + off, y1: sy(m - d.se[i]), y2: sy(m + d.se[i]), stroke: c, "stroke-width": 1.5, "stroke-opacity": .6}, svg));
+      el("polyline", {points: d.mean.map((m, i) => `${sx(i) + off},${sy(m)}`).join(" "), fill: "none", stroke: c, "stroke-width": 2, "stroke-linejoin": "round"}, svg);
+      d.mean.forEach((m, i) => { const dot = el("circle", {cx: sx(i) + off, cy: sy(m), r: 4.5, fill: c, stroke: css("--surface"), "stroke-width": 2}, svg);
+        dot.addEventListener("mousemove", ev => showTip(ev, `<b>${nm === "encoder" ? "Skill-encoder" : "Frozen-embedding"} distance</b>, fifth ${i + 1}<br>mean change <b>${fmt(m, 2)}</b> pts (SE ${d.se[i].toFixed(2)})<br><span class="note">${d.n[i].toLocaleString()} adapter × item rows</span>`));
+        dot.addEventListener("mouseleave", hideTip); });
+      const t = el("text", {x: sx(4) + 10, y: sy(d.mean[4]) + (k === "enc" ? (d.mean[4] >= b.mean[4] ? -2 : 10) : (d.mean[4] > e.mean[4] ? -2 : 10)), "font-size": 10.5}, svg); t.textContent = nm;
+    });
+    grid.appendChild(p);
+  });
+}
+function renderAll(){ renderM(); renderS(); renderF(); }
+renderAll();
+})();
+</script>
+</body>
+</html>
