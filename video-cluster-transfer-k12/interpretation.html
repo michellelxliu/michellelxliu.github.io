@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>K=12 Cluster Readings</title>
+<meta name="description" content="What the K = 12 video-QA clusters contain, read four ways: skill-label enrichment, nearest skill-node names, centroid hierarchy and language-model names, in the skill-encoder and frozen embedding spaces.">
+<style>
+:root{
+  --bg:#fbfaf7;--surface:#fcfcfb;--ink:#1d1d1b;--ink2:#52514e;--mute:#8a8984;--rule:#e4e2dc;--grid:#ecebe6;
+  --neutral:#f0efec;--s1:#2a78d6;--s2:#eb6834;--btn:#f1efe9;--btn-on:#1d1d1b;--btn-on-ink:#fbfaf7;--na:#f6f5f1;
+  --bar:#2a78d6;--bar-bg:#ecebe6;--ok:#2a78d6;--part:#9fbfe6;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#17171a;--surface:#1a1a19;--ink:#e8e6e1;--ink2:#c3c2b7;--mute:#8e8c85;--rule:#33332f;--grid:#2a2a27;
+  --neutral:#383835;--s1:#3987e5;--s2:#d95926;--btn:#26262a;--btn-on:#e8e6e1;--btn-on-ink:#17171a;--na:#222220;
+  --bar:#3987e5;--bar-bg:#2a2a27;--ok:#3987e5;--part:#2f5684;}}
+:root[data-theme="dark"]{
+  --bg:#17171a;--surface:#1a1a19;--ink:#e8e6e1;--ink2:#c3c2b7;--mute:#8e8c85;--rule:#33332f;--grid:#2a2a27;
+  --neutral:#383835;--s1:#3987e5;--s2:#d95926;--btn:#26262a;--btn-on:#e8e6e1;--btn-on-ink:#17171a;--na:#222220;
+  --bar:#3987e5;--bar-bg:#2a2a27;--ok:#3987e5;--part:#2f5684;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;margin:0}
+main{max-width:1240px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:26px;line-height:1.25;margin:0 0 8px}
+h2{font-size:19px;margin:48px 0 6px;padding-top:16px;border-top:1px solid var(--rule)}
+h3{font-size:14px;margin:0 0 4px;font-weight:600}
+p,li{color:var(--ink2);max-width:860px}
+.lede{font-size:16px}
+a{color:inherit}
+code{font-size:13px;background:var(--btn);padding:1px 4px;border-radius:4px;overflow-wrap:anywhere}
+.note{font-size:13px;color:var(--mute)}
+.theme{float:right;margin:0 0 8px 12px}
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:14px 0 6px;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:5;border-bottom:1px solid var(--rule)}
+.ctl{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink2);min-width:0;max-width:100%}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--btn);color:var(--ink);font:inherit;font-size:13px;padding:5px 10px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button[aria-pressed="true"]{background:var(--btn-on);color:var(--btn-on-ink)}
+.toc{font-size:13px;color:var(--ink2);display:flex;flex-wrap:wrap;gap:4px 14px}
+.toc a{text-decoration:none;border-bottom:1px dotted var(--mute)}
+.scroll{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;font-size:13px;margin:10px 0}
+th,td{padding:5px 8px;border-bottom:1px solid var(--rule);text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--ink);white-space:nowrap}
+td{color:var(--ink2)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 18px;margin-top:14px}
+@media (max-width:1000px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){.cards{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 14px}
+.card .hd{display:flex;gap:8px;align-items:baseline;margin-bottom:6px}
+.card .g{font-weight:700;font-size:13px;color:var(--ink);font-variant-numeric:tabular-nums}
+.card .nm{font-weight:600;font-size:13.5px;color:var(--ink)}
+.card .meta{font-size:12px;color:var(--mute);margin:-2px 0 8px}
+.card .lab{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--mute);margin:8px 0 3px}
+.card p{font-size:13px;margin:4px 0}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 92px 44px;gap:6px;align-items:center;font-size:12.5px;color:var(--ink2);margin:2px 0}
+.row .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .v{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink2)}
+.bar{height:8px;background:var(--bar-bg);border-radius:2px;position:relative}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:var(--bar);border-radius:2px}
+.nrow{display:grid;grid-template-columns:14px minmax(0,1fr) 44px;gap:6px;font-size:12.5px;color:var(--ink2);margin:2px 0;align-items:center}
+.nrow .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nrow .v{text-align:right;font-variant-numeric:tabular-nums}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;border:1.5px solid var(--mute)}
+.dot.on{background:var(--ok);border-color:var(--ok)}
+.chip{display:inline-block;font-size:11.5px;padding:1px 7px;border-radius:10px;border:1px solid var(--rule);color:var(--ink2);white-space:nowrap}
+.chip.same{background:var(--ok);border-color:var(--ok);color:#fff}
+.chip.overlapping{background:var(--part);border-color:var(--part);color:var(--ink)}
+.chip.different{background:transparent;border-color:var(--s2);color:var(--s2)}
+.yes{color:var(--ok);font-weight:700}
+.stat{display:flex;flex-wrap:wrap;gap:12px 28px;margin:12px 0}
+.stat div{font-size:13px;color:var(--ink2)}
+.stat b{display:block;font-size:22px;color:var(--ink);font-variant-numeric:tabular-nums;font-weight:600}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{fill:var(--ink2);font-family:inherit}
+.legend{display:flex;align-items:center;gap:14px;font-size:12.5px;color:var(--ink2);margin-top:8px;flex-wrap:wrap}
+.key{display:inline-flex;align-items:center;gap:6px}
+.sw{width:18px;height:3px;border-radius:2px;display:inline-block}
+details{margin:6px 0}
+summary{cursor:pointer;font-size:12.5px;color:var(--ink2)}
+</style>
+</head>
+<body>
+<main>
+<div class="theme seg" role="group" aria-label="theme"><button data-t="light">Light</button><button data-t="dark">Dark</button></div>
+<p class="note"><a href="./">← K = 12 cluster transfer</a></p>
+<h1>What is in each K = 12 cluster? Four readings</h1>
+<p class="lede">The <a href="./">transfer experiment</a> split 63,610 video multiple-choice questions into 12 k-means clusters in two embedding
+spaces: the <b>skill encoder</b> (gte-modernbert fine-tuned so that questions with the same LLM skill labels sit close together) and the
+<b>frozen embedder</b> it started from. This page reads the clusters four independent ways, then asks whether the four readings agree.</p>
+<ol>
+<li><b>Skill-label enrichment.</b> Which skill-tree labels are over-represented in the cluster, by coverage (share of the cluster's questions
+carrying the label) and ratio (coverage ÷ share in all 63,610 questions).</li>
+<li><b>Nearest skill-node names.</b> The skill-tree node names whose embeddings (in the same space) lie closest to the cluster centre. The
+encoder was trained on these names, so this reads the clusters in the encoder's own terms.</li>
+<li><b>Centroid hierarchy.</b> The 12 centres clustered again (average linkage, cosine distance). Do clusters that merge early share a parent skill?</li>
+<li><b>Language-model reading.</b> A language model saw 40 sample questions per cluster (question and options only; no labels, no benchmark names)
+and wrote a name and definition, then contrasted each cluster with its nearest neighbour.</li>
+</ol>
+<p class="note">The skill tree has two levels here: 26 parent skills (L2) and 335 sub-skills (L3), induced from LLM labels of every question.
+A question's labels are the union over its requests. No question text from any benchmark is shown on this page.</p>
+
+<div class="controls">
+  <div class="ctl">Space <span class="seg" id="space"><button data-v="encoder">Skill encoder</button><button data-v="base">Frozen embedder</button></span></div>
+  <nav class="toc"><a href="#overview">Overview</a><a href="#enrich">1 Enrichment</a><a href="#nearest">2 Nearest names</a><a href="#hier">3 Hierarchy</a><a href="#lm">4 Language model</a><a href="#agree">Agreement</a></nav>
+</div>
+
+<h2 id="overview">Overview: the main skill each reading picks</h2>
+<p>One row per cluster. Each reading is reduced to one parent skill (L2): enrichment's <i>characteristic</i> L2 (largest coverage × log ratio among
+over-represented L2s); the L2 name nearest the centre; and the L2 name nearest the language model's own name + definition, embedded in the same space.
+A filled dot means that reading's L2 matches enrichment's.</p>
+<div class="scroll"><table id="ovt"></table></div>
+
+<h2 id="enrich">1. Skill-label enrichment</h2>
+<p>Over-represented means ratio ≥ 1.5 with coverage ≥ 5 % (L2) or ≥ 3 % (L3). Sub-skills are ranked by coverage × log ratio; bars show coverage,
+the number on the right is the ratio. The top three benchmarks by share are listed for comparison.</p>
+<div class="stat" id="enstat"></div>
+<div class="cards" id="encards"></div>
+
+<h2 id="nearest">2. Nearest skill-node names</h2>
+<p>Cosine between the cluster centre and each node, using the mean embedding of the node's four name wordings (three seen in training, one held out).
+A filled dot marks a sub-skill that is also over-represented in the cluster (reading 1). Node definitions, which the encoder never saw, match less well
+and are not shown.</p>
+<div class="stat" id="nnstat"></div>
+<div class="cards" id="nncards"></div>
+
+<h2 id="hier">3. Centroid hierarchy</h2>
+<p>Each leaf is a cluster, labelled with its language-model name and, in brackets, its characteristic parent skill. Blue joins merge clusters
+whose characteristic parent skills match. The Mantel tests compare the distances between centres with distances between the clusters'
+skill-label profiles and benchmark mixes (20,000 permutations).</p>
+<div class="scroll"><div id="dendro" style="min-width:760px"></div></div>
+<div class="legend"><span class="key"><span class="sw" style="background:var(--s1)"></span>merge within one parent skill</span><span class="key"><span class="sw" style="background:var(--mute)"></span>other merge</span></div>
+<div class="scroll"><table id="mantel"></table></div>
+<p class="note">The encoder's agreement with the tree is partly by construction: it was trained to place questions with the same labels together.</p>
+
+<h2 id="lm">4. Language-model reading</h2>
+<p>claude-sonnet-5-5, thinking off. <b>Check:</b> a separate call received only the 12 names and definitions and sorted 360 held-out questions
+(30 per cluster, cluster letters shuffled); "recall" is the share of a cluster's held-out questions it placed back in that cluster.
+The contrast compares each cluster with its nearest centre.</p>
+<div class="stat" id="lmstat"></div>
+<div class="cards" id="lmcards"></div>
+
+<h2 id="agree">Agreement between the four readings</h2>
+<p>Pairs of readings compared on the same cluster. <b>Same L2</b>: both readings' parent skills match (chance ≈ 1 in 26).
+<b>L3 overlap</b>: shared sub-skills between the two top-5 lists (chance ≈ 0.07). <b>Judge</b>: a blind model call that saw readings 1, 2 and 4
+unlabelled, in shuffled order, and rated each pair same / overlapping / different main skill. The hierarchy is a statement about pairs, so it is
+read through each cluster's nearest centre: does that neighbour have the same characteristic parent skill?</p>
+<div class="scroll"><table id="agt"></table></div>
+<ul id="agnotes"></ul>
+<p class="note">The judge is lenient: it rated 1 of 72 pairs "different". Its one-line skill summaries were checked by hand on all 24 clusters.</p>
+
+<h2>Method and cost</h2>
+<p class="note">Clusters: <code>tree_cluster_k12.py</code>, K = 12 over 63,610 text items; skill encoder <code>t2_w0_lam0_x15/epoch_10</code>, frozen
+gte-modernbert-base; node embeddings computed on CPU the way the trainer embeds (CLS pooling, L2 norm; 64 re-embedded questions match the stored
+vectors at cosine ≥ 0.9995). Language-model calls: claude-sonnet-5-5 through the Claude Code CLI, thinking off (0 thinking tokens), no tools; token
+log-probabilities are not available on that route. 84 calls in all (60 names / contrasts / checks + 24 judge), $4.07 at API list price, $0 billed
+(subscription). Code: Infinigen-Exploration <code>experiments/skill_encoder/cluster_interpret_{k12,llm,agree,page}.py</code>, 2026-11-24.
+Data: <a href="interpretation.json">interpretation.json</a>.</p>
+</main>
+<script>
+const root = document.documentElement;
+function setTheme(t){ root.dataset.theme = t; document.querySelectorAll(".theme button").forEach(b => b.setAttribute("aria-pressed", b.dataset.t === t)); try{localStorage.setItem("theme-ct12", t)}catch(e){} if (D) render(); }
+document.querySelectorAll(".theme button").forEach(b => b.onclick = () => setTheme(b.dataset.t));
+let saved = null; try{ saved = localStorage.getItem("theme-ct12"); }catch(e){}
+const isDark = () => root.dataset.theme ? root.dataset.theme === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+if (saved) root.dataset.theme = saved;
+document.querySelectorAll(".theme button").forEach(b => b.setAttribute("aria-pressed", b.dataset.t === (saved || (isDark() ? "dark" : "light"))));
+
+let D = null, SP = "encoder";
+try{ const s = new URLSearchParams(location.search).get("space"); if (s === "base" || s === "encoder") SP = s; }catch(e){}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pct = x => (100 * x).toFixed(0) + " %";
+const $ = id => document.getElementById(id);
+const spaceName = {encoder: "skill encoder", base: "frozen embedder"};
+
+function topBench(c){ const b = c.bench[0]; return `${esc(b.b)} ${pct(b.share)}`; }
+function cardHead(c){ return `<div class="hd"><span class="g">g${c.g}</span><span class="nm">${esc(c.L.name)}</span></div><div class="meta">${c.n.toLocaleString()} questions · largest benchmark ${topBench(c)}</div>`; }
+
+function renderOverview(P){
+  const dot = on => `<span class="dot${on ? " on" : ""}"></span>`;
+  let h = `<tr><th>Cluster</th><th class="num">Questions</th><th>Language-model name</th><th>1 Enrichment L2</th><th>2 Nearest L2 name</th><th>4 Name → nearest L2</th><th>3 Nearest centre</th></tr>`;
+  for (const c of P.clusters){
+    const a = c.agree, q = P.clusters[c.L.partner];
+    h += `<tr><td>g${c.g}</td><td class="num">${c.n.toLocaleString()}</td><td>${esc(c.L.name)}</td><td>${esc(a.l2.E)}</td>
+      <td>${dot(a.emb["E-N"].l2)} ${esc(a.l2.N)}</td><td>${dot(a.emb["E-L"].l2)} ${esc(a.l2.L)}</td>
+      <td>g${q.g}${a.emb["H-E"] ? ' <span class="yes" title="same characteristic parent skill">✓</span>' : ""} <span class="note">${esc(q.E.dom)}</span></td></tr>`;
+  }
+  $("ovt").innerHTML = h;
+}
+
+function renderEnrich(P){
+  const sharp = P.clusters.filter(c => c.E.l3[0] && c.E.l3[0].cov >= 0.5).length;
+  const one = P.clusters.filter(c => c.bench[0].share >= 0.4).length;
+  $("enstat").innerHTML = `<div><b>${sharp} / 12</b>clusters whose top sub-skill covers ≥ 50 %</div><div><b>${one} / 12</b>clusters with one benchmark ≥ 40 %</div>`;
+  const maxR = 40;
+  $("encards").innerHTML = P.clusters.map(c => {
+    const rows = (xs) => xs.map(x => `<div class="row"><span class="t" title="${esc(x.name)}">${esc(x.name)}</span><span class="bar" title="coverage ${pct(x.cov)}"><i style="width:${Math.min(100, 100 * x.cov)}%"></i></span><span class="v">×${x.ratio}</span></div>`).join("");
+    return `<div class="card">${cardHead(c)}<div class="lab">Parent skills (L2)</div>${rows(c.E.l2) || '<p class="note">none over-represented</p>'}
+      <div class="lab">Sub-skills (L3)</div>${rows(c.E.l3.slice(0, 5)) || '<p class="note">none over-represented</p>'}
+      <div class="lab">Benchmarks</div><p class="note">${c.bench.map(b => `${esc(b.b)} ${pct(b.share)} (×${b.ratio})`).join(" · ")}</p></div>`;
+  }).join("");
+}
+
+function renderNearest(P){
+  const m = k => (P.clusters.reduce((s, c) => s + c.N[k], 0) / 12).toFixed(2);
+  $("nnstat").innerHTML = `<div><b>${m("in_enriched")} of 5</b>nearest sub-skill names over-represented in the cluster</div><div><b>${m("in_top5")} of 5</b>among the cluster's 5 most common sub-skills</div><div><b>≈ 0.07</b>random 5 names (chance)</div>`;
+  $("nncards").innerHTML = P.clusters.map(c => {
+    const enr = new Set(c.E.l3.map(x => x.node));
+    const allEnr = new Set([...enr]);
+    return `<div class="card">${cardHead(c)}<div class="lab">Parent skills (L2), cosine</div>
+      ${c.N.l2.map(x => `<div class="nrow"><span class="dot${c.E.l2.some(y => y.node === x.node) ? " on" : ""}"></span><span class="t" title="${esc(x.name)}">${esc(x.name)}</span><span class="v">${x.cos.toFixed(2)}</span></div>`).join("")}
+      <div class="lab">Sub-skills (L3), cosine</div>
+      ${c.N.l3.map(x => `<div class="nrow"><span class="dot${allEnr.has(x.node) ? " on" : ""}" title="${allEnr.has(x.node) ? "over-represented in the cluster" : ""}"></span><span class="t" title="${esc(x.name)} (coverage ${pct(x.cov)})">${esc(x.name)}</span><span class="v">${x.cos.toFixed(2)}</span></div>`).join("")}</div>`;
+  }).join("");
+}
+
+function renderDendro(P){
+  const L = P.hier.linkage, M = P.hier.merges, n = 12, cs = getComputedStyle(root);
+  const col = v => cs.getPropertyValue(v).trim();
+  const order = []; (function walk(i){ if (i < n) order.push(i); else { walk(L[i - n][0]); walk(L[i - n][1]); } })(2 * n - 2);
+  const rowH = 30, labW = 620, W = 1220, top = 10, H = top + n * rowH + 50;
+  const maxH = Math.max(...L.map(r => r[2])) * 1.05;
+  const x = h => labW + 10 + (W - labW - 30) * h / maxH;
+  const pos = {}; order.forEach((leaf, i) => pos[leaf] = {y: top + i * rowH + rowH / 2, x: x(0)});
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="dendrogram of the 12 cluster centres">`;
+  for (let t = 0; t <= maxH; t += 0.1){ const xx = x(t); s += `<line x1="${xx}" x2="${xx}" y1="${top}" y2="${top + n * rowH}" stroke="${col("--grid")}"/><text x="${xx}" y="${top + n * rowH + 16}" font-size="11" text-anchor="middle">${t.toFixed(1)}</text>`; }
+  L.forEach((r, i) => {
+    const a = pos[r[0]], b = pos[r[1]], mx = x(r[2]), share = M[i].share_dom_l2, c = share ? col("--s1") : col("--mute"), w = share ? 2.4 : 1.4;
+    s += `<path d="M${a.x},${a.y}H${mx}V${b.y}H${b.x}" fill="none" stroke="${c}" stroke-width="${w}"><title>merge ${i + 1}: height ${r[2].toFixed(3)}; L2-profile cosine ${M[i].l2_profile_cos}</title></path>`;
+    pos[n + i] = {x: mx, y: (a.y + b.y) / 2};
+  });
+  order.forEach(leaf => { const c = P.clusters[leaf], y = pos[leaf].y;
+    s += `<text x="${labW}" y="${y + 4}" font-size="12.5" text-anchor="end"><tspan font-weight="600" fill="${col("--ink")}">g${leaf} ${esc(c.L.name)}</tspan> <tspan fill="${col("--mute")}">[${esc(c.E.dom)}]</tspan></text>`; });
+  s += `<text x="${(labW + W) / 2}" y="${H - 6}" font-size="11" text-anchor="middle">cosine distance between centres (merge height)</text></svg>`;
+  $("dendro").innerHTML = s;
+  const mt = p => D.parts[p].hier;
+  const f = o => `${o.r.toFixed(2)} <span class="note">(p ${o.p < 1e-4 ? "< 1e-4" : o.p.toFixed(4)})</span>`;
+  $("mantel").innerHTML = `<tr><th>Mantel r: centre distance vs</th><th class="num">Skill encoder</th><th class="num">Frozen embedder</th></tr>
+    <tr><td>L2-profile distance</td><td class="num">${f(mt("encoder").mantel.l2_profile)}</td><td class="num">${f(mt("base").mantel.l2_profile)}</td></tr>
+    <tr><td>L3-profile distance</td><td class="num">${f(mt("encoder").mantel.l3_profile)}</td><td class="num">${f(mt("base").mantel.l3_profile)}</td></tr>
+    <tr><td>Benchmark-mix distance</td><td class="num">${f(mt("encoder").mantel.benchmark_mix)}</td><td class="num">${f(mt("base").mantel.benchmark_mix)}</td></tr>
+    <tr><td>L2 profile, partial on benchmark mix</td><td class="num">${mt("encoder").partial_l2_given_benchmark_r.toFixed(2)}</td><td class="num">${mt("base").partial_l2_given_benchmark_r.toFixed(2)}</td></tr>`;
+}
+
+function renderLM(P){
+  const k = P.check;
+  const kinds = {}; P.clusters.forEach(c => kinds[c.L.skill_vs_surface] = (kinds[c.L.skill_vs_surface] || 0) + 1);
+  $("lmstat").innerHTML = `<div><b>${pct(k.accuracy)}</b>held-out questions sorted back to their cluster (${k.items} items)</div><div><b>${pct(k.chance)}</b>chance</div>
+    <div><b>${kinds["both"] || 0} / 12</b>named as skill and surface form together</div>`;
+  $("lmcards").innerHTML = P.clusters.map(c => {
+    const q = P.clusters[c.L.partner];
+    return `<div class="card">${cardHead(c)}<p>${esc(c.L.definition)}</p>
+      <div class="meta" style="margin-top:6px">${esc(c.L.skill_vs_surface)} · recall ${pct(c.L.recall)}</div>
+      <details><summary>vs nearest centre g${q.g} ${esc(q.L.name)} (cos ${c.L.partner_cos.toFixed(2)}; difference: ${esc(c.L.contrast.difference_is)})</summary>
+      <div class="lab">g${c.g} has, g${q.g} lacks</div><p>${esc(c.L.contrast.a_has_b_lacks)}</p>
+      <div class="lab">g${q.g} has, g${c.g} lacks</div><p>${esc(c.L.contrast.b_has_a_lacks)}</p></details></div>`;
+  }).join("");
+}
+
+function renderAgree(){
+  const S = p => D.parts[p].agree_summary, C = p => D.parts[p].clusters;
+  const all3 = p => C(p).filter(c => c.agree.emb["E-N"].l2 && c.agree.emb["E-L"].l2).length;
+  const j = (p, pr) => { const o = S(p)[pr].judge; return `<span class="chip same">${o.same}</span> <span class="chip overlapping">${o.overlapping}</span> <span class="chip different">${o.different}</span>`; };
+  let h = `<tr><th>Comparison</th><th class="num">Skill encoder</th><th class="num">Frozen embedder</th></tr>
+    <tr><td>Readings 1, 2 and 4 share one parent skill</td><td class="num">${all3("encoder")} / 12</td><td class="num">${all3("base")} / 12</td></tr>`;
+  for (const [pr, lab] of [["E-N", "1 Enrichment vs 2 Nearest names"], ["E-L", "1 Enrichment vs 4 Language model"], ["N-L", "2 Nearest names vs 4 Language model"]]){
+    h += `<tr><td>${lab}: same L2</td><td class="num">${S("encoder")[pr].same_l2} / 12</td><td class="num">${S("base")[pr].same_l2} / 12</td></tr>
+      <tr><td style="padding-left:20px">mean L3 overlap (of 5)</td><td class="num">${S("encoder")[pr].mean_l3_overlap_of_5.toFixed(2)}</td><td class="num">${S("base")[pr].mean_l3_overlap_of_5.toFixed(2)}</td></tr>
+      <tr><td style="padding-left:20px">judge: same / overlapping / different</td><td class="num">${j("encoder", pr)}</td><td class="num">${j("base", pr)}</td></tr>`;
+  }
+  h += `<tr><td>3 Hierarchy: nearest centre has the same characteristic L2 (1)</td><td class="num">${S("encoder")["H-E"].partner_same_l2} / 12</td><td class="num">${S("base")["H-E"].partner_same_l2} / 12</td></tr>
+    <tr><td>3 Hierarchy: nearest centre has the same nearest L2 name (2)</td><td class="num">${S("encoder")["H-N"].partner_same_l2} / 12</td><td class="num">${S("base")["H-N"].partner_same_l2} / 12</td></tr>
+    <tr><td>3 Hierarchy, judge from the two names: share a parent (yes / partly / no)</td><td class="num">${["yes","partly","no"].map(k => S("encoder")["H-L"].judge[k]).join(" / ")}</td><td class="num">${["yes","partly","no"].map(k => S("base")["H-L"].judge[k]).join(" / ")}</td></tr>`;
+  $("agt").innerHTML = h;
+  $("agnotes").innerHTML = [
+    "In the skill-encoder space, enrichment, nearest names and the language-model name agree on the parent skill for 8 of 12 clusters and are never rated as contradicting each other; in the frozen space they agree for 2 of 12 and mostly overlap.",
+    "Enrichment and the language-model name agree most closely. Nearest names are the loosest reading: their five nearest names mix the cluster's skill with generic nodes such as \"Recognizing object category\" or \"Video Summarization\". In the frozen space 6 clusters' nearest L2 is a generic node, which is why the hierarchy-vs-nearest-name row is high there: neighbours share a generic label, not a skill.",
+    "Disagreement sits in the same clusters whichever readings are compared: the mixed and caption-format clusters (encoder g0, g1, g10; frozen g1, g3, g4, g5, g9). Where a cluster has one clear skill (counting, text reading, the synthetic-physics clusters, light and camera changes), all readings agree in both spaces.",
+    "In the skill-encoder space only two parent skills characterise more than one cluster: physical reasoning (g2, g4) and temporal reasoning (g3, g7). Each pair is mutually nearest, so the hierarchy reaches its ceiling of 4. Other nearest neighbours are linked by question format (pick the caption that matches the video), not by a shared parent skill."
+  ].map(t => `<li>${esc(t)}</li>`).join("");
+}
+
+function render(){
+  const P = D.parts[SP];
+  document.querySelectorAll("#space button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === SP));
+  renderOverview(P); renderEnrich(P); renderNearest(P); renderDendro(P); renderLM(P); renderAgree();
+}
+document.querySelectorAll("#space button").forEach(b => b.onclick = () => { SP = b.dataset.v; try{ history.replaceState(null, "", "?space=" + SP + location.hash); }catch(e){} render(); });
+fetch("interpretation.json").then(r => r.json()).then(d => { D = d; render(); }).catch(e => { document.querySelector("main").insertAdjacentHTML("beforeend", `<p class="note">Could not load interpretation.json: ${esc(e)}</p>`); });
+</script>
+</body>
+</html>
