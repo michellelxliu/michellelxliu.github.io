@@ -1,6 +1,6 @@
 {
  "source": "math242 run outputs/known-dist-2026-11-25 (probes/known_dist.py, version kd-2026-11-25a): one headless Claude Code call per move from an empty directory, effort low, thinking on (the harness default; not shown), no tools",
- "updated": "2026-11-25 21:17 UTC",
+ "updated": "2026-11-25 21:47 UTC",
  "models": [
   "haiku",
   "sonnet",
@@ -159,10 +159,10 @@
    "arm": "A0",
    "rounds_built": 5,
    "complete": false,
-   "histories": 204,
-   "pending": 92,
-   "move_draws": 4080,
-   "calls_stored": 4146,
+   "histories": 234,
+   "pending": 62,
+   "move_draws": 4680,
+   "calls_stored": 4734,
    "score": 29.94,
    "bayes": 30.59,
    "loss": 1.33,
@@ -195,10 +195,10 @@
    "arm": "A3",
    "rounds_built": 5,
    "complete": false,
-   "histories": 213,
-   "pending": 54,
-   "move_draws": 4260,
-   "calls_stored": 4312,
+   "histories": 229,
+   "pending": 38,
+   "move_draws": 4580,
+   "calls_stored": 4623,
    "score": 29.06,
    "bayes": 30.59,
    "loss": 3.91,
@@ -231,10 +231,10 @@
    "arm": "A4",
    "rounds_built": 5,
    "complete": false,
-   "histories": 262,
-   "pending": 139,
-   "move_draws": 5240,
-   "calls_stored": 5287,
+   "histories": 290,
+   "pending": 111,
+   "move_draws": 5800,
+   "calls_stored": 5874,
    "score": 29.27,
    "bayes": 30.59,
    "loss": 2.86,
@@ -265,16 +265,16 @@
   "opus-A0": {
    "model": "opus",
    "arm": "A0",
-   "rounds_built": 7,
-   "complete": false,
-   "histories": 199,
-   "pending": 12,
-   "move_draws": 3980,
-   "calls_stored": 4029,
-   "score": 42.23,
-   "bayes": 43.38,
+   "rounds_built": 8,
+   "complete": true,
+   "histories": 211,
+   "pending": 0,
+   "move_draws": 4220,
+   "calls_stored": 4220,
+   "score": 48.51,
+   "bayes": 49.66,
    "loss": 1.15,
-   "agree": 0.881,
+   "agree": 0.896,
    "agree_by_round": [
     1.0,
     0.784,
@@ -282,7 +282,8 @@
     0.778,
     0.843,
     0.878,
-    0.898
+    0.898,
+    1.0
    ],
    "coop_by_round": [
     1.0,
@@ -291,7 +292,8 @@
     0.889,
     0.863,
     0.783,
-    0.726
+    0.726,
+    0.0
    ],
    "loss_by_round": [
     0.0,
@@ -300,30 +302,32 @@
     0.316,
     0.416,
     0.231,
-    0.164
+    0.164,
+    0.0
    ],
    "cover": 1.0
   },
   "opus-A3": {
    "model": "opus",
    "arm": "A3",
-   "rounds_built": 6,
+   "rounds_built": 7,
    "complete": false,
-   "histories": 254,
-   "pending": 29,
-   "move_draws": 5080,
-   "calls_stored": 5134,
-   "score": 36.82,
-   "bayes": 36.88,
-   "loss": 0.32,
-   "agree": 0.932,
+   "histories": 283,
+   "pending": 173,
+   "move_draws": 5660,
+   "calls_stored": 5679,
+   "score": 43.52,
+   "bayes": 43.38,
+   "loss": 0.39,
+   "agree": 0.907,
    "agree_by_round": [
     1.0,
     0.87,
     0.942,
     0.906,
     0.936,
-    0.941
+    0.941,
+    0.751
    ],
    "coop_by_round": [
     1.0,
@@ -331,7 +335,8 @@
     0.746,
     0.692,
     0.683,
-    0.695
+    0.695,
+    0.377
    ],
    "loss_by_round": [
     0.0,
@@ -339,7 +344,8 @@
     0.044,
     0.104,
     0.072,
-    0.096
+    0.096,
+    0.069
    ],
    "cover": 1.0
   },
@@ -348,10 +354,10 @@
    "arm": "A4",
    "rounds_built": 7,
    "complete": false,
-   "histories": 221,
-   "pending": 87,
-   "move_draws": 4420,
-   "calls_stored": 4474,
+   "histories": 241,
+   "pending": 67,
+   "move_draws": 4820,
+   "calls_stored": 4872,
    "score": 43.28,
    "bayes": 43.38,
    "loss": 0.13,
@@ -433,23 +439,24 @@
   "fable-A3": {
    "model": "fable",
    "arm": "A3",
-   "rounds_built": 6,
+   "rounds_built": 7,
    "complete": false,
-   "histories": 194,
-   "pending": 1,
-   "move_draws": 3880,
-   "calls_stored": 3900,
-   "score": 36.9,
-   "bayes": 36.88,
-   "loss": 0.04,
-   "agree": 0.962,
+   "histories": 207,
+   "pending": 75,
+   "move_draws": 4140,
+   "calls_stored": 4172,
+   "score": 43.41,
+   "bayes": 43.38,
+   "loss": 0.05,
+   "agree": 0.959,
    "agree_by_round": [
     1.0,
     0.849,
     0.988,
     0.974,
     0.981,
-    0.979
+    0.979,
+    0.944
    ],
    "coop_by_round": [
     1.0,
@@ -457,7 +464,8 @@
     0.792,
     0.745,
     0.741,
-    0.729
+    0.729,
+    0.571
    ],
    "loss_by_round": [
     0.0,
@@ -465,30 +473,32 @@
     0.012,
     0.003,
     0.012,
-    0.001
+    0.001,
+    0.014
    ],
    "cover": 1.0
   },
   "fable-A4": {
    "model": "fable",
    "arm": "A4",
-   "rounds_built": 6,
+   "rounds_built": 7,
    "complete": false,
-   "histories": 180,
-   "pending": 6,
-   "move_draws": 3600,
-   "calls_stored": 3657,
-   "score": 36.92,
-   "bayes": 36.88,
+   "histories": 208,
+   "pending": 57,
+   "move_draws": 4160,
+   "calls_stored": 4228,
+   "score": 43.37,
+   "bayes": 43.38,
    "loss": 0.01,
-   "agree": 0.977,
+   "agree": 0.978,
    "agree_by_round": [
     1.0,
     0.903,
     0.998,
     0.983,
     1.0,
-    0.98
+    0.98,
+    0.983
    ],
    "coop_by_round": [
     1.0,
@@ -496,7 +506,8 @@
     0.804,
     0.753,
     0.747,
-    0.741
+    0.741,
+    0.592
    ],
    "loss_by_round": [
     0.0,
@@ -504,7 +515,8 @@
     0.002,
     0.002,
     0.0,
-    0.001
+    0.001,
+    0.0
    ],
    "cover": 1.0
   }
