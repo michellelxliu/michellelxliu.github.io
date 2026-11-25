@@ -1,99 +1,193 @@
 {
  "summary": {
-  "branches": 250,
-  "exposed_total_mean": 29.7,
-  "branches_reaching_10pct": 186,
-  "branches_reaching_25pct": 2,
-  "branches_with_reposts": 188,
-  "branches_with_zero_exposure": 0,
-  "mentions_total": 1903,
+  "compared": "36 core seeders + 1 regular control",
+  "control_agent": 36,
+  "control": {
+   "exposed": 13,
+   "engaged": 4,
+   "reposts_quotes": 0,
+   "exposed_pct": 5.2,
+   "engaged_pct": 1.6
+  },
+  "core_reaching_10pct": 36,
+  "core_reaching_25pct": 2,
+  "core_median_reposts": 2.0,
+  "core_engaged_by_kind_total": {
+   "create_comment": 616,
+   "like_post": 109,
+   "repost": 106
+  },
+  "core_mentions_total": 466,
+  "core_ratio_vs_control_median": 3.9,
   "hub": {
    "hub_agent": 22,
    "hub_step": 7,
-   "branches_hub_reposted": 179,
+   "core_branches_hub_reposted": 28,
+   "excluded": "agent 22's own branch",
    "groups": {
-    "regular seed, no repost by agent 22": {
-     "n": 64,
-     "median_exposed_pct": 5.2,
-     "min": 4.8,
-     "max": 5.6
+    "agent 22 reposted at step 7": {
+     "n": 28,
+     "median_exposed_pct": 21.6,
+     "min": 15.6,
+     "max": 29.6,
+     "agents": [
+      18,
+      23,
+      30,
+      3,
+      13,
+      2,
+      28,
+      10,
+      16,
+      0,
+      29,
+      20,
+      7,
+      32,
+      14,
+      12,
+      25,
+      31,
+      24,
+      1,
+      9,
+      4,
+      8,
+      17,
+      21,
+      6,
+      5,
+      26
+     ]
     },
-    "regular seed, agent 22 reposted at step 7": {
-     "n": 150,
-     "median_exposed_pct": 12.8,
-     "min": 12.4,
-     "max": 14.0
-    },
-    "core seed": {
-     "n": 36,
-     "median_exposed_pct": 20.2,
+    "no repost by agent 22 at step 7": {
+     "n": 7,
+     "median_exposed_pct": 15.6,
      "min": 10.8,
-     "max": 29.6
+     "max": 24.8,
+     "agents": [
+      34,
+      27,
+      35,
+      15,
+      19,
+      33,
+      11
+     ]
     }
    }
   },
-  "engaged_by_kind_total": {
-   "create_comment": 1873,
-   "like_post": 471,
-   "repost": 315
-  },
-  "spearman_followers_exposed": 0.61,
-  "spearman_followers_engaged": 0.61,
-  "core_median_exposed_pct": 20.2,
-  "regular_median_exposed_pct": 12.4,
-  "core_median_engaged_pct": 8.0,
-  "regular_median_engaged_pct": 3.2,
-  "n_core": 36,
-  "n_regular": 214,
-  "regular_followers_max": 0,
-  "core_followers_range": [
+  "spearman_followers_exposed": 0.45,
+  "spearman_followers_engaged": 0.27,
+  "followers_range": [
    19,
    43
   ],
-  "spearman_followers_exposed_core_only": 0.45,
-  "median_exposed_pct_final": 12.8,
-  "max_exposed_pct": 29.6,
-  "median_engaged_pct_final": 3.2
+  "core_median_exposed_pct": 20.2,
+  "core_min_exposed_pct": 10.8,
+  "core_max_exposed_pct": 29.6,
+  "core_median_engaged_pct": 8.0,
+  "control_exposed_pct": 5.2,
+  "control_engaged_pct": 1.6
  },
  "figures": [
   {
    "name": "rumour_curves",
-   "caption": "Diffusion in each of the 250 seeded branches: cumulative share of agents who saw the rumour (the seed post, or a repost or quote of it) in a feed, and who engaged with it (like, comment, repost, quote, or follow of the poster), by step. Blue: seeded by one of the 36 core users; orange: by a regular user. Black: median over branches. The two branches with the widest reach are labelled by seed agent.",
+   "caption": "Diffusion when each of the 36 core users posts the rumour (thin blue lines; black: median), and when the control does: regular agent 36, the lowest-id regular user, chosen by rule (orange). Left: cumulative share of agents who saw the rumour (the seed post, or a repost or quote of it) in a feed. Right: share who engaged (like, comment, repost, quote, or follow of the poster). The two widest-reaching core seeders are labelled.",
    "numbers": {
-    "median_exposed_pct_final": 12.8,
-    "max_exposed_pct": 29.6,
-    "median_engaged_pct_final": 3.2
+    "core_median_exposed_pct": 20.2,
+    "core_min_exposed_pct": 10.8,
+    "core_max_exposed_pct": 29.6,
+    "core_median_engaged_pct": 8.0,
+    "control_agent": 36,
+    "control_exposed_pct": 5.2,
+    "control_engaged_pct": 1.6
    }
   },
   {
    "name": "rumour_followers",
-   "caption": "Reach by step 16 against the seed agent's follower count at the fork (regular users follow only core users, so every regular user has 0 followers; small horizontal jitter added). Spearman correlation of followers with reach 0.61 over all seeds, but only 0.45 among the 36 core users: being a core user matters more than how many followers it has. Regular seeders fall into two groups (see the next figure).",
+   "caption": "Reach and engagement by step 16 against the core seeder's follower count at the fork (19-43 followers). Follower count predicts reach only moderately (Spearman 0.45) and engagement weakly (0.27). Dashed: the regular control.",
    "numbers": {
-    "spearman_followers_exposed": 0.61,
-    "spearman_followers_engaged": 0.61,
-    "core_median_exposed_pct": 20.2,
-    "regular_median_exposed_pct": 12.4,
-    "core_median_engaged_pct": 8.0,
-    "regular_median_engaged_pct": 3.2,
-    "n_core": 36,
-    "n_regular": 214,
-    "regular_followers_max": 0,
-    "core_followers_range": [
+    "spearman_followers_exposed": 0.45,
+    "spearman_followers_engaged": 0.27,
+    "followers_range": [
      19,
      43
-    ],
-    "spearman_followers_exposed_core_only": 0.45
+    ]
+   }
+  },
+  {
+   "name": "rumour_hub",
+   "caption": "Core user 22's repost at step 7, the step after the rumour is posted, also matters when a core user seeds it: it happened in 28 of the other 35 core branches (median reach 21.6%) and not in 7 (15.6%). Agent 22's own branch is left out: there it reposted its own post. Among regular seeders this repost was a single sampled decision whose only input difference was the author's id; dashed: the control. Lines: median; bands: min-max.",
+   "numbers": {
+    "hub_agent": 22,
+    "hub_step": 7,
+    "core_branches_hub_reposted": 28,
+    "excluded": "agent 22's own branch",
+    "groups": {
+     "agent 22 reposted at step 7": {
+      "n": 28,
+      "median_exposed_pct": 21.6,
+      "min": 15.6,
+      "max": 29.6,
+      "agents": [
+       18,
+       23,
+       30,
+       3,
+       13,
+       2,
+       28,
+       10,
+       16,
+       0,
+       29,
+       20,
+       7,
+       32,
+       14,
+       12,
+       25,
+       31,
+       24,
+       1,
+       9,
+       4,
+       8,
+       17,
+       21,
+       6,
+       5,
+       26
+      ]
+     },
+     "no repost by agent 22 at step 7": {
+      "n": 7,
+      "median_exposed_pct": 15.6,
+      "min": 10.8,
+      "max": 24.8,
+      "agents": [
+       34,
+       27,
+       35,
+       15,
+       19,
+       33,
+       11
+      ]
+     }
+    }
    }
   },
   {
    "name": "rumour_top",
-   "caption": "Ranking of seed agents by how many agents saw their rumour by step 16; the label gives agents reached, agents who engaged, reposts and quotes of the seed post, and the step at which 10% of agents had seen it. The best regular seeder ranks 36.",
+   "caption": "All 36 core seeders ranked by how many agents saw the rumour by step 16; labels give agents reached, agents who engaged, reposts and quotes of the seed post, and the step at which 10% of agents had seen it. Dashed: the regular control.",
    "numbers": {
     "top10": [
      {
-      "rank": 1,
+      "rank": 1.0,
       "seed_agent": 18,
-      "core": true,
       "followers": 36,
       "exposed": 74,
       "engaged": 37,
@@ -102,9 +196,8 @@
       "step_25pct": 15.0
      },
      {
-      "rank": 2,
+      "rank": 2.0,
       "seed_agent": 23,
-      "core": true,
       "followers": 25,
       "exposed": 70,
       "engaged": 36,
@@ -113,9 +206,8 @@
       "step_25pct": 16.0
      },
      {
-      "rank": 3,
+      "rank": 3.0,
       "seed_agent": 34,
-      "core": true,
       "followers": 39,
       "exposed": 62,
       "engaged": 31,
@@ -124,9 +216,8 @@
       "step_25pct": NaN
      },
      {
-      "rank": 4,
+      "rank": 4.0,
       "seed_agent": 30,
-      "core": true,
       "followers": 43,
       "exposed": 61,
       "engaged": 26,
@@ -135,9 +226,8 @@
       "step_25pct": NaN
      },
      {
-      "rank": 5,
+      "rank": 5.0,
       "seed_agent": 3,
-      "core": true,
       "followers": 34,
       "exposed": 61,
       "engaged": 25,
@@ -146,9 +236,8 @@
       "step_25pct": NaN
      },
      {
-      "rank": 6,
+      "rank": 6.0,
       "seed_agent": 13,
-      "core": true,
       "followers": 32,
       "exposed": 61,
       "engaged": 20,
@@ -157,9 +246,8 @@
       "step_25pct": NaN
      },
      {
-      "rank": 7,
+      "rank": 7.0,
       "seed_agent": 2,
-      "core": true,
       "followers": 34,
       "exposed": 60,
       "engaged": 19,
@@ -168,9 +256,8 @@
       "step_25pct": NaN
      },
      {
-      "rank": 8,
+      "rank": 8.0,
       "seed_agent": 28,
-      "core": true,
       "followers": 28,
       "exposed": 59,
       "engaged": 24,
@@ -179,9 +266,8 @@
       "step_25pct": NaN
      },
      {
-      "rank": 9,
+      "rank": 9.0,
       "seed_agent": 10,
-      "core": true,
       "followers": 33,
       "exposed": 59,
       "engaged": 24,
@@ -190,9 +276,8 @@
       "step_25pct": NaN
      },
      {
-      "rank": 10,
+      "rank": 10.0,
       "seed_agent": 16,
-      "core": true,
       "followers": 37,
       "exposed": 57,
       "engaged": 20,
@@ -200,37 +285,7 @@
       "step_10pct": 10.0,
       "step_25pct": NaN
      }
-    ],
-    "best_regular_rank": 36
-   }
-  },
-  {
-   "name": "rumour_hub",
-   "caption": "Reach is decided mostly by whether core user 22 reposts the rumour at step 7, the first step after it is posted. That happened in 179 of 250 branches. Among regular seeders (no followers), the branches split into two tight groups: 12-14 agents reached without that repost, and 31-35 with it. In every regular branch the post has the same id and is shown at step 7 to the same two agents (22 and 199) by the recommender's random slots. Agent 22's prompt differs between branches only in the post's author id, and its sampling seed is the same; it always comments, and reposts in 150 of 214. So the split reflects one sampled decision that flips on the author's id number, not anything about the seeder. Lines: median; bands: min-max over the branches in each group.",
-   "numbers": {
-    "hub_agent": 22,
-    "hub_step": 7,
-    "branches_hub_reposted": 179,
-    "groups": {
-     "regular seed, no repost by agent 22": {
-      "n": 64,
-      "median_exposed_pct": 5.2,
-      "min": 4.8,
-      "max": 5.6
-     },
-     "regular seed, agent 22 reposted at step 7": {
-      "n": 150,
-      "median_exposed_pct": 12.8,
-      "min": 12.4,
-      "max": 14.0
-     },
-     "core seed": {
-      "n": 36,
-      "median_exposed_pct": 20.2,
-      "min": 10.8,
-      "max": 29.6
-     }
-    }
+    ]
    }
   }
  ]
