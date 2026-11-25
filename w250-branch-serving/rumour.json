@@ -206,7 +206,7 @@
   },
   {
    "name": "rumour_hub",
-   "caption": "Reach is decided mostly by whether core user 22 reposts the rumour at step 7, the first step after it is posted. That happened in 179 of 250 branches. Among regular seeders (no followers), the branches split into two tight groups: 12-14 agents reached without that repost, and 31-35 with it. Agent 22 is active at step 7 in every branch (seeded activation); whether it reposts depends on whether the rumour is in its feed and on what it writes. Lines: median; bands: min-max over the branches in each group.",
+   "caption": "Reach is decided mostly by whether core user 22 reposts the rumour at step 7, the first step after it is posted. That happened in 179 of 250 branches. Among regular seeders (no followers), the branches split into two tight groups: 12-14 agents reached without that repost, and 31-35 with it. In every regular branch the post has the same id and is shown at step 7 to the same two agents (22 and 199) by the recommender's random slots. Agent 22's prompt differs between branches only in the post's author id, and its sampling seed is the same; it always comments, and reposts in 150 of 214. So the split reflects one sampled decision that flips on the author's id number, not anything about the seeder. Lines: median; bands: min-max over the branches in each group.",
    "numbers": {
     "hub_agent": 22,
     "hub_step": 7,
