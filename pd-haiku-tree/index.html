@@ -88,6 +88,19 @@ details details > summary { font-weight: 500; font-size: 14px; }
 .chip { display: inline-block; font-size: 11px; color: var(--ink2); border: 1px solid var(--axis); border-radius: 10px; padding: 0 7px; margin-bottom: 3px; }
 pre.prompt { white-space: pre-wrap; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--page); border: 1px solid var(--ring); border-radius: 8px; padding: 10px; color: var(--ink2); }
 .note { font-size: 12.5px; color: var(--muted); }
+#findings { max-width: 1100px; margin: 8px auto 24px; padding: 18px 22px; box-sizing: border-box; }
+@media (max-width: 1140px) { #findings { margin: 8px 16px 24px; } }
+#findings h2 { font-size: 17px; margin: 18px 0 6px; }
+#findings h2:first-child { margin-top: 0; }
+#findings p, #findings li { color: var(--ink2); max-width: 820px; }
+#findings li { margin: 4px 0; }
+#findings li b, #findings p b { color: var(--ink); }
+.tscroll { overflow-x: auto; }
+table.ft { border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; margin: 6px 0 4px; }
+table.ft th, table.ft td { padding: 4px 12px 4px 0; text-align: right; border-bottom: 1px solid var(--grid); white-space: nowrap; }
+table.ft th:first-child, table.ft td:first-child { text-align: left; }
+table.ft th { color: var(--muted); font-weight: 500; }
+table.ft td.g { color: var(--muted); }
 footer { max-width: 1400px; margin: 0 auto; padding: 0 16px 40px; color: var(--muted); font-size: 12.5px; }
 #loading { padding: 40px; color: var(--ink2); }
 table.sum { border-collapse: collapse; font-size: 12.5px; margin-top: 8px; font-variant-numeric: tabular-nums; }
@@ -112,6 +125,7 @@ pre.prompt.long { max-height: 340px; overflow: auto; }
     <div class="seg" role="group" aria-label="Experiment" id="expSeg">
       <button data-m="haiku" aria-pressed="true">Haiku, opponent unknown</button>
       <button data-m="kd" aria-pressed="false">Four models, opponent's strategies known <span class="tag" id="kdTag"></span></button>
+      <button data-m="find" aria-pressed="false">Comparison with best play <span class="tag">(preliminary)</span></button>
     </div>
   </div>
   <div class="controls" id="kCtl" hidden>
@@ -130,12 +144,12 @@ pre.prompt.long { max-height: 340px; overflow: auto; }
     </div>
     <label class="chk"><input type="checkbox" id="cOff"> Show moves Haiku itself would not make</label>
   </div>
-  <div class="controls">
+  <div class="controls" id="treeCtl">
     <button class="btn" id="bPath">Open the most common game</button>
     <button class="btn" id="bReset">Collapse</button>
   </div>
   <div id="status" class="status"></div>
-  <div class="legend" aria-label="Legend">
+  <div class="legend" id="legend" aria-label="Legend">
     <span><svg width="110" height="14" aria-hidden="true"><defs><linearGradient id="lg"><stop offset="0" stop-color="var(--defect)"/><stop offset=".5" stop-color="var(--mid)"/><stop offset="1" stop-color="var(--coop)"/></linearGradient></defs><rect x="0" y="2" width="110" height="10" rx="3" fill="url(#lg)" stroke="var(--axis)"/></svg>
       The model's chance of cooperating next: 0% → 100%</span>
     <span><svg width="40" height="14" aria-hidden="true"><line x1="0" y1="7" x2="40" y2="7" stroke="var(--axis)" stroke-width="7"/></svg> thicker = more games pass through (the % next to each move)</span>
@@ -143,7 +157,8 @@ pre.prompt.long { max-height: 340px; overflow: auto; }
     <span>Edge label: the model's move / the opponent's move (C = cooperate, D = defect). A “+” means more rounds are inside; a hollow dot is the end of the game; a dashed hollow dot has not been run (the run was paused, or is still going).</span>
   </div>
 </header>
-<main>
+<section id="findings" class="card" hidden></section>
+<main id="treeMain">
   <div class="card" id="treebox"><div id="loading">Loading the tree…</div></div>
   <aside class="card" id="panel" aria-live="polite"></aside>
 </main>
@@ -464,7 +479,10 @@ async function switchKd(m, a) {
   render(); panel(); status();
 }
 function setMode() {
-  document.getElementById("kCtl").hidden = !KD(); document.getElementById("hCtl").hidden = KD();
+  const F = mode === "find";
+  document.getElementById("kCtl").hidden = !KD(); document.getElementById("hCtl").hidden = KD() || F;
+  for (const id of ["treeCtl", "legend", "treeMain", "status"]) document.getElementById(id).hidden = F;
+  document.getElementById("findings").hidden = !F;
   document.querySelectorAll("#expSeg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.m === mode));
   if (!KD()) return;
   const ms = document.getElementById("modelSeg"), as = document.getElementById("armSeg");
@@ -533,11 +551,66 @@ fetch("data/meta.json").then(r => r.json()).then(async m => {
     meta = m; setColor(); initSvg();
     document.getElementById("goalSeg").innerHTML = meta.goals.map(g => `<button data-g="${g.goal}" aria-pressed="false" title="${esc(g.goal_sentence)}">${GOAL_LABEL[g.goal] || g.goal}${g.complete ? "" : ' <span class="tag">(partial)</span>'}</button>`).join("");
     document.querySelectorAll("#goalSeg button").forEach(b => b.addEventListener("click", () => switchTo(b.dataset.g, ident)));
-    document.querySelectorAll("#expSeg button").forEach(b => b.addEventListener("click", () => (b.dataset.m === "kd" ? switchKd(kModel, kArm) : switchTo(goal, ident)).catch(e => { document.getElementById("status").textContent = "Could not load the data: " + e.message; })));
+    document.querySelectorAll("#expSeg button").forEach(b => b.addEventListener("click", () => (b.dataset.m === "kd" ? switchKd(kModel, kArm) : b.dataset.m === "find" ? showFindings() : switchTo(goal, ident)).catch(e => { document.getElementById("status").textContent = "Could not load the data: " + e.message; })));
     fetch("data/kd/meta.json").then(r => r.json()).then(k => { kmeta = k; document.getElementById("kdTag").textContent = Object.values(k.trees).every(t => t.complete) ? "" : "(in progress)"; }).catch(() => {});
     await switchTo("own_points", "llm");
   })
   .catch(e => { const l = document.getElementById("loading"); if (l) l.textContent = "Could not load the data: " + e.message; });
+async function showFindings() {
+  if (!kmeta) kmeta = await fetch("data/kd/meta.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+  mode = "find"; setMode();
+  const tr = kmeta.trees, b = kmeta.bayes, all = Object.values(tr), name = m => m[0].toUpperCase() + m.slice(1);
+  const D = Math.min(...all.map(t => t.rounds_built)), sum = a => a.reduce((x, y) => x + y, 0), f2 = x => x == null ? "–" : x.toFixed(2);
+  const bestD = sum(b.points_by_round.slice(0, D));
+  const rowsD = kmeta.models.flatMap(m => kmeta.arms.map(a => { const t = tr[m + "-" + a]; if (!t || !t.rounds_built) return "";
+    const pr = t.coop_by_round[0], ag = mean(t.agree_by_round.slice(0, D)), ls = sum(t.loss_by_round.slice(0, D));
+    return `<tr><td>${name(m)}</td><td style="text-align:left">${ARM_SHORT[a]}</td><td>${pct(pr)}</td><td>${pct(ag)}</td><td>${f2(ls)}</td><td class="g">${t.rounds_built}/8</td></tr>`; })).join("");
+  const rowsOwn = kmeta.models.flatMap(m => kmeta.arms.map(a => { const t = tr[m + "-" + a]; if (!t || !t.rounds_built) return "";
+    return `<tr><td>${name(m)}</td><td style="text-align:left">${ARM_SHORT[a]}</td><td>${t.rounds_built}</td><td>${f2(t.score)}</td><td>${f2(t.bayes)}</td><td>${f2(t.loss)}</td><td>${pct(t.agree)}</td></tr>`; })).join("");
+  const byRound = (key, fmt) => kmeta.models.flatMap(m => kmeta.arms.map(a => { const t = tr[m + "-" + a]; if (!t || !t.rounds_built) return "";
+    return `<tr><td>${name(m)} · ${ARM_SHORT[a]}</td>${[0,1,2,3,4,5,6,7].map(i => `<td>${t[key][i] == null ? "" : fmt(t[key][i])}</td>`).join("")}</tr>`; })).join("");
+  const rh = `<tr><th>Tree</th>${[1,2,3,4,5,6,7,8].map(i => `<th>R${i}</th>`).join("")}</tr>`;
+  document.getElementById("findings").innerHTML = `
+<h2>Comparison with best play: preliminary</h2>
+<p>Each model played the same 8-round game against an opponent drawn at random from 148 strategies, and was ${ARM_LONG.A0} (A0), ${ARM_LONG.A3} (A3), or ${ARM_LONG.A4} (A4). “Best play” is the Bayes-optimal policy: at every history it picks the move that earns the most points over the rest of the game, averaged over the strategies that still fit (each equally likely). Against these 148 it earns <b>${b.full_game}</b> points per game; always cooperating earns ${b.always_C}, always defecting ${b.always_D}, tit-for-tat ${b.tit_for_tat}. Its round-1 move is ${b.first_move === "C" ? "cooperate" : "defect"}.</p>
+<p><b>The runs are still going</b>: Haiku's trees are complete, the others are built to between ${Math.min(...all.filter(t => !t.complete).map(t => t.rounds_built))} and ${Math.max(...all.filter(t => !t.complete).map(t => t.rounds_built))} of 8 rounds. Tables update with the data (last ${esc(kmeta.updated)}).</p>
+
+<h2>What the data show so far</h2>
+<p class="sub">Written 2026-11-25 from the data as of 16:20 UTC; the numbers in the tables below may have moved since.</p>
+<ul>
+<li><b>Opus and Fable play almost exactly as best play does when they are told the strategies.</b> Over rounds 1–4 they give up 0.16 points or less per game (Fable 0.02 or less); over the rounds built so far (5–6) their scores match best play to within 0.1 points. Both cooperate in round 1 every time, as best play does.</li>
+<li><b>Without the list (A0), Opus and Fable still come close</b>, giving up about 1 point per game over 6–7 rounds. Most of the loss comes from round 4 on.</li>
+<li><b>Haiku plays worse when it is told the strategies.</b> Told nothing, it cooperates in round 1 80% of the time and scores 45.8 over the full game (best play: 49.7). Told the 148 strategies, it cooperates in round 1 only 15–20% of the time and almost never after round 2, and scores 41.1–41.3: below always cooperating (44.0) and tit-for-tat (46.8), barely above always defecting (40.7). It gives up 8.4–8.6 points per game, against 3.9 when told nothing.</li>
+<li><b>Sonnet also does worse when told</b>, on a smaller scale: over rounds 1–4 it gives up 0.95 points told nothing, 2.6 shown only the strategies that still fit, and 3.4 told all 148. It cooperates in round 1 in 90%, 65% and 50% of draws.</li>
+<li><b>Showing only the strategies that still fit (A4) helps a little</b> compared with the full list (A3) for every model, most for Sonnet.</li>
+<li>So far, being told the opponent's possible strategies brings Opus and Fable to near-best play, and moves Haiku and Sonnet away from it: they defect more than best play does.</li>
+</ul>
+
+<h2>All twelve trees over the rounds built by every tree (rounds 1–${D})</h2>
+<p class="sub">Best play earns ${f2(bestD)} points over these rounds. “Points given up” judges each move at its own history, assuming best play afterwards.</p>
+<div class="tscroll"><table class="ft"><tr><th>Model</th><th style="text-align:left">Told</th><th>Cooperates in round 1</th><th>Best move chosen</th><th>Points given up per game</th><th>Rounds built</th></tr>${rowsD}</table></div>
+
+<h2>Each tree over all the rounds it has built</h2>
+<p class="sub">Not comparable across rows with different round counts.</p>
+<div class="tscroll"><table class="ft"><tr><th>Model</th><th style="text-align:left">Told</th><th>Rounds</th><th>Model's points</th><th>Best play's points</th><th>Points given up</th><th>Best move chosen</th></tr>${rowsOwn}</table></div>
+
+<h2>Best move chosen, by round</h2>
+<div class="tscroll"><table class="ft">${rh}${byRound("agree_by_round", pct)}</table></div>
+<h2>Chance of cooperating, by round</h2>
+<div class="tscroll"><table class="ft">${rh}${byRound("coop_by_round", pct)}</table></div>
+<h2>Points given up, by round</h2>
+<div class="tscroll"><table class="ft">${rh}${byRound("loss_by_round", f2)}</table></div>
+
+<h2>Caveats</h2>
+<ul>
+<li>Preliminary: Sonnet, Opus and Fable are partway through, and the later rounds, where most of their losses so far appear, are still to come.</li>
+<li>Each history has 20 move draws, split over four label presentations (which letter means cooperate, which is listed first); rates are averaged over presentations and over the 148 opponents equally, and games reaching a history in under 1% of draws are dropped (coverage of each round is at least 99.7%).</li>
+<li>One call per move through Claude Code run from an empty directory, effort low, with thinking on (the harness default, not shown). This differs from the API runs in the first experiment, where Haiku rarely thinks; the Haiku numbers here are not comparable with that tree.</li>
+<li>In A0 the model was not told how the opponent is chosen, so best play there is a benchmark it had no way to compute, not a mistake it made.</li>
+<li>No token probabilities on this path.</li>
+</ul>`;
+  document.getElementById("foot").innerHTML = `Data: ${esc(kmeta.source)}. Scored by probes/known_dist_score.py (math242).`;
+}
 function footHaiku() {
     document.getElementById("foot").innerHTML = `Data: ${esc(meta.source)}. A branch is kept when Haiku plays it in at least ${meta.threshold * 100}% of draws, plus one-move deviations asked about anyway. “Games reaching here” weights each opponent and each label presentation equally. Thinking summaries are not shown. The API gives no token probabilities.`;
 }
