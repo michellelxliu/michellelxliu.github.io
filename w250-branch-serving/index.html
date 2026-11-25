@@ -1,0 +1,64 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Branching Simulation Serving</title><style>
+:root{--bg:#fbfaf7;--card:#ffffff;--ink:#1d1d1b;--mute:#6b6a65;--line:#e6e5e0;--accent:#2a78d6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17171a;--card:#232326;--ink:#e8e6e1;--mute:#9a978f;--line:#33332f;--accent:#3987e5}}
+:root[data-theme="dark"]{--bg:#17171a;--card:#232326;--ink:#e8e6e1;--mute:#9a978f;--line:#33332f;--accent:#3987e5}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,sans-serif;max-width:880px;margin:40px auto;padding:0 16px}
+h1{font-size:26px;line-height:1.25;margin:0 0 6px}h2{font-size:18px;margin:36px 0 8px}
+.sub{color:var(--mute);margin:0 0 20px}
+a{color:var(--accent)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:18px 0}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.tile b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.tile span{color:var(--mute);font-size:13px}
+figure{margin:22px 0;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+figure img{width:100%;height:auto;background:#fff;border-radius:6px;display:block}
+figcaption{font-size:14.5px;margin-top:10px}figcaption .dl{color:var(--mute);font-size:13px}
+table{border-collapse:collapse;font-size:13.5px;width:100%;font-variant-numeric:tabular-nums}
+th,td{border-bottom:1px solid var(--line);padding:4px 6px;text-align:right}th:first-child,td:first-child{text-align:left}
+.scroll{overflow-x:auto}
+ul{padding-left:20px}li{margin:3px 0}
+</style></head><body>
+<p class="sub"><a href="../">← Michelle Liu</a></p>
+<h1>Serving a branching LLM-agent simulation: 251 counterfactual branches on 4 × A100</h1>
+<p class="sub">Baseline run for a systems study of intervention-aware LLM serving. Branches run one at a time per GPU, with the prefix cache flushed before each. Run of 2026-11-25 (Slurm job 63508559).</p>
+<div class="tiles"><div class="tile"><b>251</b><span>branches (control + 250 seeded), 10 LLM steps each</span></div><div class="tile"><b>82,827</b><span>LLM calls</span></div><div class="tile"><b>635M</b><span>prompt tokens</span></div><div class="tile"><b>5.72 h</b><span>job time on 4 × A100</span></div><div class="tile"><b>326 s</b><span>median time per branch</span></div><div class="tile"><b>3.1×</b><span>faster than a MIG 3g.20gb slice</span></div><div class="tile"><b>30%</b><span>prompt tokens served from cache</span></div><div class="tile"><b>68%</b><span>prompt tokens another branch already computed</span></div></div>
+
+<h2>Setup</h2>
+<ul>
+<li><b>Workload.</b> An OASIS social-media simulation with 250 LLM agents (36 well-connected "core" users). After a warm-up, the world is forked at step 6: a control branch, plus one branch per agent in which that agent posts the same rumour. Each branch then runs steps 7–16. Agents are activated by a seeded draw, so the same agents act at the same step in every branch. Only the content they see differs.</li>
+<li><b>Model and server.</b> Qwen3-4B-Instruct-2507 on SGLang 0.5.10.post1 with deterministic inference (Triton attention), the <code>lpm</code> schedule, chunked prefill of 4,096 tokens, and HiCache (host KV tier at 1.5× the GPU pool, write-through, LRU). The GPU KV pool holds 431k tokens. Every call returns top-5 logprobs.</li>
+<li><b>Hardware.</b> One whole node, held exclusively: 4 × A100-SXM4-80GB (NVLink), 2 × 32-core Ice Lake, 1 TB RAM. One server per GPU. Each server runs about 63 branches in sequence, with its client's cores and memory bound to that GPU's NUMA node. All 36 nodes of the partition are this type.</li>
+<li><b>Comparison run.</b> The MIG comparison (figure 3) uses an earlier test on one MIG 3g.20gb slice of an A100, with the same server settings and the same four branches.</li>
+</ul>
+
+<h2 id="fig1_workload">1. Workload</h2>
+<figure><a href="fig1_workload.png"><img src="fig1_workload.png" alt="1. Workload" loading="lazy"></a>
+<figcaption>Workload. Left: prompt length per LLM call by step over all 251 branches (median; bands 25-75th and 10-90th percentile). Each agent&#x27;s prompt carries its memory of earlier steps, so the median prompt grows 2.4x in 10 steps. Right: calls per branch per step (agents are activated by a seeded draw, identical across branches). Outputs are short (median 115 tokens): 79 prompt tokens per generated token. <span class="dl">(<a href="fig1_workload.svg">SVG</a>, <a href="fig1_workload.png">PNG</a>)</span></figcaption></figure><h2 id="fig2_branch_time">2. Time per branch and stability</h2>
+<figure><a href="fig2_branch_time.png"><img src="fig2_branch_time.png" alt="2. Time per branch and stability" loading="lazy"></a>
+<figcaption>Per-branch wall time (fork to step 16, cache flushed before each branch). Left: distribution per GPU; the four GPUs (two per NUMA node) are indistinguishable. Right: each branch&#x27;s time against when it started; the dashed line marks when per-second node/GPU telemetry was attached (one extra process); branch times before and after differ by under 1%. <span class="dl">(<a href="fig2_branch_time.svg">SVG</a>, <a href="fig2_branch_time.png">PNG</a>)</span></figcaption></figure><h2 id="fig3_a100_vs_mig">3. A100 vs MIG slice</h2>
+<figure><a href="fig3_a100_vs_mig.png"><img src="fig3_a100_vs_mig.png" alt="3. A100 vs MIG slice" loading="lazy"></a>
+<figcaption>A100-SXM4-80GB (this run) vs one MIG 3g.20gb slice (systems test, jobs 63166995/63167001, mean of the two runs), same four branches (b1, b18, b28, b34), same server settings (HiCache LRU, ratio 1.5, lpm, deterministic). The slice has 42 of 108 SMs and a 63k-token KV pool vs 431k; the A100&#x27;s advantage grows as prompts outgrow the slice&#x27;s pool. <span class="dl">(<a href="fig3_a100_vs_mig.svg">SVG</a>, <a href="fig3_a100_vs_mig.png">PNG</a>)</span></figcaption></figure><h2 id="fig4_latency">4. Where request time goes</h2>
+<figure><a href="fig4_latency.png"><img src="fig4_latency.png" alt="4. Where request time goes" loading="lazy"></a>
+<figcaption>Request latency inside the server, by step (A100, all branches). Left: mean time a request spends queued (received to first scheduled), in prefill (scheduled to prefill done, including chunked-prefill interleaving) and from then to completion (&#x27;decode&#x27;; this includes iterations the batch spends on other requests&#x27; prefill chunks). A step&#x27;s ~30 calls arrive together, so queueing (39% of request time) and decode (57%) dominate; a request&#x27;s own prefill is ~1 s (4%). Right: the median step lasts as long as the slowest call of that step (p99 latency): the step barrier sets the pace. <span class="dl">(<a href="fig4_latency.svg">SVG</a>, <a href="fig4_latency.png">PNG</a>)</span></figcaption></figure><h2 id="fig5_reuse">5. Prefix reuse: achieved vs available</h2>
+<figure><a href="fig5_reuse.png"><img src="fig5_reuse.png" alt="5. Prefix reuse: achieved vs available" loading="lazy"></a>
+<figcaption>Prefix-cache reuse, as a share of all prompt tokens per step. Achieved: tokens SGLang served from cache (GPU or host tier) with the cache flushed before each branch. Within branch: longest common prefix with the same agent&#x27;s previous prompt in the same branch. Cross-branch: longest common prefix with the same agent&#x27;s prompt at the same step in the control branch, or in the most similar of the other 250 branches. Branches start identical and drift apart, but even at step 16 about 47% of prompt tokens are a prefix some other branch already computed; running branches one at a time discards all of it. <span class="dl">(<a href="fig5_reuse.svg">SVG</a>, <a href="fig5_reuse.png">PNG</a>)</span></figcaption></figure><h2 id="fig6_anatomy">6. Anatomy of one branch</h2>
+<figure><a href="fig6_anatomy.png"><img src="fig6_anatomy.png" alt="6. Anatomy of one branch" loading="lazy"></a>
+<figcaption>Anatomy of one 10-step branch on GPU 0 (dotted lines: first request of each step, labelled). At each step ~30 requests arrive together; they are admitted to prefill a few at a time (queued falls as running rises) and the step ends when the last one finishes decoding. KV use climbs with each step&#x27;s longer prompts and reaches 93% at step 16. HiCache write-through copies every newly computed KV block to host memory: about 220 GB per branch, in 1-s bursts of up to 27 GB/s (near the PCIe 4.0 x16 limit). Host-to-GPU traffic (KV load-backs) appears in a few bursts. The ~13 s before step 7 is branch set-up (restore from the fork snapshot, client start) with the GPU idle. <span class="dl">(<a href="fig6_anatomy.svg">SVG</a>, <a href="fig6_anatomy.png">PNG</a>)</span></figcaption></figure><h2 id="fig7_utilisation">7. GPU hardware counters</h2>
+<figure><a href="fig7_utilisation.png"><img src="fig7_utilisation.png" alt="7. GPU hardware counters" loading="lazy"></a>
+<figcaption>GPU utilisation from DCGM hardware counters, 5-s means over the last ~3.6 h of the run (telemetry attached 2 h in; DCGM profiling counters refresh about every 25-30 s). Some kernel occupies the SMs ~89% of the time, yet tensor pipes are active ~28% and DRAM bandwidth ~14%: neither compute nor memory bandwidth is saturated. Deterministic (batch-invariant) Triton attention and small per-step batches are likely causes; this run does not isolate them. <span class="dl">(<a href="fig7_utilisation.svg">SVG</a>, <a href="fig7_utilisation.png">PNG</a>)</span></figcaption></figure>
+
+<h2>Per-step numbers</h2>
+<div class="scroll"><table><thead><tr><th>step</th><th>achieved hit %</th><th>from host tier %</th><th>within-branch prefix %</th><th>prefix shared with control %</th><th>prefix shared with best other branch %</th><th>queued s</th><th>prefill s</th><th>decode s</th></tr></thead><tbody><tr><td>7</td><td>1.1</td><td>0.0</td><td>0.0</td><td>99.2</td><td>99.6</td><td>7.42</td><td>0.73</td><td>12.92</td></tr><tr><td>8</td><td>17.3</td><td>0.0</td><td>16.3</td><td>95.1</td><td>97.2</td><td>7.77</td><td>0.8</td><td>11.72</td></tr><tr><td>9</td><td>31.6</td><td>0.0</td><td>31.1</td><td>77.6</td><td>91.7</td><td>3.03</td><td>0.76</td><td>8.47</td></tr><tr><td>10</td><td>34.4</td><td>0.0</td><td>34.0</td><td>72.5</td><td>84.4</td><td>6.05</td><td>0.91</td><td>11.17</td></tr><tr><td>11</td><td>30.2</td><td>2.4</td><td>29.6</td><td>67.0</td><td>83.0</td><td>9.01</td><td>0.91</td><td>14.6</td></tr><tr><td>12</td><td>45.7</td><td>6.2</td><td>47.8</td><td>52.7</td><td>71.8</td><td>5.52</td><td>0.86</td><td>10.93</td></tr><tr><td>13</td><td>38.7</td><td>1.4</td><td>41.9</td><td>46.8</td><td>60.0</td><td>11.03</td><td>1.33</td><td>14.87</td></tr><tr><td>14</td><td>41.6</td><td>1.2</td><td>48.4</td><td>41.7</td><td>53.2</td><td>16.03</td><td>1.37</td><td>17.75</td></tr><tr><td>15</td><td>28.5</td><td>1.3</td><td>47.7</td><td>38.9</td><td>51.6</td><td>14.18</td><td>1.45</td><td>20.82</td></tr><tr><td>16</td><td>25.3</td><td>1.6</td><td>45.6</td><td>37.5</td><td>47.3</td><td>20.45</td><td>1.52</td><td>25.66</td></tr></tbody></table></div>
+<p class="sub">Percentages are shares of all prompt tokens at that step. Times are means per request. Download: <a href="per_step.csv">per_step.csv</a>, <a href="branches.csv">branches.csv</a> (one row per branch), <a href="figures.json">figures.json</a> (every number and caption).</p>
+
+<h2>Caveats</h2>
+<ul>
+<li>Extra GPU and node telemetry (DCGM counters, 1-s PCIe, per-core CPU) was attached 2.1 h into the 5.7 h job, so figures 6 and 7 cover only the last 3.6 h. That monitor ran as one extra process on core 0. Branches took 327.7 s on average before it attached (93 branches) and 325.5 s after (155 branches).</li>
+<li>The MIG and A100 runs are separate jobs on different nodes, though they use the same code, server flags and branches.</li>
+<li>Cross-branch reuse is measured offline, as the longest common token prefix with other branches' prompts for the same agent and step. It is an upper bound on what running branches together could reuse, not a measured speed-up.</li>
+<li>286 of 82,827 requests (0.35%) ended in an abort. 248 of these are one call, agent 147 at step 7, which aborted in 248 of the 251 branches. So the aborts are a property of that prompt, not of load.</li>
+<li>The concurrent counterpart of this run, which would test cross-branch reuse directly, has not been run yet.</li>
+</ul>
+<p class="sub">Simulated agents and content only. No personal data. Figures and code: Michelle Liu.</p>
+</body></html>

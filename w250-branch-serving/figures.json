@@ -1,0 +1,267 @@
+{
+ "headline": {
+  "branches": 251,
+  "llm_calls": 82827,
+  "prompt_tokens": 635224551,
+  "completion_tokens": 8065006,
+  "job_makespan_h": 5.72,
+  "branch_median_s": 325.8,
+  "computed_prompt_tok_s_per_gpu": 5409.0,
+  "hit_rate_pct": 30.2,
+  "aborted_requests": 286
+ },
+ "figures": [
+  {
+   "name": "fig1_workload",
+   "caption": "Workload. Left: prompt length per LLM call by step over all 251 branches (median; bands 25-75th and 10-90th percentile). Each agent's prompt carries its memory of earlier steps, so the median prompt grows 2.4x in 10 steps. Right: calls per branch per step (agents are activated by a seeded draw, identical across branches). Outputs are short (median 115 tokens): 79 prompt tokens per generated token.",
+   "numbers": {
+    "median_prompt_step7": 4131,
+    "median_prompt_step16": 10042,
+    "p90_prompt_step16": 16609,
+    "calls_total": 82827,
+    "prompt_tokens_total": 635224551,
+    "median_completion_tokens": 115.0
+   }
+  },
+  {
+   "name": "fig2_branch_time",
+   "caption": "Per-branch wall time (fork to step 16, cache flushed before each branch). Left: distribution per GPU; the four GPUs (two per NUMA node) are indistinguishable. Right: each branch's time against when it started; the dashed line marks when per-second node/GPU telemetry was attached (one extra process); branch times before and after differ by under 1%.",
+   "numbers": {
+    "median_s": 325.8,
+    "mean_s": 326.4,
+    "min_s": 305.6,
+    "max_s": 353.7,
+    "cv": 0.0181,
+    "mean_before_telemetry_s": 327.7,
+    "n_before": 93,
+    "mean_after_telemetry_s": 325.5,
+    "n_after": 155,
+    "per_gpu": {
+     "s0": {
+      "median": 326.1,
+      "mean": 326.8,
+      "std": 6.0,
+      "count": 63
+     },
+     "s1": {
+      "median": 325.3,
+      "mean": 325.1,
+      "std": 5.6,
+      "count": 63
+     },
+     "s2": {
+      "median": 326.3,
+      "mean": 326.8,
+      "std": 5.1,
+      "count": 63
+     },
+     "s3": {
+      "median": 325.5,
+      "mean": 326.8,
+      "std": 6.7,
+      "count": 62
+     }
+    },
+    "job_makespan_h": 5.72
+   }
+  },
+  {
+   "name": "fig3_a100_vs_mig",
+   "caption": "A100-SXM4-80GB (this run) vs one MIG 3g.20gb slice (systems test, jobs 63166995/63167001, mean of the two runs), same four branches (b1, b18, b28, b34), same server settings (HiCache LRU, ratio 1.5, lpm, deterministic). The slice has 42 of 108 SMs and a 63k-token KV pool vs 431k; the A100's advantage grows as prompts outgrow the slice's pool.",
+   "numbers": {
+    "mig_branch_mean_s": 1003.6,
+    "a100_same_branches_mean_s": 324.4,
+    "speedup_by_step": {
+     "7": 2.39,
+     "8": 2.54,
+     "9": 2.54,
+     "10": 2.83,
+     "11": 3.14,
+     "12": 3.26,
+     "13": 3.28,
+     "14": 3.66,
+     "15": 3.12,
+     "16": 3.25
+    },
+    "speedup_total": 3.09
+   }
+  },
+  {
+   "name": "fig4_latency",
+   "caption": "Request latency inside the server, by step (A100, all branches). Left: mean time a request spends queued (received to first scheduled), in prefill (scheduled to prefill done, including chunked-prefill interleaving) and from then to completion ('decode'; this includes iterations the batch spends on other requests' prefill chunks). A step's ~30 calls arrive together, so queueing (39% of request time) and decode (57%) dominate; a request's own prefill is ~1 s (4%). Right: the median step lasts as long as the slowest call of that step (p99 latency): the step barrier sets the pace.",
+   "numbers": {
+    "mean_queue_s": {
+     "7": 7.42,
+     "8": 7.77,
+     "9": 3.03,
+     "10": 6.05,
+     "11": 9.01,
+     "12": 5.52,
+     "13": 11.03,
+     "14": 16.03,
+     "15": 14.18,
+     "16": 20.45
+    },
+    "mean_prefill_s": {
+     "7": 0.73,
+     "8": 0.8,
+     "9": 0.76,
+     "10": 0.91,
+     "11": 0.91,
+     "12": 0.86,
+     "13": 1.33,
+     "14": 1.37,
+     "15": 1.45,
+     "16": 1.52
+    },
+    "mean_decode_s": {
+     "7": 12.92,
+     "8": 11.72,
+     "9": 8.47,
+     "10": 11.17,
+     "11": 14.6,
+     "12": 10.93,
+     "13": 14.87,
+     "14": 17.75,
+     "15": 20.82,
+     "16": 25.66
+    },
+    "share_queue": 0.39,
+    "share_prefill": 0.04,
+    "share_decode": 0.57,
+    "aborted_requests": 286
+   }
+  },
+  {
+   "name": "fig5_reuse",
+   "caption": "Prefix-cache reuse, as a share of all prompt tokens per step. Achieved: tokens SGLang served from cache (GPU or host tier) with the cache flushed before each branch. Within branch: longest common prefix with the same agent's previous prompt in the same branch. Cross-branch: longest common prefix with the same agent's prompt at the same step in the control branch, or in the most similar of the other 250 branches. Branches start identical and drift apart, but even at step 16 about 47% of prompt tokens are a prefix some other branch already computed; running branches one at a time discards all of it.",
+   "numbers": {
+    "achieved_pct": 30.2,
+    "host_tier_pct": 1.47,
+    "within_branch_ref_pct": 37.3,
+    "cross_branch_best_pct": 68.2,
+    "cross_branch_ctrl_pct": 57.0,
+    "by_step": {
+     "7": {
+      "achieved": 1.1,
+      "host": 0.0,
+      "within": 0.0,
+      "other": 99.6,
+      "ctrl": 99.2
+     },
+     "8": {
+      "achieved": 17.3,
+      "host": 0.0,
+      "within": 16.3,
+      "other": 97.2,
+      "ctrl": 95.1
+     },
+     "9": {
+      "achieved": 31.6,
+      "host": 0.0,
+      "within": 31.1,
+      "other": 91.7,
+      "ctrl": 77.6
+     },
+     "10": {
+      "achieved": 34.4,
+      "host": 0.0,
+      "within": 34.0,
+      "other": 84.4,
+      "ctrl": 72.5
+     },
+     "11": {
+      "achieved": 30.2,
+      "host": 2.4,
+      "within": 29.6,
+      "other": 83.0,
+      "ctrl": 67.0
+     },
+     "12": {
+      "achieved": 45.7,
+      "host": 6.2,
+      "within": 47.8,
+      "other": 71.8,
+      "ctrl": 52.7
+     },
+     "13": {
+      "achieved": 38.7,
+      "host": 1.4,
+      "within": 41.9,
+      "other": 60.0,
+      "ctrl": 46.8
+     },
+     "14": {
+      "achieved": 41.6,
+      "host": 1.2,
+      "within": 48.4,
+      "other": 53.2,
+      "ctrl": 41.7
+     },
+     "15": {
+      "achieved": 28.5,
+      "host": 1.3,
+      "within": 47.7,
+      "other": 51.6,
+      "ctrl": 38.9
+     },
+     "16": {
+      "achieved": 25.3,
+      "host": 1.6,
+      "within": 45.6,
+      "other": 47.3,
+      "ctrl": 37.5
+     }
+    }
+   }
+  },
+  {
+   "name": "fig6_anatomy",
+   "caption": "Anatomy of one 10-step branch on GPU 0 (dotted lines: first request of each step, labelled). At each step ~30 requests arrive together; they are admitted to prefill a few at a time (queued falls as running rises) and the step ends when the last one finishes decoding. KV use climbs with each step's longer prompts and reaches 93% at step 16. HiCache write-through copies every newly computed KV block to host memory: about 220 GB per branch, in 1-s bursts of up to 27 GB/s (near the PCIe 4.0 x16 limit). Host-to-GPU traffic (KV load-backs) appears in a few bursts. The ~13 s before step 7 is branch set-up (restore from the fork snapshot, client start) with the GPU idle.",
+   "numbers": {
+    "branch": "b95",
+    "shard": "s0",
+    "branch_s": 322.0,
+    "peak_kv_pct": 93.2,
+    "setup_before_first_request_s": 12.6,
+    "pcie_tx_GB": 221.4,
+    "pcie_rx_GB": 37.7,
+    "peak_tx_GBs": 27.3,
+    "dmon_samples": 281
+   }
+  },
+  {
+   "name": "fig7_utilisation",
+   "caption": "GPU utilisation from DCGM hardware counters, 5-s means over the last ~3.6 h of the run (telemetry attached 2 h in; DCGM profiling counters refresh about every 25-30 s). Some kernel occupies the SMs ~89% of the time, yet tensor pipes are active ~28% and DRAM bandwidth ~14%: neither compute nor memory bandwidth is saturated. Deterministic (batch-invariant) Triton attention and small per-step batches are likely causes; this run does not isolate them.",
+   "numbers": {
+    "median": {
+     "PROF_SM_ACTIVE": {
+      "s0": 89.09,
+      "s1": 88.97,
+      "s2": 89.44,
+      "s3": 88.96
+     },
+     "PROF_PIPE_TENSOR_ACTIVE": {
+      "s0": 28.03,
+      "s1": 27.57,
+      "s2": 28.83,
+      "s3": 27.44
+     },
+     "PROF_DRAM_ACTIVE": {
+      "s0": 13.95,
+      "s1": 14.26,
+      "s2": 14.44,
+      "s3": 13.81
+     },
+     "DEV_POWER_USAGE": {
+      "s0": 303.23,
+      "s1": 303.94,
+      "s2": 310.99,
+      "s3": 299.17
+     }
+    },
+    "hours_covered": 3.63
+   }
+  }
+ ]
+}
