@@ -84,7 +84,7 @@ table.agree td.n{text-align:right}
 <body>
 <main>
 <div class="theme seg" role="group" aria-label="Colour theme"><button data-t="light">Light</button><button data-t="dark">Dark</button></div>
-<h1>Synthetic video QA from Blender scenes: samples, and what a skill-trained text encoder changes</h1>
+<h1>Synthetic video QA from Blender scenes: samples</h1>
 <p>Each clip below was written as code for one target <b>skill</b> (a node of a skill tree induced from video-QA
 benchmarks), rendered in Blender, and paired with multiple-choice questions whose answers are read from the saved
 <code>.blend</code> file, not written by hand. These items come from wave 1 of the dataset (in progress; wave 2 is
@@ -117,54 +117,15 @@ questions and no open review flag. All kept questions of each scene are shown.</
 </div>
 <div class="cards" id="cards"></div>
 
-<h2>Trained encoder vs. its starting point: which items count as "near"?</h2>
-<p>To cluster these items by skill, each question is embedded as text (question + options; the encoder never sees the
-video). Two spaces are compared:</p>
-<ul>
-<li><span class="k-base">Base</span>: <code>gte-modernbert-base</code>, a general sentence embedder, frozen.</li>
-<li><span class="k-enc">Trained encoder</span>: the same model fine-tuned on about 50k video-benchmark questions, each
-labelled by an LLM with its path in the skill tree, so that questions sharing skills land close together. None of the
-synthetic items below were in its training data.</li>
-</ul>
-<p>Nearness below is a <b>rank</b>: for item <i>i</i>, rank 1 is its nearest other item by cosine similarity among all
-<span id="nitems"></span> items. Items from the same scene are excluded, because they share a scene description and
-would be near for a trivial reason.</p>
-<table class="agree" id="agree"></table>
-<p class="note">Each scene's "skill node" is the one its brief targeted. Questions inside a scene often exercise
-neighbouring skills too, so this is a rough yardstick, not ground truth.</p>
-
-<h3>One item, its three nearest neighbours in each space</h3>
-<p>One anchor per skill area, chosen where the two spaces' top-3 neighbour lists share no item (the most disagreeing such item in
-that area). The small numbers give each neighbour's rank in both spaces; click a small clip to enlarge it.</p>
-<div id="anchors"></div>
-
-<h3>Pairs near in one space, far in the other</h3>
-<p>Pairs where one item is among the other's <span id="near"></span> nearest in one space but ranked beyond
-<span id="far"></span> (of <span class="nitems2"></span>) in the other, taken farthest-first with each scene and skill-node pair used once.</p>
-<div class="controls"><div class="seg" role="group" aria-label="Pair direction" id="pairseg">
-  <button data-k="close_encoder_far_base" aria-pressed="true">Near in trained encoder, far in base</button>
-  <button data-k="close_base_far_encoder">Near in base, far in trained encoder</button>
-</div></div>
-<p id="paircount" class="note"></p>
-<div id="pairs"></div>
-
-<h3>What the examples suggest (a reading, not a measurement)</h3>
-<ul>
-<li>The base model groups by <b>shared nouns and setting</b>: "the coffee table", "the walker", "the camera", "the
-sign". Two questions about a coffee table are near even when one asks how the camera orbits it and the other how
-many objects rest on it.</li>
-<li>The trained encoder groups by <b>what has to be judged</b>: how far things travel relative to each other, which side
-something ends up on, whether something stripes or changes. Different objects and wording do not keep them apart.</li>
-<li>It also leans on the <b>answer format</b>: "which side…" questions (left/right of an object, which side is lit) can
-sit together even when the skills differ, and for some items the base model's neighbours match the brief's skill node
-better (the walker / egocentric-turn anchor below). The trained encoder's neighbours share the brief's skill node more often overall (table above), not every time.</li>
-</ul>
+<h2>Which of these items count as similar?</h2>
+<p>A companion page compares how a skill-trained text encoder and its frozen starting point embed these questions, with
+items that are near in one space and far in the other: <a href="../synthetic-encoder-neighbours/">What a skill-trained
+text encoder changes</a>.</p>
 
 <h2>Sources and replication</h2>
 <p class="note">Scenes rendered with Blender + Infinigen (BSD-3-Clause) assets; scene and fact code written by Claude
 Sonnet agents from a fixed brief; questions validated against the file as described above. Everything on this page is
-read from <code>data.json</code> in this folder; the encoder comparison is produced by
-<code>experiments/synth_items/encoder_contrast.py</code> and the page data by
+read from <code>data.json</code> in this folder, produced by
 <code>experiments/synth_items/export_samples_page.py</code> in the project repository. Page built 2026-11-25.</p>
 </main>
 <script>
@@ -203,36 +164,6 @@ fetch('data.json').then(r=>r.json()).then(D=>{
     cards.querySelectorAll('.card').forEach(c=>c.style.display=(cur==='All'||c.dataset.l2===cur)?'':'none');});
   document.getElementById('ans').onchange=e=>document.body.classList.toggle('show-ans',e.target.checked);
 
-  // agreement
-  document.querySelectorAll('#nitems,.nitems2').forEach(e=>e.textContent=S.items.toLocaleString());
-  document.getElementById('near').textContent=D.near;document.getElementById('far').textContent=D.far.toLocaleString();
-  const A=D.agreement,pc=v=>(v*100).toFixed(0)+' %';
-  document.getElementById('agree').innerHTML=`<tr><th>Of each item's 10 nearest (other-scene) items, share whose scene targeted…</th><th class="k-base">Base</th><th class="k-enc">Trained</th></tr>
-   <tr><td>the same skill node (L3; 116 nodes)</td><td class="n">${pc(A.base.same_node_top10)}</td><td class="n">${pc(A.encoder.same_node_top10)}</td></tr>
-   <tr><td>the same skill area (L2; 17 areas)</td><td class="n">${pc(A.base.same_l2_top10)}</td><td class="n">${pc(A.encoder.same_l2_top10)}</td></tr>`;
-
-  // anchors
-  const rk=x=>`<span class="small">trained rank <span class="k-enc">${x.rank_encoder}</span> · base rank <span class="k-base">${x.rank_base}</span></span>`;
-  const thumb=s=>`<video src="videos/${esc(s)}.mp4" muted loop playsinline autoplay preload="auto" title="Click to enlarge" onclick="this.classList.toggle('big')"></video>`;
-  const nnrow=x=>`<div class="nn">${thumb(x.scene)}<div><div class="q">${esc(x.question)}</div>${opts(x)}<div class="small">${esc(x.node)} (${esc(x.l2)})</div>${rk(x)}</div></div>`;
-  document.getElementById('anchors').innerHTML=D.anchors.map(a=>{const x=a.anchor;return `<div class="anchor">
-    <div class="anchor-top">${vid(x.scene)}<div><div class="tag">Anchor · ${esc(x.l2)} · ${esc(x.node)}</div>${qblock(x)}</div></div>
-    <div class="nncols"><div class="nncol"><h4 class="k-enc">Nearest in trained encoder</h4>${a.encoder_nn.map(nnrow).join('')}</div>
-    <div class="nncol"><h4 class="k-base">Nearest in base</h4>${a.base_nn.map(nnrow).join('')}</div></div></div>`}).join('');
-
-  // pairs
-  const side=x=>`<div>${vid(x.scene)}<div class="tag">${esc(x.l2)} · ${esc(x.node)}</div>${qblock(x)}</div>`;
-  function showPairs(k){
-    const P=D.pairs[k];
-    document.getElementById('paircount').textContent=`${P.length} shown of ${D.candidates[k]} qualifying item pairs.`;
-    document.getElementById('pairs').innerHTML=P.map(p=>`<div class="pair"><div class="meta">
-      <span>Trained encoder: rank <span class="k-enc">${p.encoder.rank}</span> (cosine ${p.encoder.cos.toFixed(3)}, ${p.encoder.pct.toFixed(1)}th pct)</span>
-      <span>Base: rank <span class="k-base">${p.base.rank}</span> (cosine ${p.base.cos.toFixed(3)}, ${p.base.pct.toFixed(1)}th pct)</span>
-      <span>${p.a.node===p.b.node?'same skill node':'different skill nodes'}</span></div>${side(p.a)}${side(p.b)}</div>`).join('');
-  }
-  const seg=document.querySelectorAll('#pairseg button');
-  seg.forEach(b=>b.onclick=()=>{seg.forEach(c=>c.setAttribute('aria-pressed',c===b));showPairs(b.dataset.k);});
-  showPairs('close_encoder_far_base');
 });
 })();
 </script>
