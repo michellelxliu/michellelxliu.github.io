@@ -33,11 +33,14 @@ h1 { font-size: 22px; margin: 0 0 6px; font-weight: 650; }
 .lede { color: var(--ink2); margin: 0; max-width: 820px; }
 .controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin: 14px 0 6px; }
 .seg { display: inline-flex; border: 1px solid var(--axis); border-radius: 8px; overflow: hidden; }
+.seg button .tag { font-size: 11px; opacity: .75; }
 .seg button { border: 0; background: transparent; color: var(--ink2); padding: 6px 12px; font: inherit; cursor: pointer; }
 .seg button[aria-pressed="true"] { background: var(--ink); color: var(--surface); }
 .btn { border: 1px solid var(--axis); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 5px 11px; font: inherit; cursor: pointer; }
 .btn:hover, .seg button:hover:not([aria-pressed="true"]) { background: var(--wash); }
 label.chk { color: var(--ink2); display: inline-flex; gap: 6px; align-items: center; cursor: pointer; }
+.status { font-size: 13.5px; color: var(--ink2); margin: 2px 0 10px; padding: 7px 10px; border-left: 3px solid var(--axis); background: var(--surface); border-radius: 0 6px 6px 0; max-width: 980px; }
+.status b { color: var(--ink); }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 22px; color: var(--ink2); font-size: 13px; align-items: center; }
 .legend svg { vertical-align: middle; }
 main { max-width: 1400px; margin: 0 auto; padding: 8px 16px 40px; display: grid; grid-template-columns: minmax(0, 1fr) 440px; gap: 16px; align-items: start; }
@@ -93,11 +96,13 @@ footer { max-width: 1400px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
 <header>
   <h1>Haiku's game tree: how it plays, and what it says about its opponent</h1>
   <p class="lede">Claude Haiku 5.5 played an 8-round Prisoner's Dilemma (both cooperate: 7 each; both defect: 3 each;
-  defecting on a cooperator: 9 vs 1) against 148 opponent strategies written by LLMs. Each dot is a point in the game.
+  defecting on a cooperator: 9 vs 1) against 148 opponent strategies written by LLMs, once for each goal it was given. Each dot is a point in the game.
   Click a dot to open the rounds after it and to see what Haiku does next and what it said about the other player there.</p>
   <div class="controls">
+    <span class="sub">Haiku's goal</span>
+    <div class="seg" role="group" aria-label="Haiku's goal" id="goalSeg"></div>
     <span class="sub">Haiku was told the other player is</span>
-    <div class="seg" role="group" aria-label="Opponent identity">
+    <div class="seg" role="group" aria-label="Opponent identity" id="identSeg">
       <button data-id="llm" aria-pressed="true">an AI language model</button>
       <button data-id="human" aria-pressed="false">a person</button>
     </div>
@@ -105,12 +110,13 @@ footer { max-width: 1400px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
     <button class="btn" id="bReset">Collapse</button>
     <label class="chk"><input type="checkbox" id="cOff"> Show moves Haiku itself would not make</label>
   </div>
+  <div id="status" class="status"></div>
   <div class="legend" aria-label="Legend">
     <span><svg width="110" height="14" aria-hidden="true"><defs><linearGradient id="lg"><stop offset="0" stop-color="var(--defect)"/><stop offset=".5" stop-color="var(--mid)"/><stop offset="1" stop-color="var(--coop)"/></linearGradient></defs><rect x="0" y="2" width="110" height="10" rx="3" fill="url(#lg)" stroke="var(--axis)"/></svg>
       Haiku's chance of cooperating next: 0% → 100%</span>
     <span><svg width="40" height="14" aria-hidden="true"><line x1="0" y1="7" x2="40" y2="7" stroke="var(--axis)" stroke-width="7"/></svg> thicker = more games pass through (the % next to each move)</span>
     <span><svg width="40" height="14" aria-hidden="true"><line x1="0" y1="7" x2="40" y2="7" stroke="var(--axis)" stroke-width="1.5" stroke-dasharray="4 3"/></svg> a move Haiku would not make (asked about anyway)</span>
-    <span>Edge label: Haiku's move / the opponent's move (C = cooperate, D = defect). A “+” means more rounds are inside; a hollow dot is the end of the game.</span>
+    <span>Edge label: Haiku's move / the opponent's move (C = cooperate, D = defect). A “+” means more rounds are inside; a hollow dot is the end of the game; a dashed hollow dot was not reached before the run was paused.</span>
   </div>
 </header>
 <main>
@@ -128,8 +134,11 @@ const PRES_SHORT = ["X=C · X first", "Y=C · X first", "X=C · Y first", "Y=C �
 const GOAL_NAMES = ["Own points", "Beat Haiku", "Joint points", "Equal points", "Haiku's points (altruist)", "Lower Haiku's points (spite)"];
 const Q5_NAMES = ["Its own points", "Ending ahead of Haiku", "Combined points", "Equal points", "Haiku's points", "Making Haiku's points small"];
 const ROW = 30, COL = 132, ML = 34, MT = 24;
-let meta, data = {}, ident = "llm", expanded = new Set([""]), selected = "", showOff = false, color;
+let meta, data = {}, goal = "own_points", ident = "llm", expanded = new Set([""]), selected = "", showOff = false, color;
 const openCache = {};
+const T = () => data[goal + "|" + ident];
+const G = () => meta.goals.find(g => g.goal === goal);
+const GOAL_LABEL = { own_points: "Own points", welfare: "Welfare", equality: "Equality", spite: "Spite" };
 
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 function setColor() { color = d3.piecewise(d3.interpolateLab, [css("--defect"), css("--mid"), css("--coop")]); }
@@ -140,7 +149,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 const mean = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : null;
 
 function kids(h) {
-  const d = data[ident];
+  const d = T();
   return MOVES.map(m => h ? h + "." + m : m).filter(c => d[c] && (showOff || d[c].on));
 }
 function build(h) {
@@ -165,7 +174,7 @@ function render(anchor) {
   root.each(n => { x0 = Math.min(x0, n.x); x1 = Math.max(x1, n.x); dmax = Math.max(dmax, n.depth); });
   root.each(n => { n.x = n.x - x0 + MT; n.y = n.depth * COL + ML; });
   svg.attr("width", Math.max(dmax * COL + ML + 110, 400)).attr("height", x1 - x0 + 2 * MT);
-  const d = data[ident];
+  const d = T();
   const pos = {}; root.each(n => pos[n.data.h] = n);
   const parentOld = n => { let p = n.parent; while (p && !last[p.data.h]) p = p.parent; return p ? last[p.data.h] : { x: n.x, y: n.y }; };
   const tr = svg.transition().duration(260);
@@ -203,6 +212,7 @@ function render(anchor) {
   nodes.select(".more").style("display", n => !expanded.has(n.data.h) && kids(n.data.h).length ? null : "none");
   nodes.select("circle.dot")
     .attr("fill", n => d[n.data.h].p == null ? "var(--surface)" : color(d[n.data.h].p))
+    .attr("stroke-dasharray", n => d[n.data.h].pend ? "2.5 2" : null)
     .attr("stroke", n => n.data.h === selected ? "var(--ink)" : "var(--ink2)")
     .attr("stroke-width", n => n.data.h === selected ? 3 : 1)
     .attr("r", n => n.data.h === selected ? 8.5 : 7.5);
@@ -211,7 +221,8 @@ function render(anchor) {
 }
 
 function label(h) {
-  const r = rounds(h), n = data[ident][h];
+  const r = rounds(h), n = T()[h];
+  if (n.pend) return (r.length ? `After round ${r.length}. ` : "Start of the game. ") + "Not run yet: the run was paused before Haiku's moves here were drawn.";
   if (!r.length) return "Start of the game. Haiku cooperates first with " + pct(n.p);
   const m = r[r.length - 1];
   return `After round ${r.length}: Haiku ${m[0] === "C" ? "cooperated" : "defected"}, opponent ${m[1] === "C" ? "cooperated" : "defected"}. ` +
@@ -220,9 +231,9 @@ function label(h) {
 
 const tipEl = document.getElementById("tip");
 function tip(e, h) {
-  const n = data[ident][h], r = rounds(h);
+  const n = T()[h], r = rounds(h);
   tipEl.innerHTML = `<div><b>${r.length ? "After round " + r.length : "Start"}</b> ${r.length ? "· " + r.map(x => x[0] + "/" + x[1]).join(" ") : ""}</div>` +
-    (n.p == null ? `<div class="k">Game over</div>` : `<div><span class="k">Haiku cooperates next:</span> ${pct(n.p)}</div>`) +
+    (n.pend ? `<div class="k">Not run yet (run paused)</div>` : n.p == null ? `<div class="k">Game over</div>` : `<div><span class="k">Haiku cooperates next:</span> ${pct(n.p)}</div>`) +
     `<div><span class="k">Games reaching here:</span> ${h ? fmtReach(n.reach) : "all"}</div>` +
     (n.on ? "" : `<div class="k">A move Haiku would not make</div>`);
   tipEl.style.display = "block";
@@ -254,19 +265,20 @@ function strip(vals) {
 }
 
 function panel() {
-  const h = selected, n = data[ident][h], r = rounds(h), t = r.length, q = n.q || {};
+  const h = selected, n = T()[h], r = rounds(h), t = r.length, q = n.q || {};
   let you = 0, them = 0;
   let rows = r.map((m, i) => { const p = PAY[m]; you += p[0]; them += p[1];
     const w = c => `<span class="sq" style="background:var(${c === "C" ? "--coop" : "--defect"})"></span>${c === "C" ? "cooperate" : "defect"}`;
     return `<tr><td>${i + 1}</td><td>${w(m[0])}</td><td>${w(m[1])}</td><td>${p[0]} – ${p[1]}</td></tr>`; }).join("");
   let html = `<h2>${t ? "After round " + t + " of 8" : "Before round 1"}</h2>`;
-  html += `<div class="sub">Opponent described as ${ident === "llm" ? "an AI language model" : "a person"}${n.on ? "" : " · <b>a history Haiku would not produce itself</b>"}</div>`;
+  html += `<div class="sub">Haiku's goal: ${esc(G().goal_sentence.replace("Your goal is to ", "").replace(/\.$/, ""))} · opponent described as ${ident === "llm" ? "an AI language model" : "a person"}${n.on ? "" : " · <b>a history Haiku would not produce itself</b>"}</div>`;
   if (t) html += `<table class="hist"><tr><th>Round</th><th>Haiku</th><th>Opponent</th><th>Points</th></tr>${rows}<tr><th></th><th></th><th>Total</th><th>${you} – ${them}</th></tr></table>`;
 
   html += `<h3>Haiku's next move</h3>`;
-  if (n.p == null) html += `<div class="sub">The game is over.</div>`;
+  if (n.pend) html += `<div class="sub">Not run yet: the run was paused before Haiku's moves at this point were drawn.</div>`;
+  else if (n.p == null) html += `<div class="sub">The game is over.</div>`;
   else {
-    html += `<div><span class="big">${pct(n.p)}</span> <span class="sub">cooperate, over ${meta.k_move} draws (5 per label presentation)</span></div>`;
+    html += `<div><span class="big">${pct(n.p)}</span> <span class="sub">cooperate, over ${n.cnt ? n.cnt.reduce((s, c) => s + c[0] + c[1], 0) : 0} draws (${meta.k_move / 4} per label presentation when complete)</span></div>`;
     if (n.cnt) html += n.cnt.map((c, i) => `<div class="row"><span class="l">${PRES_SHORT[i]}</span>${moveBar(c[0], c[1])}<span class="v">${c[0]}/${c[0] + c[1]}</span></div>`).join("");
     html += `<div class="note">Blue = cooperate, red = defect. The moves are called X and Y; which one means cooperate, and which is listed first, is varied.</div>`;
   }
@@ -277,7 +289,11 @@ function panel() {
     n.rg.map((v, i) => `<div class="row"><span class="l">${GOAL_NAMES[i]} <span class="note">(${meta.goal_n[i]})</span></span><div class="bar"><span style="width:${Math.max(v * 100, v > 0 ? 1 : 0)}%;background:var(--ink2)"></span></div><span class="v">${fmtReach(v)}</span></div>`).join("") + `</details>`;
 
   // closed
+  const why = G().trees[ident].closed_histories === 0 ? "No questionnaire answers for this goal yet: the run was paused before the questions were asked."
+    : "Not asked here: for this goal the questions were asked only at histories Haiku itself reaches.";
+  if (!n.q) html += `<details><summary>Closed questions <span class="s">· not asked here</span></summary><div class="note">${why}</div></details>`;
   const q1 = q.q1 ? mean(q.q1.map(v => v[1])) : null;
+  if (n.q) {
   html += `<details id="dClosed"><summary>Closed questions <span class="s">${q1 != null ? "· expects the opponent to cooperate next: " + pct(q1) : ""}</span></summary>`;
   html += `<div class="note">8 answers per question (2 per label presentation), converted to “cooperate” whatever the label. Dots = answers, black tick = mean. Hover a dot for its presentation.</div>`;
   const items = [["q1", "Opponent cooperates next round", "q1"], ["cc", "…in the round after, if Haiku cooperates next", "q2"], ["cd", "…in the round after, if Haiku defects next", "q3"], ["q4", "Opponent's choices depend on Haiku's", "q4"]];
@@ -289,13 +305,14 @@ function panel() {
   }
   html += `<details><summary>Exact wording</summary>${["q1", "q2", "q3", "q4", "q5"].map(w => `<div class="qtext"><b>${w.toUpperCase()}.</b> ${esc(meta.closed_wording[w]).replace(/\n/g, "<br>")}</div>`).join("")}<div class="note">Q2 and Q3 ask about a fixed letter; above they are rearranged as “if Haiku cooperates / defects”.</div></details>`;
   html += `</details>`;
-
-  html += `<details id="dOpen"><summary>Open questions <span class="s">· Haiku's own words, 4 answers each</span></summary><div id="openBody" class="sub">Loading…</div></details>`;
+  }
+  if (!n.o) html += `<details><summary>Open questions <span class="s">· not asked here</span></summary><div class="note">${why}</div></details>`;
+  else html += `<details id="dOpen"><summary>Open questions <span class="s">· Haiku's own words, 4 answers each</span></summary><div id="openBody" class="sub">Loading…</div></details>`;
   html += `<details id="dPrompt"><summary>The prompt Haiku saw <span class="s">(X = cooperate, X listed first)</span></summary><div id="promptBody"></div></details>`;
   document.getElementById("panel").innerHTML = html;
   const dOpen = document.getElementById("dOpen"), dPrompt = document.getElementById("dPrompt");
-  dOpen.addEventListener("toggle", () => dOpen.open && loadOpen(h));
-  dPrompt.addEventListener("toggle", () => dPrompt.open && loadOpen(h));
+  if (dOpen) dOpen.addEventListener("toggle", () => dOpen.open && loadOpen(h));
+  dPrompt.addEventListener("toggle", () => dPrompt.open && showPrompt(h));
   if (panel.keep) for (const id of panel.keep) { const el = document.getElementById(id); if (el) el.open = true; }
 }
 // keep the user's open sections open when they click another node
@@ -311,10 +328,10 @@ function itemText(iid, h) {
 }
 
 async function loadOpen(h) {
-  const key = ident + "|" + h;
+  const key = goal + "|" + ident + "|" + h;
   try {
     if (!openCache[key]) {
-      const res = await fetch(`data/open/${ident}/${h ? h.replace(/\./g, "-") : "root"}.json`);
+      const res = await fetch(`data/${goal}/open/${ident}/${h ? h.replace(/\./g, "-") : "root"}.json`);
       if (!res.ok) throw new Error(res.status);
       openCache[key] = await res.json();
     }
@@ -325,45 +342,75 @@ async function loadOpen(h) {
   if (ob && ob.dataset.h !== key) {
     ob.dataset.h = key; ob.className = "";
     ob.innerHTML = `<div class="note">One answer under each of the four label presentations; the chip says which letter meant cooperate. Haiku was asked to answer in a few sentences.</div>` +
-      Object.keys(meta.open_wording).filter(k => o.items[k]).map(k =>
-        `<details><summary>${esc(itemText(k, h))}</summary>${o.items[k].map(([pi, txt]) => `<div class="ans"><span class="chip">${PRES_SHORT[pi]}</span><div>${esc(txt).replace(/\n+/g, "<br>")}</div></div>`).join("")}</details>`).join("");
+      Object.keys(meta.open_wording).filter(k => o[k]).map(k =>
+        `<details><summary>${esc(itemText(k, h))}</summary>${o[k].map(([pi, txt]) => `<div class="ans"><span class="chip">${PRES_SHORT[pi]}</span><div>${esc(txt).replace(/\n+/g, "<br>")}</div></div>`).join("")}</details>`).join("");
   }
-  const pb = document.getElementById("promptBody");
-  if (pb && !pb.dataset.done) {
-    pb.dataset.done = 1;
-    const sp = meta.system_prompts[ident + "|X|XY"] || "";
-    pb.innerHTML = `<div class="qtext">System prompt</div><pre class="prompt">${esc(sp)}</pre><div class="qtext">History block</div><pre class="prompt">${esc(o.history_text || "")}</pre>` +
-      `<div class="note">Each question was then asked on its own after “${esc(meta.preamble.replace("{next}", rounds(h).length + 1))}”.</div>`;
-  }
+}
+
+function pts(n) { return n === 1 ? "1 point" : n + " points"; }
+function historyText(h) {  // mirrors impressions.prompts.history_text under X = cooperate, X listed first
+  const r = rounds(h); if (!r.length) return "No rounds played yet.";
+  let m = 0, t = 0;
+  return r.map((x, i) => { const p = PAY[x]; m += p[0]; t += p[1]; const L = c => c === "C" ? "X" : "Y";
+    return `Round ${i + 1}: you played ${L(x[0])}, other player played ${L(x[1])}. Totals: you have ${pts(m)}, other player has ${pts(t)}.`; }).join("\n");
+}
+function showPrompt(h) {
+  const pb = document.getElementById("promptBody"); if (!pb || pb.dataset.done) return; pb.dataset.done = 1;
+  const t = rounds(h).length;
+  pb.innerHTML = `<div class="qtext">System prompt</div><pre class="prompt">${esc(G().system_prompts[ident])}</pre><div class="qtext">History block</div><pre class="prompt">${esc(historyText(h))}</pre>` +
+    `<div class="note">${t < 8 ? "The move was asked with “Round " + (t + 1) + ": choose X or Y.” Each" : "Each"} question was asked on its own after “${esc((t < 8 ? meta.preamble : meta.preamble_ended).replace("{next}", t + 1))}”.</div>`;
 }
 
 // ---------- controls ----------
 function mostCommon() {
   expanded = new Set([""]); let h = "";
-  for (;;) { const k = kids(h).filter(c => data[ident][c].on); if (!k.length) break; expanded.add(h);
-    h = k.reduce((a, b) => (data[ident][b].reach > data[ident][a].reach ? b : a)); }
+  for (;;) { const k = kids(h).filter(c => T()[c].on); if (!k.length) break; expanded.add(h);
+    h = k.reduce((a, b) => (T()[b].reach > T()[a].reach ? b : a)); }
   selected = h; render(); panel();
   const node = last[h]; const box = document.getElementById("treebox"); if (node) { box.scrollTop = node.x - box.clientHeight / 2; box.scrollLeft = node.y - box.clientWidth + 120; }
 }
-document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
-  ident = b.dataset.id; document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
-  // keep the same open branches where they exist in the other tree
-  expanded = new Set([...expanded].filter(h => data[ident][h])); expanded.add("");
-  if (!data[ident][selected]) selected = "";
+async function ensure(g, id) {
+  const k = g + "|" + id;
+  if (!data[k]) data[k] = await fetch(`data/${g}/tree-${id}.json`).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+}
+async function switchTo(g, id) {
+  await ensure(g, id);
+  goal = g; ident = id;
+  document.querySelectorAll("#goalSeg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.g === goal));
+  document.querySelectorAll("#identSeg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.id === ident));
+  expanded = new Set([...expanded].filter(h => T()[h])); expanded.add("");
+  if (!T()[selected] || (!showOff && !T()[selected].on)) selected = "";
   gNodes.selectAll("*").remove(); gLinks.selectAll("*").remove(); last = {};
-  render(); panel();
-}));
+  render(); panel(); status();
+}
+function status() {
+  const g = G(), tr = g.trees, f = x => x.toLocaleString();
+  const both = ["llm", "human"].map(i => tr[i]);
+  let s = `<b>${esc(g.goal_sentence)}</b> `;
+  if (g.complete) {
+    const all = both.every(t => t.closed_histories === t.nodes);
+    s += all ? `Complete. Questions asked at every history (${f(both.reduce((a, t) => a + t.nodes, 0))}).`
+      : `Complete. Questions asked only at the ${f(both.reduce((a, t) => a + t.closed_histories, 0))} histories Haiku itself reaches; other points show moves only.`;
+  } else {
+    const d = i => tr[i].move_draws ? `${f(tr[i].nodes - tr[i].pending)} histories built, ${f(tr[i].pending)} not run yet` : "not started";
+    s += `<b>Partial:</b> the run was paused before it finished. Told AI model: ${d("llm")}. Told person: ${d("human")}. No questionnaire answers yet.`;
+  }
+  document.getElementById("status").innerHTML = s;
+}
 document.getElementById("bPath").onclick = mostCommon;
 document.getElementById("bReset").onclick = () => { expanded = new Set([""]); selected = ""; render(); panel(); document.getElementById("treebox").scrollTo(0, 0); };
-document.getElementById("cOff").onchange = e => { showOff = e.target.checked; if (!showOff && !data[ident][selected].on) selected = ""; render(selected); panel(); };
+document.querySelectorAll("#identSeg button").forEach(b => b.addEventListener("click", () => switchTo(goal, b.dataset.id)));
+document.getElementById("cOff").onchange = e => { showOff = e.target.checked; if (!showOff && !T()[selected].on) selected = ""; render(selected); panel(); };
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { setColor(); render(); });
 
-Promise.all([fetch("data/meta.json").then(r => r.json()), fetch("data/tree-llm.json").then(r => r.json()), fetch("data/tree-human.json").then(r => r.json())])
-  .then(([m, a, b]) => {
-    meta = m; data.llm = a; data.human = b; setColor(); initSvg(); render(); panel();
-    document.getElementById("foot").innerHTML = `Data: ${esc(meta.source)}. ${Object.keys(a).length.toLocaleString()} histories (told AI) and ${Object.keys(b).length.toLocaleString()} (told person); a branch is kept when Haiku plays it in at least ${meta.threshold * 100}% of draws, plus one-move deviations asked about anyway. “Games reaching here” weights each opponent and each label presentation equally. Thinking summaries are not shown. The API gives no token probabilities.`;
+fetch("data/meta.json").then(r => r.json()).then(async m => {
+    meta = m; setColor(); initSvg();
+    document.getElementById("goalSeg").innerHTML = meta.goals.map(g => `<button data-g="${g.goal}" aria-pressed="false" title="${esc(g.goal_sentence)}">${GOAL_LABEL[g.goal] || g.goal}${g.complete ? "" : ' <span class="tag">(partial)</span>'}</button>`).join("");
+    document.querySelectorAll("#goalSeg button").forEach(b => b.addEventListener("click", () => switchTo(b.dataset.g, ident)));
+    await switchTo("own_points", "llm");
+    document.getElementById("foot").innerHTML = `Data: ${esc(meta.source)}. A branch is kept when Haiku plays it in at least ${meta.threshold * 100}% of draws, plus one-move deviations asked about anyway. “Games reaching here” weights each opponent and each label presentation equally. Thinking summaries are not shown. The API gives no token probabilities.`;
   })
-  .catch(e => { document.getElementById("loading").textContent = "Could not load the data: " + e.message; });
+  .catch(e => { const l = document.getElementById("loading"); if (l) l.textContent = "Could not load the data: " + e.message; });
 </script>
 </body>
 </html>

@@ -1,12 +1,122 @@
 {
- "source": "outputs/tree-full-2026-11-23 (math242), Claude Haiku 5.5 (claude-haiku-5-5), effort low, adaptive thinking, prompt version 2026-11-23e",
+ "source": "math242 runs: outputs/tree-full-2026-11-23 (own points), outputs/tree-<goal>-2026-11-24 (other goals). Claude Haiku 5.5 (claude-haiku-5-5), effort low, adaptive thinking, prompt version 2026-11-23e",
+ "goals": [
+  {
+   "goal": "own_points",
+   "trees": {
+    "llm": {
+     "nodes": 3071,
+     "on_policy": 667,
+     "pending": 0,
+     "move_draws": 38720,
+     "closed_histories": 3071,
+     "open_histories": 3071
+    },
+    "human": {
+     "nodes": 2867,
+     "on_policy": 558,
+     "pending": 0,
+     "move_draws": 36620,
+     "closed_histories": 2867,
+     "open_histories": 2867
+    }
+   },
+   "complete": true,
+   "system_prompts": {
+    "llm": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n\nThe other player is an AI language model. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can.",
+    "human": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n\nThe other player is a person. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can."
+   },
+   "goal_sentence": "Your goal is to earn as many points as you can."
+  },
+  {
+   "goal": "welfare",
+   "trees": {
+    "llm": {
+     "nodes": 3647,
+     "on_policy": 996,
+     "pending": 0,
+     "move_draws": 43040,
+     "closed_histories": 996,
+     "open_histories": 996
+    },
+    "human": {
+     "nodes": 3165,
+     "on_policy": 741,
+     "pending": 0,
+     "move_draws": 36400,
+     "closed_histories": 741,
+     "open_histories": 741
+    }
+   },
+   "complete": true,
+   "system_prompts": {
+    "llm": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n\nThe other player is an AI language model. You are not told what the other player is trying to achieve.\n\nYour goal is to make the two players' combined points as large as possible.",
+    "human": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n\nThe other player is a person. You are not told what the other player is trying to achieve.\n\nYour goal is to make the two players' combined points as large as possible."
+   },
+   "goal_sentence": "Your goal is to make the two players' combined points as large as possible."
+  },
+  {
+   "goal": "equality",
+   "trees": {
+    "llm": {
+     "nodes": 5124,
+     "on_policy": 1490,
+     "pending": 419,
+     "move_draws": 54695,
+     "closed_histories": 0,
+     "open_histories": 0
+    },
+    "human": {
+     "nodes": 1,
+     "on_policy": 1,
+     "pending": 1,
+     "move_draws": 0,
+     "closed_histories": 0,
+     "open_histories": 0
+    }
+   },
+   "complete": false,
+   "system_prompts": {
+    "llm": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n\nThe other player is an AI language model. You are not told what the other player is trying to achieve.\n\nYour goal is to make the two players' points as equal as possible.",
+    "human": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n\nThe other player is a person. You are not told what the other player is trying to achieve.\n\nYour goal is to make the two players' points as equal as possible."
+   },
+   "goal_sentence": "Your goal is to make the two players' points as equal as possible."
+  },
+  {
+   "goal": "spite",
+   "trees": {
+    "llm": {
+     "nodes": 222,
+     "on_policy": 156,
+     "pending": 143,
+     "move_draws": 1565,
+     "closed_histories": 0,
+     "open_histories": 0
+    },
+    "human": {
+     "nodes": 1,
+     "on_policy": 1,
+     "pending": 1,
+     "move_draws": 0,
+     "closed_histories": 0,
+     "open_histories": 0
+    }
+   },
+   "complete": false,
+   "system_prompts": {
+    "llm": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n\nThe other player is an AI language model. You are not told what the other player is trying to achieve.\n\nYour goal is to make the other player's points as small as possible.",
+    "human": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n\nThe other player is a person. You are not told what the other player is trying to achieve.\n\nYour goal is to make the other player's points as small as possible."
+   },
+   "goal_sentence": "Your goal is to make the other player's points as small as possible."
+  }
+ ],
  "presentations": [
   "X|XY",
   "Y|XY",
   "X|YX",
   "Y|YX"
  ],
- "goals": [
+ "opp_goals": [
   "own_points",
   "lead",
   "welfare",
@@ -25,16 +135,6 @@
  "n_opponents": 148,
  "k_move": 20,
  "threshold": 0.01,
- "system_prompts": {
-  "llm|X|XY": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n\nThe other player is an AI language model. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can.",
-  "llm|Y|XY": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 3 points, other player gets 3 points.\n- You play X, other player plays Y: you get 9 points, other player gets 1 point.\n- You play Y, other player plays X: you get 1 point, other player gets 9 points.\n- You play Y, other player plays Y: you get 7 points, other player gets 7 points.\n\nThe other player is an AI language model. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can.",
-  "llm|X|YX": "You are playing a game of 8 rounds against one other player. Each round, you both choose Y or X at the same time; then both choices are shown.\n\nPoints per round:\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n\nThe other player is an AI language model. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can.",
-  "llm|Y|YX": "You are playing a game of 8 rounds against one other player. Each round, you both choose Y or X at the same time; then both choices are shown.\n\nPoints per round:\n- You play Y, other player plays Y: you get 7 points, other player gets 7 points.\n- You play Y, other player plays X: you get 1 point, other player gets 9 points.\n- You play X, other player plays Y: you get 9 points, other player gets 1 point.\n- You play X, other player plays X: you get 3 points, other player gets 3 points.\n\nThe other player is an AI language model. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can.",
-  "human|X|YX": "You are playing a game of 8 rounds against one other player. Each round, you both choose Y or X at the same time; then both choices are shown.\n\nPoints per round:\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n\nThe other player is a person. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can.",
-  "human|Y|YX": "You are playing a game of 8 rounds against one other player. Each round, you both choose Y or X at the same time; then both choices are shown.\n\nPoints per round:\n- You play Y, other player plays Y: you get 7 points, other player gets 7 points.\n- You play Y, other player plays X: you get 1 point, other player gets 9 points.\n- You play X, other player plays Y: you get 9 points, other player gets 1 point.\n- You play X, other player plays X: you get 3 points, other player gets 3 points.\n\nThe other player is a person. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can.",
-  "human|X|XY": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n\nThe other player is a person. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can.",
-  "human|Y|XY": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 3 points, other player gets 3 points.\n- You play X, other player plays Y: you get 9 points, other player gets 1 point.\n- You play Y, other player plays X: you get 1 point, other player gets 9 points.\n- You play Y, other player plays Y: you get 7 points, other player gets 7 points.\n\nThe other player is a person. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can."
- },
  "closed_wording": {
   "q1": "What is the probability, as a whole number from 0 to 100, that the other player chooses {L1} in round {next}?",
   "q2": "Suppose you choose {L1} in round {next}. What is the probability, as a whole number from 0 to 100, that the other player chooses {L1} in round {after}?",
@@ -53,5 +153,6 @@
   "r8": "Has the other player done anything you did not expect? If so, what?"
  },
  "preamble": "The game is paused before round {next}. Please answer the question below. Your answer will not be shown to the other player and will not affect the game.",
+ "preamble_ended": "The game has ended. Please answer the question below. Your answer will not be shown to the other player.",
  "length_line": "Answer in a few sentences."
 }
