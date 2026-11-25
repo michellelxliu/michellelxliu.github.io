@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Synthetic Video QA Samples</title>
+<style>
+:root{
+  --bg:#fbfaf7;--surface:#ffffff;--ink:#1d1d1b;--ink2:#52514e;--mute:#8a8984;--rule:#e4e2dc;
+  --btn:#f1efe9;--btn-on:#1d1d1b;--btn-on-ink:#fbfaf7;--ok:#1f7a4d;--okbg:#e6f3ec;--s1:#2a78d6;--s2:#c2531f;
+  --codebg:#f4f2ec;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#17171a;--surface:#1e1e1d;--ink:#e8e6e1;--ink2:#c3c2b7;--mute:#8e8c85;--rule:#33332f;
+  --btn:#26262a;--btn-on:#e8e6e1;--btn-on-ink:#17171a;--ok:#5cc28c;--okbg:#1d3328;--s1:#5c9ee8;--s2:#e07a48;--codebg:#232321;}}
+:root[data-theme="dark"]{
+  --bg:#17171a;--surface:#1e1e1d;--ink:#e8e6e1;--ink2:#c3c2b7;--mute:#8e8c85;--rule:#33332f;
+  --btn:#26262a;--btn-on:#e8e6e1;--btn-on-ink:#17171a;--ok:#5cc28c;--okbg:#1d3328;--s1:#5c9ee8;--s2:#e07a48;--codebg:#232321;}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif;margin:0}
+main{max-width:1240px;margin:0 auto;padding:32px 16px 80px}
+h1{font-size:26px;line-height:1.25;margin:0 0 8px}
+h2{font-size:20px;margin:52px 0 6px;padding-top:18px;border-top:1px solid var(--rule)}
+h3{font-size:16px;margin:30px 0 6px}
+p,li{color:var(--ink2);max-width:880px}
+a{color:inherit}
+code{font-size:13px;background:var(--btn);padding:1px 4px;border-radius:4px}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:8px;overflow:hidden;flex-wrap:wrap}
+.seg button{border:0;background:var(--btn);color:var(--ink);font:inherit;font-size:13px;padding:5px 10px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--rule)}
+.seg button[aria-pressed="true"]{background:var(--btn-on);color:var(--btn-on-ink)}
+.theme{float:right;margin:0 0 8px 12px}
+.controls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:12px 0;position:sticky;top:0;background:var(--bg);padding:8px 0;z-index:5;border-bottom:1px solid var(--rule)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--rule);background:var(--btn);color:var(--ink);font:inherit;font-size:12.5px;padding:3px 9px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--btn-on);color:var(--btn-on-ink);border-color:var(--btn-on)}
+label.tog{font-size:13px;color:var(--ink2);display:flex;gap:6px;align-items:center;cursor:pointer}
+.stats{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}
+.stat{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:10px 14px;min-width:130px}
+.stat b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.stat span{font-size:12.5px;color:var(--mute)}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+@media (max-width:900px){.cards{grid-template-columns:minmax(0,1fr)}}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:14px;min-width:0}
+.card video{width:100%;aspect-ratio:16/9;background:#000;border-radius:6px;display:block}
+.tag{font-size:12px;color:var(--mute);margin:8px 0 2px}
+.node{font-weight:600;font-size:14.5px}
+.def{font-size:13px;color:var(--ink2);margin:2px 0 8px}
+ol.qs{padding-left:20px;margin:6px 0}
+ol.qs>li{margin:8px 0;color:var(--ink)}
+.q{font-size:14px}
+ul.opts{list-style:none;padding:0;margin:4px 0 0;display:flex;flex-direction:column;gap:2px}
+ul.opts li{font-size:13px;color:var(--ink2);padding:1px 6px;border-radius:5px;max-width:none}
+.show-ans ul.opts li.ans{background:var(--okbg);color:var(--ok);font-weight:600}
+.fact{font-size:12px;color:var(--mute);display:none;margin-top:2px}
+.show-ans .fact{display:block}
+.flag{font-size:12px;color:var(--s2)}
+details{margin-top:8px}
+summary{cursor:pointer;font-size:13px;color:var(--ink2)}
+pre{background:var(--codebg);border-radius:8px;padding:10px;overflow-x:auto;font-size:12px;line-height:1.45;max-height:360px}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:14px;margin:14px 0}
+@media (max-width:700px){.pair{grid-template-columns:minmax(0,1fr)}}
+.pair .meta{grid-column:1/-1;font-size:13px;color:var(--ink2);display:flex;flex-wrap:wrap;gap:6px 18px}
+.pair video{width:100%;aspect-ratio:16/9;background:#000;border-radius:6px;display:block}
+.k-enc{color:var(--s1);font-weight:600}.k-base{color:var(--s2);font-weight:600}
+.anchor{background:var(--surface);border:1px solid var(--rule);border-radius:12px;padding:14px;margin:16px 0}
+.anchor-top{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:14px}
+@media (max-width:700px){.anchor-top{grid-template-columns:minmax(0,1fr)}}
+.anchor video{width:100%;aspect-ratio:16/9;background:#000;border-radius:6px;display:block}
+.nncols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-top:12px}
+@media (max-width:700px){.nncols{grid-template-columns:minmax(0,1fr)}}
+.nncol h4{margin:0 0 6px;font-size:13.5px}
+.nn{display:grid;grid-template-columns:120px minmax(0,1fr);gap:10px;padding:8px 0;border-top:1px solid var(--rule)}
+.nn video{width:120px;aspect-ratio:16/9;background:#000;border-radius:4px;cursor:zoom-in}
+.nn video.big{position:fixed;inset:0;margin:auto;width:min(960px,94vw);height:auto;z-index:30;cursor:zoom-out;box-shadow:0 0 0 100vmax rgba(0,0,0,.6)}
+.nn .q{font-size:13px}
+.small{font-size:12px;color:var(--mute)}
+.note{font-size:13px;color:var(--mute)}
+table.agree{border-collapse:collapse;font-size:14px;margin:10px 0;font-variant-numeric:tabular-nums}
+table.agree th,table.agree td{border-bottom:1px solid var(--rule);padding:6px 14px 6px 0;text-align:left}
+table.agree td.n{text-align:right}
+</style>
+</head>
+<body>
+<main>
+<div class="theme seg" role="group" aria-label="Colour theme"><button data-t="light">Light</button><button data-t="dark">Dark</button></div>
+<h1>Synthetic video QA from Blender scenes: samples, and what a skill-trained text encoder changes</h1>
+<p>Each clip below was written as code for one target <b>skill</b> (a node of a skill tree induced from video-QA
+benchmarks), rendered in Blender, and paired with multiple-choice questions whose answers are read from the saved
+<code>.blend</code> file, not written by hand. These items come from wave 1 of the dataset (in progress; wave 2 is
+being written and rendered now).</p>
+<div class="stats" id="stats"></div>
+
+<h2>How an item is made</h2>
+<ol>
+<li><b>Brief.</b> A Claude Sonnet agent gets one skill node (name + definition) and writes <code>scene.py</code> with a
+small Blender API: coloured primitives, text signs and procedural furniture from
+<a href="https://github.com/princeton-vl/infinigen">Infinigen</a>, placed and keyframed; one camera. Render settings
+are fixed by the harness.</li>
+<li><b>Facts from the file.</b> The agent writes <code>facts.py</code>, which opens the saved <code>.blend</code>, steps
+through all 24 frames and computes each fact (positions, turns, counts, colours, depth order). The harness re-runs it.</li>
+<li><b>Questions.</b> Each question names the fact it rests on; it is kept only if its keyed answer equals the fact's
+value.</li>
+<li><b>Render and filter.</b> 24 frames at 480×270 (Cycles, 32 samples), shown to models as a <b>12-second clip at
+2 frames per second</b>. A question is dropped if the objects it asks about are too small, cut off or occluded in the
+rendered ground-truth maps, and by pooling rules that remove fragile question types (absolute distances, shadow
+length, brightness at an instant). Options are shuffled.</li>
+</ol>
+<p class="note">The videos on this page are exactly what the models see (24 frames, 2 fps). Answers hidden by default.</p>
+
+<h2>Samples by skill area</h2>
+<p>Two scenes per top-level skill area (L2), each from a different skill node, picked from scenes with at least four kept
+questions and no open review flag. All kept questions of each scene are shown.</p>
+<div class="controls">
+  <div class="chips" id="l2chips"></div>
+  <label class="tog"><input type="checkbox" id="ans"> Show answers and source facts</label>
+</div>
+<div class="cards" id="cards"></div>
+
+<h2>Trained encoder vs. its starting point: which items count as "near"?</h2>
+<p>To cluster these items by skill, each question is embedded as text (question + options; the encoder never sees the
+video). Two spaces are compared:</p>
+<ul>
+<li><span class="k-base">Base</span>: <code>gte-modernbert-base</code>, a general sentence embedder, frozen.</li>
+<li><span class="k-enc">Trained encoder</span>: the same model fine-tuned on about 50k video-benchmark questions, each
+labelled by an LLM with its path in the skill tree, so that questions sharing skills land close together. None of the
+synthetic items below were in its training data.</li>
+</ul>
+<p>Nearness below is a <b>rank</b>: for item <i>i</i>, rank 1 is its nearest other item by cosine similarity among all
+<span id="nitems"></span> items. Items from the same scene are excluded, because they share a scene description and
+would be near for a trivial reason.</p>
+<table class="agree" id="agree"></table>
+<p class="note">Each scene's "skill node" is the one its brief targeted. Questions inside a scene often exercise
+neighbouring skills too, so this is a rough yardstick, not ground truth.</p>
+
+<h3>One item, its three nearest neighbours in each space</h3>
+<p>One anchor per skill area, chosen where the two spaces' top-3 neighbour lists share no item (the most disagreeing such item in
+that area). The small numbers give each neighbour's rank in both spaces; click a small clip to enlarge it.</p>
+<div id="anchors"></div>
+
+<h3>Pairs near in one space, far in the other</h3>
+<p>Pairs where one item is among the other's <span id="near"></span> nearest in one space but ranked beyond
+<span id="far"></span> (of <span class="nitems2"></span>) in the other, taken farthest-first with each scene and skill-node pair used once.</p>
+<div class="controls"><div class="seg" role="group" aria-label="Pair direction" id="pairseg">
+  <button data-k="close_encoder_far_base" aria-pressed="true">Near in trained encoder, far in base</button>
+  <button data-k="close_base_far_encoder">Near in base, far in trained encoder</button>
+</div></div>
+<p id="paircount" class="note"></p>
+<div id="pairs"></div>
+
+<h3>What the examples suggest (a reading, not a measurement)</h3>
+<ul>
+<li>The base model groups by <b>shared nouns and setting</b>: "the coffee table", "the walker", "the camera", "the
+sign". Two questions about a coffee table are near even when one asks how the camera orbits it and the other how
+many objects rest on it.</li>
+<li>The trained encoder groups by <b>what has to be judged</b>: how far things travel relative to each other, which side
+something ends up on, whether something stripes or changes. Different objects and wording do not keep them apart.</li>
+<li>It also leans on the <b>answer format</b>: "which side…" questions (left/right of an object, which side is lit) can
+sit together even when the skills differ, and for some items the base model's neighbours match the brief's skill node
+better (the walker / egocentric-turn anchor below). The trained encoder's neighbours share the brief's skill node more often overall (table above), not every time.</li>
+</ul>
+
+<h2>Sources and replication</h2>
+<p class="note">Scenes rendered with Blender + Infinigen (BSD-3-Clause) assets; scene and fact code written by Claude
+Sonnet agents from a fixed brief; questions validated against the file as described above. Everything on this page is
+read from <code>data.json</code> in this folder; the encoder comparison is produced by
+<code>experiments/synth_items/encoder_contrast.py</code> and the page data by
+<code>experiments/synth_items/export_samples_page.py</code> in the project repository. Page built 2026-11-25.</p>
+</main>
+<script>
+(function(){
+const root=document.documentElement;
+const tbtn=document.querySelectorAll('.theme button');
+function setT(t){root.setAttribute('data-theme',t);tbtn.forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===t));try{localStorage.setItem('theme',t)}catch(e){}}
+let saved=null;try{saved=localStorage.getItem('theme')}catch(e){}
+if(saved)setT(saved);else tbtn.forEach(b=>b.setAttribute('aria-pressed',(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')===b.dataset.t));
+tbtn.forEach(b=>b.onclick=()=>setT(b.dataset.t));
+
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const vid=(scene,cls='')=>`<video class="${cls}" src="videos/${esc(scene)}.mp4" controls muted loop playsinline preload="auto"></video>`;
+const opts=it=>'<ul class="opts">'+Object.entries(it.options).map(([k,v])=>`<li class="${k===it.answer?'ans':''}">${k}. ${esc(v)}</li>`).join('')+'</ul>';
+const qblock=it=>`<div class="q">${esc(it.question)}</div>${opts(it)}<div class="fact">Fact: ${esc(it.fact)}</div>${it.flag?`<div class="flag">Review flag: ${esc(it.flag)}</div>`:''}`;
+
+fetch('data.json').then(r=>r.json()).then(D=>{
+  const S=D.summary;
+  document.getElementById('stats').innerHTML=[
+    [S.items.toLocaleString(),'kept questions (wave 1)'],[S.scenes,'scenes'],[S.skill_nodes,'skill nodes targeted'],
+    ['12 s','24 frames at 2 fps'],['480×270','render resolution']].map(([a,b])=>`<div class="stat"><b>${a}</b><span>${b}</span></div>`).join('');
+  // samples
+  const l2s=[...new Set(D.samples.map(s=>s.l2))].sort();
+  let cur='All';
+  const chips=document.getElementById('l2chips');
+  chips.innerHTML=['All',...l2s].map(l=>`<button class="chip" data-l="${esc(l)}" aria-pressed="${l==='All'}">${esc(l)}</button>`).join('');
+  const cards=document.getElementById('cards');
+  cards.innerHTML=D.samples.map(s=>`<div class="card" data-l2="${esc(s.l2)}">${vid(s.scene)}
+    <div class="tag">${esc(s.l2)} · ${esc(s.node_id)} · scene ${esc(s.scene)}</div>
+    <div class="node">${esc(s.node)}</div><div class="def">${esc(s.definition)}</div>
+    <ol class="qs">${s.items.map(it=>`<li>${qblock(it)}</li>`).join('')}</ol>
+    <details><summary>scene.py (the scene code)</summary><pre>${esc(s.scene_py)}</pre></details>
+    <details><summary>facts.py (reads the answers from the .blend)</summary><pre>${esc(s.facts_py)}</pre></details></div>`).join('');
+  chips.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{cur=b.dataset.l;
+    chips.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed',c===b));
+    cards.querySelectorAll('.card').forEach(c=>c.style.display=(cur==='All'||c.dataset.l2===cur)?'':'none');});
+  document.getElementById('ans').onchange=e=>document.body.classList.toggle('show-ans',e.target.checked);
+
+  // agreement
+  document.querySelectorAll('#nitems,.nitems2').forEach(e=>e.textContent=S.items.toLocaleString());
+  document.getElementById('near').textContent=D.near;document.getElementById('far').textContent=D.far.toLocaleString();
+  const A=D.agreement,pc=v=>(v*100).toFixed(0)+' %';
+  document.getElementById('agree').innerHTML=`<tr><th>Of each item's 10 nearest (other-scene) items, share whose scene targeted…</th><th class="k-base">Base</th><th class="k-enc">Trained</th></tr>
+   <tr><td>the same skill node (L3; 116 nodes)</td><td class="n">${pc(A.base.same_node_top10)}</td><td class="n">${pc(A.encoder.same_node_top10)}</td></tr>
+   <tr><td>the same skill area (L2; 17 areas)</td><td class="n">${pc(A.base.same_l2_top10)}</td><td class="n">${pc(A.encoder.same_l2_top10)}</td></tr>`;
+
+  // anchors
+  const rk=x=>`<span class="small">trained rank <span class="k-enc">${x.rank_encoder}</span> · base rank <span class="k-base">${x.rank_base}</span></span>`;
+  const thumb=s=>`<video src="videos/${esc(s)}.mp4" muted loop playsinline autoplay preload="auto" title="Click to enlarge" onclick="this.classList.toggle('big')"></video>`;
+  const nnrow=x=>`<div class="nn">${thumb(x.scene)}<div><div class="q">${esc(x.question)}</div>${opts(x)}<div class="small">${esc(x.node)} (${esc(x.l2)})</div>${rk(x)}</div></div>`;
+  document.getElementById('anchors').innerHTML=D.anchors.map(a=>{const x=a.anchor;return `<div class="anchor">
+    <div class="anchor-top">${vid(x.scene)}<div><div class="tag">Anchor · ${esc(x.l2)} · ${esc(x.node)}</div>${qblock(x)}</div></div>
+    <div class="nncols"><div class="nncol"><h4 class="k-enc">Nearest in trained encoder</h4>${a.encoder_nn.map(nnrow).join('')}</div>
+    <div class="nncol"><h4 class="k-base">Nearest in base</h4>${a.base_nn.map(nnrow).join('')}</div></div></div>`}).join('');
+
+  // pairs
+  const side=x=>`<div>${vid(x.scene)}<div class="tag">${esc(x.l2)} · ${esc(x.node)}</div>${qblock(x)}</div>`;
+  function showPairs(k){
+    const P=D.pairs[k];
+    document.getElementById('paircount').textContent=`${P.length} shown of ${D.candidates[k]} qualifying item pairs.`;
+    document.getElementById('pairs').innerHTML=P.map(p=>`<div class="pair"><div class="meta">
+      <span>Trained encoder: rank <span class="k-enc">${p.encoder.rank}</span> (cosine ${p.encoder.cos.toFixed(3)}, ${p.encoder.pct.toFixed(1)}th pct)</span>
+      <span>Base: rank <span class="k-base">${p.base.rank}</span> (cosine ${p.base.cos.toFixed(3)}, ${p.base.pct.toFixed(1)}th pct)</span>
+      <span>${p.a.node===p.b.node?'same skill node':'different skill nodes'}</span></div>${side(p.a)}${side(p.b)}</div>`).join('');
+  }
+  const seg=document.querySelectorAll('#pairseg button');
+  seg.forEach(b=>b.onclick=()=>{seg.forEach(c=>c.setAttribute('aria-pressed',c===b));showPairs(b.dataset.k);});
+  showPairs('close_encoder_far_base');
+});
+})();
+</script>
+</body>
+</html>
