@@ -1,0 +1,463 @@
+{
+ "source": "math242 run outputs/known-dist-2026-11-25 (probes/known_dist.py, version kd-2026-11-25a): one headless Claude Code call per move from an empty directory, effort low, thinking on (the harness default; not shown), no tools",
+ "updated": "2026-11-25 07:09 UTC",
+ "models": [
+  "haiku",
+  "sonnet",
+  "opus",
+  "fable"
+ ],
+ "model_names": {
+  "haiku": "Claude Haiku 5.5",
+  "sonnet": "Claude Sonnet 5.5",
+  "opus": "Claude Opus 5.5",
+  "fable": "Claude Fable 5.2"
+ },
+ "arms": [
+  "A0",
+  "A3",
+  "A4"
+ ],
+ "trees": {
+  "haiku-A0": {
+   "model": "haiku",
+   "arm": "A0",
+   "rounds_built": 6,
+   "complete": false,
+   "histories": 432,
+   "pending": 55,
+   "move_draws": 8640,
+   "calls_stored": 8683,
+   "score": 35.24,
+   "bayes": 36.88,
+   "loss": 3.71,
+   "agree": 0.626,
+   "agree_by_round": [
+    0.8,
+    0.566,
+    0.674,
+    0.543,
+    0.592,
+    0.583
+   ],
+   "coop_by_round": [
+    0.8,
+    0.566,
+    0.445,
+    0.318,
+    0.333,
+    0.277
+   ],
+   "loss_by_round": [
+    0.862,
+    0.433,
+    0.622,
+    0.683,
+    0.62,
+    0.49
+   ],
+   "cover": 0.998
+  },
+  "haiku-A3": {
+   "model": "haiku",
+   "arm": "A3",
+   "rounds_built": 7,
+   "complete": false,
+   "histories": 286,
+   "pending": 48,
+   "move_draws": 5720,
+   "calls_stored": 5773,
+   "score": 36.75,
+   "bayes": 43.38,
+   "loss": 8.55,
+   "agree": 0.324,
+   "agree_by_round": [
+    0.15,
+    0.039,
+    0.358,
+    0.316,
+    0.271,
+    0.356,
+    0.777
+   ],
+   "coop_by_round": [
+    0.15,
+    0.039,
+    0.013,
+    0.008,
+    0.002,
+    0.001,
+    0.001
+   ],
+   "loss_by_round": [
+    3.664,
+    1.05,
+    1.203,
+    0.91,
+    1.029,
+    0.524,
+    0.167
+   ],
+   "cover": 0.998
+  },
+  "haiku-A4": {
+   "model": "haiku",
+   "arm": "A4",
+   "rounds_built": 6,
+   "complete": false,
+   "histories": 216,
+   "pending": 58,
+   "move_draws": 4320,
+   "calls_stored": 4366,
+   "score": 32.14,
+   "bayes": 36.88,
+   "loss": 8.2,
+   "agree": 0.262,
+   "agree_by_round": [
+    0.2,
+    0.047,
+    0.361,
+    0.307,
+    0.298,
+    0.356
+   ],
+   "coop_by_round": [
+    0.2,
+    0.047,
+    0.024,
+    0.008,
+    0.021,
+    0.01
+   ],
+   "loss_by_round": [
+    3.449,
+    1.117,
+    1.166,
+    0.934,
+    1.004,
+    0.535
+   ],
+   "cover": 0.999
+  },
+  "sonnet-A0": {
+   "model": "sonnet",
+   "arm": "A0",
+   "rounds_built": 3,
+   "complete": false,
+   "histories": 33,
+   "pending": 18,
+   "move_draws": 660,
+   "calls_stored": 736,
+   "score": 17.76,
+   "bayes": 17.74,
+   "loss": 0.64,
+   "agree": 0.863,
+   "agree_by_round": [
+    0.9,
+    0.753,
+    0.937
+   ],
+   "coop_by_round": [
+    0.9,
+    0.753,
+    0.807
+   ],
+   "loss_by_round": [
+    0.431,
+    0.094,
+    0.119
+   ],
+   "cover": 1.0
+  },
+  "sonnet-A3": {
+   "model": "sonnet",
+   "arm": "A3",
+   "rounds_built": 3,
+   "complete": false,
+   "histories": 41,
+   "pending": 6,
+   "move_draws": 820,
+   "calls_stored": 843,
+   "score": 17.73,
+   "bayes": 17.74,
+   "loss": 2.98,
+   "agree": 0.574,
+   "agree_by_round": [
+    0.5,
+    0.464,
+    0.758
+   ],
+   "coop_by_round": [
+    0.5,
+    0.464,
+    0.489
+   ],
+   "loss_by_round": [
+    2.155,
+    0.428,
+    0.392
+   ],
+   "cover": 1.0
+  },
+  "sonnet-A4": {
+   "model": "sonnet",
+   "arm": "A4",
+   "rounds_built": 3,
+   "complete": false,
+   "histories": 52,
+   "pending": 17,
+   "move_draws": 1040,
+   "calls_stored": 1092,
+   "score": 17.81,
+   "bayes": 17.74,
+   "loss": 2.35,
+   "agree": 0.663,
+   "agree_by_round": [
+    0.65,
+    0.569,
+    0.771
+   ],
+   "coop_by_round": [
+    0.65,
+    0.569,
+    0.536
+   ],
+   "loss_by_round": [
+    1.509,
+    0.516,
+    0.326
+   ],
+   "cover": 1.0
+  },
+  "opus-A0": {
+   "model": "opus",
+   "arm": "A0",
+   "rounds_built": 4,
+   "complete": false,
+   "histories": 35,
+   "pending": 5,
+   "move_draws": 700,
+   "calls_stored": 738,
+   "score": 24.13,
+   "bayes": 24.3,
+   "loss": 0.34,
+   "agree": 0.888,
+   "agree_by_round": [
+    1.0,
+    0.784,
+    0.989,
+    0.778
+   ],
+   "coop_by_round": [
+    1.0,
+    0.784,
+    0.815,
+    0.889
+   ],
+   "loss_by_round": [
+    0.0,
+    0.014,
+    0.009,
+    0.316
+   ],
+   "cover": 1.0
+  },
+  "opus-A3": {
+   "model": "opus",
+   "arm": "A3",
+   "rounds_built": 4,
+   "complete": false,
+   "histories": 51,
+   "pending": 15,
+   "move_draws": 1020,
+   "calls_stored": 1055,
+   "score": 24.43,
+   "bayes": 24.3,
+   "loss": 0.16,
+   "agree": 0.929,
+   "agree_by_round": [
+    1.0,
+    0.87,
+    0.942,
+    0.906
+   ],
+   "coop_by_round": [
+    1.0,
+    0.87,
+    0.746,
+    0.692
+   ],
+   "loss_by_round": [
+    0.0,
+    0.008,
+    0.044,
+    0.104
+   ],
+   "cover": 1.0
+  },
+  "opus-A4": {
+   "model": "opus",
+   "arm": "A4",
+   "rounds_built": 4,
+   "complete": false,
+   "histories": 36,
+   "pending": 25,
+   "move_draws": 720,
+   "calls_stored": 763,
+   "score": 24.31,
+   "bayes": 24.3,
+   "loss": 0.06,
+   "agree": 0.978,
+   "agree_by_round": [
+    1.0,
+    0.957,
+    0.979,
+    0.977
+   ],
+   "coop_by_round": [
+    1.0,
+    0.957,
+    0.822,
+    0.74
+   ],
+   "loss_by_round": [
+    0.0,
+    0.003,
+    0.045,
+    0.012
+   ],
+   "cover": 1.0
+  },
+  "fable-A0": {
+   "model": "fable",
+   "arm": "A0",
+   "rounds_built": 5,
+   "complete": false,
+   "histories": 38,
+   "pending": 37,
+   "move_draws": 760,
+   "calls_stored": 865,
+   "score": 30.2,
+   "bayes": 30.59,
+   "loss": 0.71,
+   "agree": 0.886,
+   "agree_by_round": [
+    1.0,
+    0.784,
+    0.995,
+    0.782,
+    0.87
+   ],
+   "coop_by_round": [
+    1.0,
+    0.784,
+    0.809,
+    0.873,
+    0.838
+   ],
+   "loss_by_round": [
+    0.0,
+    0.014,
+    0.005,
+    0.316,
+    0.371
+   ],
+   "cover": 1.0
+  },
+  "fable-A3": {
+   "model": "fable",
+   "arm": "A3",
+   "rounds_built": 4,
+   "complete": false,
+   "histories": 28,
+   "pending": 33,
+   "move_draws": 560,
+   "calls_stored": 647,
+   "score": 24.39,
+   "bayes": 24.3,
+   "loss": 0.02,
+   "agree": 0.953,
+   "agree_by_round": [
+    1.0,
+    0.849,
+    0.988,
+    0.974
+   ],
+   "coop_by_round": [
+    1.0,
+    0.849,
+    0.792,
+    0.745
+   ],
+   "loss_by_round": [
+    0.0,
+    0.009,
+    0.012,
+    0.003
+   ],
+   "cover": 1.0
+  },
+  "fable-A4": {
+   "model": "fable",
+   "arm": "A4",
+   "rounds_built": 3,
+   "complete": false,
+   "histories": 24,
+   "pending": 1,
+   "move_draws": 480,
+   "calls_stored": 505,
+   "score": 17.85,
+   "bayes": 17.74,
+   "loss": 0.01,
+   "agree": 0.967,
+   "agree_by_round": [
+    1.0,
+    0.903,
+    0.998
+   ],
+   "coop_by_round": [
+    1.0,
+    0.903,
+    0.804
+   ],
+   "loss_by_round": [
+    0.0,
+    0.006,
+    0.002
+   ],
+   "cover": 1.0
+  }
+ },
+ "n_opponents": 148,
+ "goal_n": [
+  37,
+  28,
+  26,
+  35,
+  11,
+  11
+ ],
+ "k_move": 20,
+ "threshold": 0.01,
+ "system_A0": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n\nThe other player is an AI language model. You are not told what the other player is trying to achieve.\n\nYour goal is to earn as many points as you can.",
+ "head_A3": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n\nThe other player is an AI language model. You are not told what the other player is trying to achieve. The other player draws at random one of the 148 strategies listed below, each equally likely, and plays that strategy for all 8 rounds.\n\nYour goal is to earn as many points as you can.\n\nStrategies (each written as a program)",
+ "head_A4": "You are playing a game of 8 rounds against one other player. Each round, you both choose X or Y at the same time; then both choices are shown.\n\nPoints per round:\n- You play X, other player plays X: you get 7 points, other player gets 7 points.\n- You play X, other player plays Y: you get 1 point, other player gets 9 points.\n- You play Y, other player plays X: you get 9 points, other player gets 1 point.\n- You play Y, other player plays Y: you get 3 points, other player gets 3 points.\n\nThe other player is an AI language model. You are not told what the other player is trying to achieve. The other player draws at random one of the 148 strategies listed below, each equally likely, and plays that strategy for all 8 rounds. Given the rounds played so far, only the {n} strategies listed below remain possible.\n\nYour goal is to earn as many points as you can.\n\nStrategies (each written as a program)",
+ "question": "Round {t}: choose {a} or {b}. Explain your reasoning briefly, then give your choice: the last character of your reply must be the letter {a} or {b}.",
+ "bayes": {
+  "full_game": 49.66,
+  "first_move": "C",
+  "points_by_round": [
+   5.703,
+   5.824,
+   6.216,
+   6.554,
+   6.297,
+   6.284,
+   6.5,
+   6.284
+  ],
+  "always_C": 44.0,
+  "always_D": 40.66,
+  "tit_for_tat": 46.82
+ }
+}

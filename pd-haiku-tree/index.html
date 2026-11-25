@@ -90,6 +90,14 @@ pre.prompt { white-space: pre-wrap; font: 12px/1.45 ui-monospace, SFMono-Regular
 .note { font-size: 12.5px; color: var(--muted); }
 footer { max-width: 1400px; margin: 0 auto; padding: 0 16px 40px; color: var(--muted); font-size: 12.5px; }
 #loading { padding: 40px; color: var(--ink2); }
+table.sum { border-collapse: collapse; font-size: 12.5px; margin-top: 8px; font-variant-numeric: tabular-nums; }
+table.sum th { color: var(--muted); font-weight: 500; text-align: left; padding: 2px 14px 2px 0; }
+table.sum td { padding: 2px 14px 2px 0; }
+table.sum td.c { cursor: pointer; border-radius: 4px; }
+table.sum td.c:hover { background: var(--wash); }
+table.sum td.cur { outline: 1.5px solid var(--ink2); outline-offset: -1px; }
+pre.prompt.long { max-height: 340px; overflow: auto; }
+[hidden] { display: none !important; }
 </style>
 </head>
 <body>
@@ -97,8 +105,22 @@ footer { max-width: 1400px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
   <h1>Haiku's game tree: how it plays, and what it says about its opponent</h1>
   <p class="lede">Claude Haiku 5.5 played an 8-round Prisoner's Dilemma (both cooperate: 7 each; both defect: 3 each;
   defecting on a cooperator: 9 vs 1) against 148 opponent strategies written by LLMs, once for each goal it was given. Each dot is a point in the game.
-  Click a dot to open the rounds after it and to see what Haiku does next and what it said about the other player there.</p>
+  Click a dot to open the rounds after it and to see what Haiku does next and what it said about the other player there.
+  A second experiment (in progress) puts Haiku, Sonnet, Opus and Fable in the same game and tells them the 148 strategies the opponent is drawn from, so their moves can be compared with the best possible play.</p>
   <div class="controls">
+    <span class="sub">Experiment</span>
+    <div class="seg" role="group" aria-label="Experiment" id="expSeg">
+      <button data-m="haiku" aria-pressed="true">Haiku, opponent unknown</button>
+      <button data-m="kd" aria-pressed="false">Four models, opponent's strategies known <span class="tag" id="kdTag"></span></button>
+    </div>
+  </div>
+  <div class="controls" id="kCtl" hidden>
+    <span class="sub">Model</span>
+    <div class="seg" role="group" aria-label="Model" id="modelSeg"></div>
+    <span class="sub">What it was told about the opponent</span>
+    <div class="seg" role="group" aria-label="Information" id="armSeg"></div>
+  </div>
+  <div class="controls" id="hCtl">
     <span class="sub">Haiku's goal</span>
     <div class="seg" role="group" aria-label="Haiku's goal" id="goalSeg"></div>
     <span class="sub">Haiku was told the other player is</span>
@@ -106,17 +128,19 @@ footer { max-width: 1400px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
       <button data-id="llm" aria-pressed="true">an AI language model</button>
       <button data-id="human" aria-pressed="false">a person</button>
     </div>
+    <label class="chk"><input type="checkbox" id="cOff"> Show moves Haiku itself would not make</label>
+  </div>
+  <div class="controls">
     <button class="btn" id="bPath">Open the most common game</button>
     <button class="btn" id="bReset">Collapse</button>
-    <label class="chk"><input type="checkbox" id="cOff"> Show moves Haiku itself would not make</label>
   </div>
   <div id="status" class="status"></div>
   <div class="legend" aria-label="Legend">
     <span><svg width="110" height="14" aria-hidden="true"><defs><linearGradient id="lg"><stop offset="0" stop-color="var(--defect)"/><stop offset=".5" stop-color="var(--mid)"/><stop offset="1" stop-color="var(--coop)"/></linearGradient></defs><rect x="0" y="2" width="110" height="10" rx="3" fill="url(#lg)" stroke="var(--axis)"/></svg>
-      Haiku's chance of cooperating next: 0% → 100%</span>
+      The model's chance of cooperating next: 0% → 100%</span>
     <span><svg width="40" height="14" aria-hidden="true"><line x1="0" y1="7" x2="40" y2="7" stroke="var(--axis)" stroke-width="7"/></svg> thicker = more games pass through (the % next to each move)</span>
-    <span><svg width="40" height="14" aria-hidden="true"><line x1="0" y1="7" x2="40" y2="7" stroke="var(--axis)" stroke-width="1.5" stroke-dasharray="4 3"/></svg> a move Haiku would not make (asked about anyway)</span>
-    <span>Edge label: Haiku's move / the opponent's move (C = cooperate, D = defect). A “+” means more rounds are inside; a hollow dot is the end of the game; a dashed hollow dot was not reached before the run was paused.</span>
+    <span><svg width="40" height="14" aria-hidden="true"><line x1="0" y1="7" x2="40" y2="7" stroke="var(--axis)" stroke-width="1.5" stroke-dasharray="4 3"/></svg> a move Haiku would not make (asked about anyway; first experiment only)</span>
+    <span>Edge label: the model's move / the opponent's move (C = cooperate, D = defect). A “+” means more rounds are inside; a hollow dot is the end of the game; a dashed hollow dot has not been run (the run was paused, or is still going).</span>
   </div>
 </header>
 <main>
@@ -136,7 +160,13 @@ const Q5_NAMES = ["Its own points", "Ending ahead of Haiku", "Combined points", 
 const ROW = 30, COL = 132, ML = 34, MT = 24;
 let meta, data = {}, goal = "own_points", ident = "llm", expanded = new Set([""]), selected = "", showOff = false, color;
 const openCache = {};
-const T = () => data[goal + "|" + ident];
+let mode = "haiku", kmeta = null, kModel = "haiku", kArm = "A0";
+const KD = () => mode === "kd";
+const tag = () => kModel + "-" + kArm;
+const T = () => KD() ? data["kd|" + tag()] : data[goal + "|" + ident];
+const WHO = () => KD() ? kModel[0].toUpperCase() + kModel.slice(1) : "Haiku";
+const ARM_SHORT = { A0: "Not told", A3: "Told the 148 strategies", A4: "Told those still possible" };
+const ARM_LONG = { A0: "not told what the opponent's strategy could be", A3: "told the opponent plays one of 148 listed strategies, drawn at random", A4: "told the 148 strategies, and shown only those that still fit the rounds played" };
 const G = () => meta.goals.find(g => g.goal === goal);
 const GOAL_LABEL = { own_points: "Own points", welfare: "Welfare", equality: "Equality", spite: "Spite" };
 
@@ -222,18 +252,19 @@ function render(anchor) {
 
 function label(h) {
   const r = rounds(h), n = T()[h];
-  if (n.pend) return (r.length ? `After round ${r.length}. ` : "Start of the game. ") + "Not run yet: the run was paused before Haiku's moves here were drawn.";
-  if (!r.length) return "Start of the game. Haiku cooperates first with " + pct(n.p);
+  if (n.pend) return (r.length ? `After round ${r.length}. ` : "Start of the game. ") + "Not run yet: " + WHO() + "'s moves here have not been drawn.";
+  if (!r.length) return "Start of the game. " + WHO() + " cooperates first with " + pct(n.p);
   const m = r[r.length - 1];
-  return `After round ${r.length}: Haiku ${m[0] === "C" ? "cooperated" : "defected"}, opponent ${m[1] === "C" ? "cooperated" : "defected"}. ` +
-    (n.p == null ? "Game over." : `Haiku cooperates next with ${pct(n.p)}.`) + ` Reached in ${fmtReach(n.reach)} of games.`;
+  return `After round ${r.length}: ${WHO()} ${m[0] === "C" ? "cooperated" : "defected"}, opponent ${m[1] === "C" ? "cooperated" : "defected"}. ` +
+    (n.p == null ? "Game over." : `${WHO()} cooperates next with ${pct(n.p)}.`) + ` Reached in ${fmtReach(n.reach)} of games.`;
 }
 
 const tipEl = document.getElementById("tip");
 function tip(e, h) {
   const n = T()[h], r = rounds(h);
   tipEl.innerHTML = `<div><b>${r.length ? "After round " + r.length : "Start"}</b> ${r.length ? "· " + r.map(x => x[0] + "/" + x[1]).join(" ") : ""}</div>` +
-    (n.pend ? `<div class="k">Not run yet (run paused)</div>` : n.p == null ? `<div class="k">Game over</div>` : `<div><span class="k">Haiku cooperates next:</span> ${pct(n.p)}</div>`) +
+    (n.pend ? `<div class="k">Not run yet</div>` : n.p == null ? `<div class="k">Game over</div>` : `<div><span class="k">${WHO()} cooperates next:</span> ${pct(n.p)}</div>`) +
+    (KD() && n.b && !n.tie ? `<div><span class="k">Best move:</span> ${n.b === "C" ? "cooperate" : "defect"}</div>` : "") +
     `<div><span class="k">Games reaching here:</span> ${h ? fmtReach(n.reach) : "all"}</div>` +
     (n.on ? "" : `<div class="k">A move Haiku would not make</div>`);
   tipEl.style.display = "block";
@@ -271,11 +302,12 @@ function panel() {
     const w = c => `<span class="sq" style="background:var(${c === "C" ? "--coop" : "--defect"})"></span>${c === "C" ? "cooperate" : "defect"}`;
     return `<tr><td>${i + 1}</td><td>${w(m[0])}</td><td>${w(m[1])}</td><td>${p[0]} – ${p[1]}</td></tr>`; }).join("");
   let html = `<h2>${t ? "After round " + t + " of 8" : "Before round 1"}</h2>`;
-  html += `<div class="sub">Haiku's goal: ${esc(G().goal_sentence.replace("Your goal is to ", "").replace(/\.$/, ""))} · opponent described as ${ident === "llm" ? "an AI language model" : "a person"}${n.on ? "" : " · <b>a history Haiku would not produce itself</b>"}</div>`;
-  if (t) html += `<table class="hist"><tr><th>Round</th><th>Haiku</th><th>Opponent</th><th>Points</th></tr>${rows}<tr><th></th><th></th><th>Total</th><th>${you} – ${them}</th></tr></table>`;
+  if (KD()) html += `<div class="sub">${esc(kmeta.model_names[kModel])} · goal: earn as many points as you can · ${ARM_LONG[kArm]}</div>`;
+  else html += `<div class="sub">Haiku's goal: ${esc(G().goal_sentence.replace("Your goal is to ", "").replace(/\.$/, ""))} · opponent described as ${ident === "llm" ? "an AI language model" : "a person"}${n.on ? "" : " · <b>a history Haiku would not produce itself</b>"}</div>`;
+  if (t) html += `<table class="hist"><tr><th>Round</th><th>${WHO()}</th><th>Opponent</th><th>Points</th></tr>${rows}<tr><th></th><th></th><th>Total</th><th>${you} – ${them}</th></tr></table>`;
 
-  html += `<h3>Haiku's next move</h3>`;
-  if (n.pend) html += `<div class="sub">Not run yet: the run was paused before Haiku's moves at this point were drawn.</div>`;
+  html += `<h3>${WHO()}'s next move</h3>`;
+  if (n.pend) html += `<div class="sub">Not run yet: ${KD() ? "the run has not reached this point" : "the run was paused before Haiku's moves at this point were drawn"}.</div>`;
   else if (n.p == null) html += `<div class="sub">The game is over.</div>`;
   else {
     html += `<div><span class="big">${pct(n.p)}</span> <span class="sub">cooperate, over ${n.cnt ? n.cnt.reduce((s, c) => s + c[0] + c[1], 0) : 0} draws (${meta.k_move / 4} per label presentation when complete)</span></div>`;
@@ -283,11 +315,26 @@ function panel() {
     html += `<div class="note">Blue = cooperate, red = defect. The moves are called X and Y; which one means cooperate, and which is listed first, is varied.</div>`;
   }
 
+  if (KD() && t < 8) {
+    html += `<h3>Best move here</h3>`;
+    html += `<div><b>${n.tie ? "Either move" : n.b === "C" ? "Cooperate" : "Defect"}</b> <span class="sub">earns the most points on average against the ${n.nc} of ${kmeta.n_opponents} strategies that fit the rounds so far${n.tie ? " (a tie)" : ""}.</span></div>`;
+    if (!n.tie) html += `<div class="sub">The other move costs ${Math.max(n.bl[0], n.bl[1]).toFixed(2)} points on average, with best play afterwards.${n.p != null ? ` ${WHO()} chose the best move in <b>${pct(n.b === "C" ? n.p : 1 - n.p)}</b> of draws.` : ""}</div>`;
+  } else if (KD()) html += `<div class="sub" style="margin-top:8px">${n.nc} of ${kmeta.n_opponents} strategies fit this game.</div>`;
   html += `<h3>How often games get here</h3>`;
-  html += h ? `<div><b>${fmtReach(n.reach)}</b> <span class="sub">of all games (${n.nopp} of ${meta.n_opponents} opponents can reach it)</span></div>` : `<div class="sub">Every game starts here.</div>`;
+  html += h ? `<div><b>${fmtReach(n.reach)}</b> <span class="sub">of all games (${n.nopp} of ${meta.n_opponents} opponents ${KD() ? "reach it in the part built so far" : "can reach it"})</span></div>` : `<div class="sub">Every game starts here.</div>`;
   if (h) html += `<details><summary>By the opponent's goal <span class="s">(what its writer was asked to aim for)</span></summary>` +
-    n.rg.map((v, i) => `<div class="row"><span class="l">${GOAL_NAMES[i]} <span class="note">(${meta.goal_n[i]})</span></span><div class="bar"><span style="width:${Math.max(v * 100, v > 0 ? 1 : 0)}%;background:var(--ink2)"></span></div><span class="v">${fmtReach(v)}</span></div>`).join("") + `</details>`;
+    n.rg.map((v, i) => `<div class="row"><span class="l">${GOAL_NAMES[i].replace("Haiku", WHO())} <span class="note">(${meta.goal_n[i]})</span></span><div class="bar"><span style="width:${Math.max(v * 100, v > 0 ? 1 : 0)}%;background:var(--ink2)"></span></div><span class="v">${fmtReach(v)}</span></div>`).join("") + `</details>`;
 
+  if (KD()) {
+    if (n.r) html += `<details id="dReplies"><summary>${WHO()}'s replies <span class="s">· its stated reasoning, ${n.cnt.reduce((a, c) => a + c[0] + c[1], 0)} draws</span></summary><div id="repBody" class="sub">Loading…</div></details>`;
+    html += `<details id="dPrompt"><summary>The prompt ${WHO()} saw <span class="s">(X = cooperate, X listed first)</span></summary><div id="promptBody"></div></details>`;
+    document.getElementById("panel").innerHTML = html;
+    const dR = document.getElementById("dReplies"), dP = document.getElementById("dPrompt");
+    if (dR) dR.addEventListener("toggle", () => dR.open && loadReplies(h));
+    dP.addEventListener("toggle", () => dP.open && showPromptKd(h));
+    if (panel.keep) for (const id of panel.keep) { const el = document.getElementById(id); if (el) el.open = true; }
+    return;
+  }
   // closed
   const why = G().trees[ident].closed_histories === 0 ? "No questionnaire answers for this goal yet: the run was paused before the questions were asked."
     : "Not asked here: for this goal the questions were asked only at histories Haiku itself reaches.";
@@ -317,7 +364,7 @@ function panel() {
 }
 // keep the user's open sections open when they click another node
 document.getElementById("panel").addEventListener("toggle", () => {
-  panel.keep = ["dClosed", "dOpen", "dPrompt"].filter(id => document.getElementById(id)?.open);
+  panel.keep = ["dClosed", "dOpen", "dPrompt", "dReplies"].filter(id => document.getElementById(id)?.open);
 }, true);
 
 function itemText(iid, h) {
@@ -347,6 +394,42 @@ async function loadOpen(h) {
   }
 }
 
+async function repData(h) {
+  const key = "kd|" + tag() + "|" + h;
+  if (!openCache[key]) {
+    const res = await fetch(`data/kd/${tag()}/r/${h ? h.replace(/\./g, "-") : "root"}.json`);
+    if (!res.ok) throw new Error(res.status);
+    openCache[key] = await res.json();
+  }
+  return openCache[key];
+}
+async function loadReplies(h) {
+  const who = tag(); let o;
+  try { o = await repData(h); } catch (e) { const b = document.getElementById("repBody"); if (b) b.textContent = "Could not load the replies (" + e.message + ")."; return; }
+  const b = document.getElementById("repBody");
+  if (selected !== h || tag() !== who || !b || b.dataset.done) return;
+  b.dataset.done = 1; b.className = "";
+  b.innerHTML = `<div class="note">Every draw, grouped by label presentation. The model was asked to explain briefly and end with its letter. Its private thinking is not shown.</div>` +
+    o.replies.map(([pi, mv, txt]) => `<div class="ans"><span class="chip">${PRES_SHORT[pi]}</span> <span class="chip"><span class="sq" style="background:var(${mv === "C" ? "--coop" : "--defect"})"></span>${mv === "C" ? "cooperated" : "defected"}</span><div>${esc(txt).replace(/\n+/g, "<br>")}</div></div>`).join("");
+}
+let programs = null;
+async function showPromptKd(h) {
+  const pb = document.getElementById("promptBody"); if (!pb || pb.dataset.done) return; pb.dataset.done = 1;
+  const who = tag(), t = rounds(h).length, n = T()[h];
+  let sys = kmeta.system_A0, note = "";
+  try {
+    if (kArm !== "A0") {
+      if (!programs) programs = await fetch("data/kd/programs.json").then(r => r.json());
+      let idx = programs.map((_, i) => i);
+      if (kArm === "A4") { if (n.r) idx = (await repData(h)).cons; else { idx = []; note = `The list of the ${n.nc} strategies that fit is not shown for a point that has not been run.`; } }
+      sys = kmeta["head_" + kArm].replace("only the {n} strategies", "only the " + n.nc + " strategies") + "\n\n" + idx.map((j, i) => `Strategy ${i + 1}:\n${programs[j]}`).join("\n\n");
+    }
+  } catch (e) { note = "Could not load the strategy list (" + e.message + ")."; }
+  if (selected !== h || tag() !== who || !document.body.contains(pb)) return;
+  pb.innerHTML = `<div class="qtext">System prompt</div><pre class="prompt long">${esc(sys)}</pre>` + (note ? `<div class="note">${note}</div>` : "") +
+    (t < 8 ? `<div class="qtext">Message</div><pre class="prompt">${esc(historyText(h) + "\n\n" + kmeta.question.replace("{t}", t + 1).replace(/\{a\}/g, "X").replace(/\{b\}/g, "Y"))}</pre>` : `<div class="note">The game is over: no move was asked here.</div>`);
+}
+
 function pts(n) { return n === 1 ? "1 point" : n + " points"; }
 function historyText(h) {  // mirrors impressions.prompts.history_text under X = cooperate, X listed first
   const r = rounds(h); if (!r.length) return "No rounds played yet.";
@@ -369,13 +452,54 @@ function mostCommon() {
   selected = h; render(); panel();
   const node = last[h]; const box = document.getElementById("treebox"); if (node) { box.scrollTop = node.x - box.clientHeight / 2; box.scrollLeft = node.y - box.clientWidth + 120; }
 }
+async function switchKd(m, a) {
+  if (!kmeta) kmeta = await fetch("data/kd/meta.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+  const k = "kd|" + m + "-" + a;
+  if (!data[k]) data[k] = await fetch(`data/kd/${m}-${a}/tree.json`).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+  mode = "kd"; kModel = m; kArm = a; showOff = false; document.getElementById("cOff").checked = false;
+  setMode();
+  expanded = new Set([...expanded].filter(h => T()[h])); expanded.add("");
+  if (!T()[selected]) selected = "";
+  gNodes.selectAll("*").remove(); gLinks.selectAll("*").remove(); last = {};
+  render(); panel(); status();
+}
+function setMode() {
+  document.getElementById("kCtl").hidden = !KD(); document.getElementById("hCtl").hidden = KD();
+  document.querySelectorAll("#expSeg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.m === mode));
+  if (!KD()) return;
+  const ms = document.getElementById("modelSeg"), as = document.getElementById("armSeg");
+  if (!ms.children.length) {
+    ms.innerHTML = kmeta.models.map(m => `<button data-k="${m}">${m[0].toUpperCase() + m.slice(1)}</button>`).join("");
+    as.innerHTML = kmeta.arms.map(a => `<button data-k="${a}" title="${esc(ARM_LONG[a])}">${ARM_SHORT[a]}</button>`).join("");
+    ms.querySelectorAll("button").forEach(b => b.addEventListener("click", () => switchKd(b.dataset.k, kArm)));
+    as.querySelectorAll("button").forEach(b => b.addEventListener("click", () => switchKd(kModel, b.dataset.k)));
+  }
+  ms.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x.dataset.k === kModel));
+  as.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x.dataset.k === kArm));
+}
+function statusKd() {
+  const tr = kmeta.trees, me = tr[tag()], f = x => x.toLocaleString(), all = Object.values(tr);
+  const D = Math.min(...all.map(t => t.rounds_built)), done = all.every(t => t.complete);
+  let s = `<b>${WHO()}, ${ARM_LONG[kArm]}.</b> ` + (me.complete ? `Complete: ${f(me.histories)} histories, ${f(me.move_draws)} move draws.`
+    : `<b>In progress:</b> rounds 1–${me.rounds_built} of 8 built so far (${f(me.histories)} histories, ${f(me.move_draws)} move draws). Updated ${kmeta.updated}.`);
+  const cell = (m, a) => { const t = tr[m + "-" + a]; if (!t || !D) return "<td>–</td>";
+    const ag = mean(t.agree_by_round.slice(0, D)), ls = t.loss_by_round.slice(0, D).reduce((x, y) => x + y, 0);
+    return `<td class="c${m + "-" + a === tag() ? " cur" : ""}" data-m="${m}" data-a="${a}" title="Rounds built: ${t.rounds_built} of 8">${pct(ag)} best moves · ${ls.toFixed(2)} pts lost <span class="note">· ${t.rounds_built}/8</span></td>`; };
+  s += `<table class="sum"><tr><th></th>${kmeta.arms.map(a => `<th>${ARM_SHORT[a]}</th>`).join("")}</tr>` +
+    kmeta.models.map(m => `<tr><th>${m[0].toUpperCase() + m.slice(1)}</th>${kmeta.arms.map(a => cell(m, a)).join("")}</tr>`).join("") + `</table>` +
+    `<div class="note">${done ? "All eight rounds" : "Rounds 1–" + D + " only (built for all twelve so far)"}: how often each model chose the move that earns the most points against the strategies that fit, averaged over rounds, and the points it gave up per game by its other moves. Last number: rounds built. Click a cell to open that tree.</div>`;
+  const el = document.getElementById("status"); el.innerHTML = s;
+  el.querySelectorAll("td.c").forEach(c => c.addEventListener("click", () => switchKd(c.dataset.m, c.dataset.a)));
+  const b = kmeta.bayes;
+  document.getElementById("foot").innerHTML = `Data: ${esc(kmeta.source)}. Best play against the ${kmeta.n_opponents} strategies (each equally likely) earns ${b.full_game} points per game on average; always cooperating earns ${b.always_C}, always defecting ${b.always_D}, tit-for-tat ${b.tit_for_tat}. A branch is kept when the model plays it in at least ${kmeta.threshold * 100}% of draws; ${kmeta.k_move} draws per history. “Games reaching here” weights each opponent and each label presentation equally. This path gives no token probabilities.`;
+}
 async function ensure(g, id) {
   const k = g + "|" + id;
   if (!data[k]) data[k] = await fetch(`data/${g}/tree-${id}.json`).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
 }
 async function switchTo(g, id) {
   await ensure(g, id);
-  goal = g; ident = id;
+  goal = g; ident = id; mode = "haiku"; setMode();
   document.querySelectorAll("#goalSeg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.g === goal));
   document.querySelectorAll("#identSeg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.id === ident));
   expanded = new Set([...expanded].filter(h => T()[h])); expanded.add("");
@@ -384,6 +508,8 @@ async function switchTo(g, id) {
   render(); panel(); status();
 }
 function status() {
+  if (KD()) return statusKd();
+  footHaiku();
   const g = G(), tr = g.trees, f = x => x.toLocaleString();
   const both = ["llm", "human"].map(i => tr[i]);
   let s = `<b>${esc(g.goal_sentence)}</b> `;
@@ -407,10 +533,14 @@ fetch("data/meta.json").then(r => r.json()).then(async m => {
     meta = m; setColor(); initSvg();
     document.getElementById("goalSeg").innerHTML = meta.goals.map(g => `<button data-g="${g.goal}" aria-pressed="false" title="${esc(g.goal_sentence)}">${GOAL_LABEL[g.goal] || g.goal}${g.complete ? "" : ' <span class="tag">(partial)</span>'}</button>`).join("");
     document.querySelectorAll("#goalSeg button").forEach(b => b.addEventListener("click", () => switchTo(b.dataset.g, ident)));
+    document.querySelectorAll("#expSeg button").forEach(b => b.addEventListener("click", () => (b.dataset.m === "kd" ? switchKd(kModel, kArm) : switchTo(goal, ident)).catch(e => { document.getElementById("status").textContent = "Could not load the data: " + e.message; })));
+    fetch("data/kd/meta.json").then(r => r.json()).then(k => { kmeta = k; document.getElementById("kdTag").textContent = Object.values(k.trees).every(t => t.complete) ? "" : "(in progress)"; }).catch(() => {});
     await switchTo("own_points", "llm");
-    document.getElementById("foot").innerHTML = `Data: ${esc(meta.source)}. A branch is kept when Haiku plays it in at least ${meta.threshold * 100}% of draws, plus one-move deviations asked about anyway. “Games reaching here” weights each opponent and each label presentation equally. Thinking summaries are not shown. The API gives no token probabilities.`;
   })
   .catch(e => { const l = document.getElementById("loading"); if (l) l.textContent = "Could not load the data: " + e.message; });
+function footHaiku() {
+    document.getElementById("foot").innerHTML = `Data: ${esc(meta.source)}. A branch is kept when Haiku plays it in at least ${meta.threshold * 100}% of draws, plus one-move deviations asked about anyway. “Games reaching here” weights each opponent and each label presentation equally. Thinking summaries are not shown. The API gives no token probabilities.`;
+}
 </script>
 </body>
 </html>
