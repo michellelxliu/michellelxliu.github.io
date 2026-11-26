@@ -1,6 +1,6 @@
 {
  "source": "math242 run outputs/known-dist-2026-11-25 (probes/known_dist.py, version kd-2026-11-25a): one headless Claude Code call per move from an empty directory, effort low, thinking on (the harness default; not shown), no tools",
- "updated": "2026-11-26 05:51 UTC",
+ "updated": "2026-11-26 05:56 UTC",
  "models": [
   "haiku",
   "sonnet",
@@ -247,16 +247,16 @@
   "sonnet-A4": {
    "model": "sonnet",
    "arm": "A4",
-   "rounds_built": 7,
-   "complete": false,
-   "histories": 1213,
-   "pending": 30,
-   "move_draws": 24260,
-   "calls_stored": 24323,
-   "score": 41.39,
-   "bayes": 43.38,
+   "rounds_built": 8,
+   "complete": true,
+   "histories": 1243,
+   "pending": 0,
+   "move_draws": 24860,
+   "calls_stored": 24862,
+   "score": 46.51,
+   "bayes": 49.66,
    "loss": 3.16,
-   "agree": 0.728,
+   "agree": 0.762,
    "agree_by_round": [
     0.65,
     0.569,
@@ -264,7 +264,8 @@
     0.777,
     0.838,
     0.818,
-    0.676
+    0.676,
+    1.0
    ],
    "coop_by_round": [
     0.65,
@@ -273,7 +274,8 @@
     0.522,
     0.545,
     0.503,
-    0.153
+    0.153,
+    0.0
    ],
    "loss_by_round": [
     1.509,
@@ -282,9 +284,10 @@
     0.262,
     0.248,
     0.193,
-    0.104
+    0.104,
+    0.0
    ],
-   "cover": 0.996
+   "cover": 0.992
   },
   "opus-A0": {
    "model": "opus",
