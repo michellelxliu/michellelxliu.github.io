@@ -33,6 +33,7 @@ code{font-size:13px;background:var(--btn);padding:1px 4px;border-radius:4px}
 select{font:inherit;font-size:13px;background:var(--btn);color:var(--ink);border:1px solid var(--rule);border-radius:8px;padding:5px 8px;max-width:min(320px,70vw);text-overflow:ellipsis}
 .ctl{min-width:0;max-width:100%}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 28px;margin-top:12px}
+@media (min-width:1100px){.grid3{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
 .panel h3{font-size:14px;margin:0;font-weight:600}
 .panel .sub{font-size:12.5px;color:var(--ink2);margin:2px 0 6px;min-height:1.4em}
@@ -52,14 +53,14 @@ ul.notable li{margin:4px 0}
 <body>
 <main>
 <div class="theme seg" role="group" aria-label="theme"><button data-t="light">Light</button><button data-t="dark">Dark</button></div>
-<h1>Where does narrow fine-tuning help? K = 12 cluster transfer on two video LLMs</h1>
+<h1>Where does narrow fine-tuning help? K = 12 cluster transfer on three video LLMs</h1>
 <p><b>Companion page:</b> <a href="interpretation.html">What is in each cluster? Four readings</a> (skill-label enrichment, nearest skill-node names, centroid hierarchy, language-model names) and how far they agree.</p>
 <p class="lede">63,610 video multiple-choice questions from 27 benchmarks were split into 12 clusters by k-means, in three ways:
 in the <b>skill-encoder</b> embedding space (a sentence embedder fine-tuned on LLM skill labels), in the <b>frozen
 embedding</b> space it started from (gte-modernbert-base), and at <b>random</b> with the same cluster sizes (the control).
 For each cluster, a LoRA adapter was trained on 544 of its questions (2 seeds) and every adapter was scored on the
 held-out questions of all 12 clusters (7,399 items, split by source video), with the video and blind (question only).
-Models: Qwen3.5-9B and Gemma-4-12B-it, after 1 pass (34 steps) or 4 passes (136 steps; passes 2–4 use reworded questions); each figure has a <b>Training</b> toggle between the two.</p>
+Models: Qwen3.5-9B, Gemma-4-12B-it and GLM-4.6V-Flash, after 1 pass (34 steps) or 4 passes (136 steps; passes 2–4 use reworded questions); each figure has a <b>Training</b> toggle between the two.</p>
 <p class="note">All numbers are accuracy changes in percentage points against the same model before fine-tuning, averaged over the two seeds.
 Data: <a href="data.json">data.json</a>. Cluster names were written by a language model from sample questions and checked by a blind
 sorting test (78 % / 77 % of held-out items placed in the right cluster); the random partition has no names.</p>
@@ -82,7 +83,7 @@ over test questions, of the cosine to the nearest training question (<b>nearest 
 With <b>cluster effects removed</b> (the primary analysis), both axes are residuals after removing a trained-on and a scored-on cluster effect,
 so the question is: for a given scored-on cluster, does the closer adapter help more, beyond that adapter helping everywhere?</p>
 <div class="controls" id="sctl"></div>
-<div class="grid" id="sgrid"></div>
+<div class="grid grid3" id="sgrid"></div>
 <p class="note">r = Pearson correlation over the 132 cells shown. Each partition was fitted in one space, so its clusters are compact in that space; compare
 the two partitions. The random partition has no cluster structure: its r is a noise reference.</p>
 
@@ -93,14 +94,14 @@ embedding of all the adapter's training questions, i.e. how far the item is from
 of distance <b>within each adapter × benchmark</b> (so benchmark identity cannot carry the effect); the line is the mean accuracy change in each
 fifth, closest to farthest, with ±1 SE clustered by source video. Items whose exact question text was in the adapter's training set are left out.</p>
 <p><b>Fifths</b>: <b>within benchmark</b> (the primary view) cuts fifths separately inside each benchmark, so every fifth holds the same benchmark mix and only distance within a benchmark can matter. <b>All benchmarks pooled</b> cuts fifths over all of an adapter's scored items at once; then the closest fifth is mostly the adapter's own benchmarks, and the curve mixes the benchmark effect with the distance effect. The gap between the two views shows how much of the distance effect is benchmark identity.</p>
-<p>The top row measures distance in the <b>trained (skill-encoder) space</b>, the bottom row in the <b>baseline (frozen-embedding) space</b>.
+<p>The first three panels (one per model) measure distance in the <b>trained (skill-encoder) space</b>, the next three in the <b>baseline (frozen-embedding) space</b>.
 <b>Trained on</b> shows a single adapter (one trained-on cluster, both seeds) instead of the pooled adapters; pick a partition under
 <b>Adapters</b> first. Single adapters are noisier: check the error bars.</p>
 <p class="note">Random-partition training sets are mixtures of every kind of question, so their centroid sits near the middle of the item cloud and
 centroid distance barely varies across items; with those adapters, prefer the 10-nearest measure. The y-axis is shared across both distance
 measures, both fifth views, both training lengths and both spaces, so switching does not rescale it.</p>
 <div class="controls" id="fctl"></div>
-<div class="grid" id="fgrid"></div>
+<div class="grid grid3" id="fgrid"></div>
 <p class="note">The skill encoder was trained on these items' skill labels, so its distances have seen the items; on benchmarks the encoder never saw, the item-level slopes were ≈ 0 in both spaces (earlier band-adapter run).</p>
 
 <h2>What stands out</h2>
@@ -108,10 +109,11 @@ measures, both fifth views, both training lengths and both spaces, so switching 
 <li><b>The PhysBench cluster (g8 in the encoder partition) inflates the averages.</b> Its own-cluster gain on Qwen is +24 (1 pass) and +38 (4 passes); without it Qwen's own − other gap is +4.5 / +6.1 instead of +6.0 / +8.6.</li>
 <li><b>After 1 pass, most of Gemma's off-cluster loss is one adapter.</b> The g8 adapter lowers every other cluster (mean −16, down to −27); without it Gemma's off-cluster change is −0.6, not −1.8. After 4 passes the loss is spread over almost every adapter.</li>
 <li><b>Holding the benchmark fixed keeps most of the diagonal.</b> Within CLEVRER, TemporalBench, PhysBench or Perception Test, the own-cluster cell is on average 2 to 23 points above the other adapters in its row (row-centred view), though it is not always the single best cell (Perception Test: own best in 1–3 of 7 rows). Benchmark identity does not explain the locality; what remains confounded is that clusters within a benchmark also separate question templates.</li>
-<li><b>Cluster-pair similarity barely predicts which other clusters an adapter helps</b> (r ≤ 0.3 after cluster effects, and the larger values sit in different partitions on the two models), while <b>item-level distance does</b>: on Qwen the farthest fifth gains about half as much as the rest; on Gemma after 4 passes every fifth loses and the farthest loses most.</li>
-<li><b>Without video, the extra passes add gains that cannot be visual.</b> Switch the matrices to <i>blind</i>: the own-cluster diagonal grows with passes on both models.</li>
+<li><b>Cluster-pair similarity barely predicts which other clusters an adapter helps</b> (r ≤ 0.33 after cluster effects; the larger values sit in the frozen-embedding partition except for Qwen after 1 pass, and the encoder partition stays near 0 on Gemma and GLM), while <b>item-level distance does</b>: on Qwen the farthest fifth gains about half as much as the rest; on Gemma after 4 passes every fifth loses and the farthest loses most; on GLM the farthest fifth gains about two-thirds as much as the closest.</li>
+<li><b>Without video, the extra passes add gains that cannot be visual.</b> Switch the matrices to <i>blind</i>: the own-cluster diagonal grows with passes on all three models.</li>
+<li><b>GLM-4.6V-Flash, the third model, repeats the pattern.</b> The own − other gap is +2.3 / +6.4 points (encoder partition, 1 / 4 passes) and +2.1 / +7.7 (frozen embedding) against +0.4 / +1.2 for random clusters; the own adapter is its cluster's best in 10 of 12 clusters after 4 passes. Like Qwen, GLM gains off-cluster too (+3 points); it does not lose there as Gemma does. The PhysBench cluster again carries much of it after 4 passes (own +30.5; gap +4.3 without it), but after 1 pass it gains only +3.8.</li>
 </ul>
-<p class="note">Source: Infinigen-Exploration, <code>experiments/skill_dynamics/ct_site_data.py</code> (data export, self-checked against the analysis tables); scores from runs logged 2026-11-21 to 11-24. Adapter accuracy only; no per-letter probabilities are used here.</p>
+<p class="note">Source: Infinigen-Exploration, <code>experiments/skill_dynamics/ct_site_data.py</code> (data export, self-checked against the analysis tables); scores from runs logged 2026-11-21 to 11-26 (GLM added 2026-11-26). Adapter accuracy only; no per-letter probabilities are used here.</p>
 </main>
 <div id="tip" role="tooltip"></div>
 <script>
