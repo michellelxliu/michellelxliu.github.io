@@ -1,6 +1,6 @@
 {
  "source": "math242 run outputs/known-dist-2026-11-25 (probes/known_dist.py, version kd-2026-11-25a): one headless Claude Code call per move from an empty directory, effort low, thinking on (the harness default; not shown), no tools",
- "updated": "2026-11-26 04:20 UTC",
+ "updated": "2026-11-26 04:51 UTC",
  "models": [
   "haiku",
   "sonnet",
@@ -159,10 +159,10 @@
    "arm": "A0",
    "rounds_built": 7,
    "complete": false,
-   "histories": 676,
-   "pending": 171,
-   "move_draws": 13520,
-   "calls_stored": 13587,
+   "histories": 771,
+   "pending": 76,
+   "move_draws": 15420,
+   "calls_stored": 15429,
    "score": 41.83,
    "bayes": 43.38,
    "loss": 1.81,
@@ -199,16 +199,16 @@
   "sonnet-A3": {
    "model": "sonnet",
    "arm": "A3",
-   "rounds_built": 7,
-   "complete": false,
-   "histories": 806,
-   "pending": 17,
-   "move_draws": 16120,
-   "calls_stored": 16167,
-   "score": 40.32,
-   "bayes": 43.38,
+   "rounds_built": 8,
+   "complete": true,
+   "histories": 823,
+   "pending": 0,
+   "move_draws": 16460,
+   "calls_stored": 16462,
+   "score": 45.26,
+   "bayes": 49.66,
    "loss": 4.41,
-   "agree": 0.641,
+   "agree": 0.685,
    "agree_by_round": [
     0.5,
     0.464,
@@ -216,7 +216,8 @@
     0.678,
     0.677,
     0.726,
-    0.682
+    0.682,
+    1.0
    ],
    "coop_by_round": [
     0.5,
@@ -225,7 +226,8 @@
     0.409,
     0.385,
     0.391,
-    0.145
+    0.145,
+    0.0
    ],
    "loss_by_round": [
     2.155,
@@ -234,19 +236,20 @@
     0.45,
     0.488,
     0.349,
-    0.145
+    0.145,
+    0.0
    ],
-   "cover": 0.997
+   "cover": 0.996
   },
   "sonnet-A4": {
    "model": "sonnet",
    "arm": "A4",
    "rounds_built": 7,
    "complete": false,
-   "histories": 860,
-   "pending": 383,
-   "move_draws": 17200,
-   "calls_stored": 17233,
+   "histories": 953,
+   "pending": 290,
+   "move_draws": 19060,
+   "calls_stored": 19102,
    "score": 41.39,
    "bayes": 43.38,
    "loss": 3.16,
