@@ -1,6 +1,6 @@
 {
  "source": "math242 run outputs/known-dist-2026-11-25 (probes/known_dist.py, version kd-2026-11-25a): one headless Claude Code call per move from an empty directory, effort low, thinking on (the harness default; not shown), no tools",
- "updated": "2026-11-26 05:21 UTC",
+ "updated": "2026-11-26 05:51 UTC",
  "models": [
   "haiku",
   "sonnet",
@@ -249,10 +249,10 @@
    "arm": "A4",
    "rounds_built": 7,
    "complete": false,
-   "histories": 1056,
-   "pending": 187,
-   "move_draws": 21120,
-   "calls_stored": 21171,
+   "histories": 1213,
+   "pending": 30,
+   "move_draws": 24260,
+   "calls_stored": 24323,
    "score": 41.39,
    "bayes": 43.38,
    "loss": 3.16,
