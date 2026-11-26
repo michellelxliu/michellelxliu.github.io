@@ -125,7 +125,7 @@ pre.prompt.long { max-height: 340px; overflow: auto; }
     <div class="seg" role="group" aria-label="Experiment" id="expSeg">
       <button data-m="haiku" aria-pressed="true">Haiku, opponent unknown</button>
       <button data-m="kd" aria-pressed="false">Four models, opponent's strategies known <span class="tag" id="kdTag"></span></button>
-      <button data-m="find" aria-pressed="false">Comparison with best play <span class="tag">(preliminary)</span></button>
+      <button data-m="find" aria-pressed="false">Comparison with best play</button>
     </div>
   </div>
   <div class="controls" id="kCtl" hidden>
@@ -571,19 +571,19 @@ async function showFindings() {
     return `<tr><td>${name(m)} · ${ARM_SHORT[a]}</td>${[0,1,2,3,4,5,6,7].map(i => `<td>${t[key][i] == null ? "" : fmt(t[key][i])}</td>`).join("")}</tr>`; })).join("");
   const rh = `<tr><th>Tree</th>${[1,2,3,4,5,6,7,8].map(i => `<th>R${i}</th>`).join("")}</tr>`;
   document.getElementById("findings").innerHTML = `
-<h2>Comparison with best play: preliminary</h2>
+<h2>Comparison with best play</h2>
 <p>Each model played the same 8-round game against an opponent drawn at random from 148 strategies, and was ${ARM_LONG.A0} (A0), ${ARM_LONG.A3} (A3), or ${ARM_LONG.A4} (A4). “Best play” is the Bayes-optimal policy: at every history it picks the move that earns the most points over the rest of the game, averaged over the strategies that still fit (each equally likely). Against these 148 it earns <b>${b.full_game}</b> points per game; always cooperating earns ${b.always_C}, always defecting ${b.always_D}, tit-for-tat ${b.tit_for_tat}. Its round-1 move is ${b.first_move === "C" ? "cooperate" : "defect"}.</p>
-<p><b>The runs are still going</b>: Haiku's trees are complete, the others are built to between ${Math.min(...all.filter(t => !t.complete).map(t => t.rounds_built))} and ${Math.max(...all.filter(t => !t.complete).map(t => t.rounds_built))} of 8 rounds. Tables update with the data (last ${esc(kmeta.updated)}).</p>
+<p>All twelve trees are complete (last data ${esc(kmeta.updated)}).</p>
 
-<h2>What the data show so far</h2>
-<p class="sub">Written 2026-11-25 from the data as of 16:20 UTC; the numbers in the tables below may have moved since.</p>
+<h2>What the data show</h2>
+<p class="sub">Written 2026-11-26 from the complete runs. Points are per 8-round game; best play earns ${b.full_game}.</p>
 <ul>
-<li><b>Opus and Fable play almost exactly as best play does when they are told the strategies.</b> Over rounds 1–4 they give up 0.16 points or less per game (Fable 0.02 or less); over the rounds built so far (5–6) their scores match best play to within 0.1 points. Both cooperate in round 1 every time, as best play does.</li>
-<li><b>Without the list (A0), Opus and Fable still come close</b>, giving up about 1 point per game over 6–7 rounds. Most of the loss comes from round 4 on.</li>
-<li><b>Haiku plays worse when it is told the strategies.</b> Told nothing, it cooperates in round 1 80% of the time and scores 45.8 over the full game (best play: 49.7). Told the 148 strategies, it cooperates in round 1 only 15–20% of the time and almost never after round 2, and scores 41.1–41.3: below always cooperating (44.0) and tit-for-tat (46.8), barely above always defecting (40.7). It gives up 8.4–8.6 points per game, against 3.9 when told nothing.</li>
-<li><b>Sonnet also does worse when told</b>, on a smaller scale: over rounds 1–4 it gives up 0.95 points told nothing, 2.6 shown only the strategies that still fit, and 3.4 told all 148. It cooperates in round 1 in 90%, 65% and 50% of draws.</li>
-<li><b>Showing only the strategies that still fit (A4) helps a little</b> compared with the full list (A3) for every model, most for Sonnet.</li>
-<li>So far, being told the opponent's possible strategies brings Opus and Fable to near-best play, and moves Haiku and Sonnet away from it: they defect more than best play does.</li>
+<li><b>Opus and Fable play almost exactly as best play does when they are told the strategies.</b> Told all 148, Opus scores 49.27 and Fable 49.61; shown only those that still fit, 49.53 and 49.65. Fable gives up 0.05 and 0.01 points per game, Opus 0.39 and 0.13. Both cooperate in round 1 every time, as best play does.</li>
+<li><b>Without the list, Opus and Fable still come close</b>: 48.51 and 48.46 points, giving up about 1.2 points per game, most of it from round 4 on.</li>
+<li><b>Haiku plays worse when it is told the strategies.</b> Told nothing, it cooperates in round 1 80% of the time and scores 45.79. Told the 148 strategies, it cooperates in round 1 only 15–20% of the time and almost never in round 2, and scores 41.11–41.30: below always cooperating (${b.always_C}) and tit-for-tat (${b.tit_for_tat}), barely above always defecting (${b.always_D}). It gives up 8.4–8.6 points per game, against 3.9 when told nothing.</li>
+<li><b>Sonnet also does worse when told</b>, on a smaller scale: 47.86 points told nothing, 46.51 shown only the strategies that still fit, 45.26 told all 148 (1.8, 3.2 and 4.4 points given up). It cooperates in round 1 in 90%, 65% and 50% of draws.</li>
+<li><b>Showing only the strategies that still fit helps a little</b> compared with the full list for every model, most for Sonnet (+1.25 points).</li>
+<li>In sum, being told the opponent's possible strategies brings Opus and Fable to near-best play, and moves Haiku and Sonnet away from it: they defect more than best play does.</li>
 </ul>
 
 <h2>All twelve trees over the rounds built by every tree (rounds 1–${D})</h2>
@@ -603,8 +603,7 @@ async function showFindings() {
 
 <h2>Caveats</h2>
 <ul>
-<li>Preliminary: Sonnet, Opus and Fable are partway through, and the later rounds, where most of their losses so far appear, are still to come.</li>
-<li>Each history has 20 move draws, split over four label presentations (which letter means cooperate, which is listed first); rates are averaged over presentations and over the 148 opponents equally, and games reaching a history in under 1% of draws are dropped (coverage of each round is at least 99.7%).</li>
+<li>Each history has 20 move draws, split over four label presentations (which letter means cooperate, which is listed first); rates are averaged over presentations and over the 148 opponents equally, and games reaching a history in under 1% of draws are dropped (coverage of each round is at least 99.2%).</li>
 <li>One call per move through Claude Code run from an empty directory, effort low, with thinking on (the harness default, not shown). This differs from the API runs in the first experiment, where Haiku rarely thinks; the Haiku numbers here are not comparable with that tree.</li>
 <li>In A0 the model was not told how the opponent is chosen, so best play there is a benchmark it had no way to compute, not a mistake it made.</li>
 <li>No token probabilities on this path.</li>

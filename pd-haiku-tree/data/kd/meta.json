@@ -1,6 +1,6 @@
 {
  "source": "math242 run outputs/known-dist-2026-11-25 (probes/known_dist.py, version kd-2026-11-25a): one headless Claude Code call per move from an empty directory, effort low, thinking on (the harness default; not shown), no tools",
- "updated": "2026-11-26 05:56 UTC",
+ "updated": "2026-11-26 05:57 UTC",
  "models": [
   "haiku",
   "sonnet",
