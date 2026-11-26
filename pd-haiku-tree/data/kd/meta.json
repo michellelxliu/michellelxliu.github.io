@@ -1,6 +1,6 @@
 {
  "source": "math242 run outputs/known-dist-2026-11-25 (probes/known_dist.py, version kd-2026-11-25a): one headless Claude Code call per move from an empty directory, effort low, thinking on (the harness default; not shown), no tools",
- "updated": "2026-11-26 01:19 UTC",
+ "updated": "2026-11-26 01:49 UTC",
  "models": [
   "haiku",
   "sonnet",
@@ -159,10 +159,10 @@
    "arm": "A0",
    "rounds_built": 6,
    "complete": false,
-   "histories": 380,
-   "pending": 158,
-   "move_draws": 7600,
-   "calls_stored": 7639,
+   "histories": 414,
+   "pending": 124,
+   "move_draws": 8280,
+   "calls_stored": 8322,
    "score": 35.81,
    "bayes": 36.88,
    "loss": 1.66,
@@ -198,10 +198,10 @@
    "arm": "A3",
    "rounds_built": 6,
    "complete": false,
-   "histories": 365,
-   "pending": 129,
-   "move_draws": 7300,
-   "calls_stored": 7350,
+   "histories": 428,
+   "pending": 66,
+   "move_draws": 8560,
+   "calls_stored": 8598,
    "score": 34.4,
    "bayes": 36.88,
    "loss": 4.26,
@@ -237,10 +237,10 @@
    "arm": "A4",
    "rounds_built": 6,
    "complete": false,
-   "histories": 434,
-   "pending": 312,
-   "move_draws": 8680,
-   "calls_stored": 8747,
+   "histories": 501,
+   "pending": 245,
+   "move_draws": 10020,
+   "calls_stored": 10048,
    "score": 35.01,
    "bayes": 36.88,
    "loss": 3.05,
@@ -319,16 +319,16 @@
   "opus-A3": {
    "model": "opus",
    "arm": "A3",
-   "rounds_built": 7,
-   "complete": false,
-   "histories": 430,
-   "pending": 26,
-   "move_draws": 8600,
-   "calls_stored": 8649,
-   "score": 43.52,
-   "bayes": 43.38,
+   "rounds_built": 8,
+   "complete": true,
+   "histories": 456,
+   "pending": 0,
+   "move_draws": 9120,
+   "calls_stored": 9121,
+   "score": 49.27,
+   "bayes": 49.66,
    "loss": 0.39,
-   "agree": 0.907,
+   "agree": 0.918,
    "agree_by_round": [
     1.0,
     0.87,
@@ -336,7 +336,8 @@
     0.906,
     0.936,
     0.941,
-    0.751
+    0.751,
+    1.0
    ],
    "coop_by_round": [
     1.0,
@@ -345,7 +346,8 @@
     0.692,
     0.683,
     0.695,
-    0.377
+    0.377,
+    0.0
    ],
    "loss_by_round": [
     0.0,
@@ -354,7 +356,8 @@
     0.104,
     0.072,
     0.096,
-    0.069
+    0.069,
+    0.0
    ],
    "cover": 1.0
   },
