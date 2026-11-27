@@ -113,6 +113,16 @@ measures, both fifth views, both training lengths and both spaces, so switching 
 <div class="grid" id="syngrid"></div>
 <div class="legend" id="synleg"></div>
 <p class="note">On real items, the random-partition rows use the skill-encoder assignment (random groups have no centres), so that matrix is a null control. Cluster names: Claude Sonnet 5.5 readings of the synthetic clusters (<code>outputs/synth_items/waves12/interpret/llm_reading.json</code>). Data: <a href="synth_data.json">synth_data.json</a>.</p>
+<h3 style="font-size:15px;margin:26px 0 4px">Item level: gain by distance to the training set</h3>
+<p>As figure 4: for every adapter and scored item, the distance from the item to the adapter's 544 synthetic training questions (<b>10 nearest</b>, primary, or the <b>training centroid</b>), in the skill-encoder space (blue) and the frozen-embedding space (orange) the synthetic clusters were made in. Items are cut into fifths <b>within each adapter × stratum</b>: the L2 skill area for synthetic items, the benchmark for real items (strata under 20 items left out); <b>pooled</b> cuts fifths within each adapter only. Lines are the mean accuracy change per fifth, ±1 SE clustered by video (scene for synthetic items).</p>
+<div class="controls" id="synfctl"></div>
+<div class="grid" id="synfgrid"></div>
+<div class="legend"><span class="key"><span class="sw" style="background:var(--s1)"></span>skill-encoder space</span><span class="key"><span class="sw" style="background:var(--s2)"></span>frozen-embedding space</span></div>
+<ul class="notable">
+<li><b>On synthetic items, gain falls with distance, most for cluster-trained adapters.</b> Within skill area, skill-encoder adapters gain +9.6 points on the closest fifth and +3.9 on the farthest; random-partition adapters, whose training sets mix every kind of question, fall less (+10.8 to +8.0). The slope holds on the blind-wrong items (+15.0 to +9.4).</li>
+<li><b>The distance effect is visual.</b> Without video the synthetic slope reverses slightly (+1.0 closest, +2.8 farthest), so being near the training questions helps only when the model sees the scene.</li>
+<li><b>On real items there is no slope within a benchmark.</b> The closest and farthest fifths gain least (about +1) and the middle fifths most (about +2.4), in every partition. Pooled over benchmarks the closest fifths gain more (+3.0 to +0.6), but random adapters show the same (+5.3 to 0.0): it is which benchmarks sit near the synthetic data, not what an adapter was trained on.</li>
+</ul>
 <h3 style="font-size:15px;margin:22px 0 4px">Own − other gap, with video (points; SE over 12 clusters)</h3>
 <div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:13.5px;min-width:560px"><thead><tr><th style="text-align:left;padding:6px 10px;border-bottom:1px solid var(--rule)">Scored on</th><th style="text-align:left;padding:6px 10px;border-bottom:1px solid var(--rule)">Skill encoder</th><th style="text-align:left;padding:6px 10px;border-bottom:1px solid var(--rule)">Frozen embedding</th><th style="text-align:left;padding:6px 10px;border-bottom:1px solid var(--rule)">Random</th></tr></thead><tbody>
 <tr style="border-bottom:1px solid var(--grid)"><td style="padding:6px 10px">Synthetic, all 3,779</td><td style="padding:6px 10px;vertical-align:top"><b>+8.9</b> <span class="note">(1.9)</span><br><span class="note">own +15.0 · other +6.1 · best 11/12</span></td><td style="padding:6px 10px;vertical-align:top"><b>+6.0</b> <span class="note">(1.7)</span><br><span class="note">own +12.4 · other +6.4 · best 9/12</span></td><td style="padding:6px 10px;vertical-align:top"><b>+0.0</b> <span class="note">(0.4)</span><br><span class="note">own +9.2 · other +9.1 · best 0/12</span></td></tr>
@@ -393,8 +403,45 @@ function renderSyn(){
   const stops = [-15, -10, -5, 0, 5, 10, 15].map(v => divColor(v)).join(",");
   document.getElementById("synleg").innerHTML = `<span>−15 or less</span><span class="ramp" style="background:linear-gradient(90deg,${stops})"></span><span>+15 or more points</span><span class="note">· rows: scored-on cluster · boxed: own cluster</span>`;
 }
+const YF = {arm:"video", form:"knn", scope:"", part:"all"};
+const yf5 = document.getElementById("synfctl");
+seg(yf5, "Input", "arm", [["video","Video"],["blind","Blind"]], YF, renderSynF);
+seg(yf5, "Distance", "form", [["knn","10 nearest"],["cent","Training centroid"]], YF, renderSynF);
+seg(yf5, "Fifths", "scope", [["","Within skill area / benchmark"],["agg|","Pooled"]], YF, renderSynF);
+seg(yf5, "Adapters", "part", [["all","All 72"],["encoder","Skill-encoder clusters"],["base","Frozen-embedding clusters"],["random","Random partition"]], YF, renderSynF);
+function renderSynF(){
+  const grid = document.getElementById("synfgrid"); grid.innerHTML = "";
+  const SP = [["enc","--s1","skill-encoder space"],["base","--s2","frozen-embedding space"]];
+  D5.sets.forEach(set => {
+    const ds = SP.map(([e]) => D5.fifths[set.key][YF.arm][`${YF.scope}${YF.form}|${e}|${YF.part}`]);
+    const vals = ds.flatMap(d => d.mean.flatMap((m, i) => [m - d.se[i], m + d.se[i]]));
+    const ylo = Math.min(0, ...vals), yhi = Math.max(0, ...vals), pad = (yhi - ylo) * .08 || 1;
+    const p = document.createElement("div"); p.className = "panel";
+    p.innerHTML = `<h3>Scored on ${esc(set.label)}</h3><div class="sub">closest → farthest fifth: ${fmt(ds[0].mean[0])} → ${fmt(ds[0].mean[4])} (encoder space), ${fmt(ds[1].mean[0])} → ${fmt(ds[1].mean[4])} pts (frozen)</div>`;
+    const W = 520, H = 250, L = 46, R = 14, T = 8, B = 38;
+    const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `${set.label}: gain by distance fifth`}, p);
+    const sx = i => L + 24 + i * (W - L - R - 48) / 4, sy = v => T + ((yhi + pad) - v) / ((yhi + pad) - (ylo - pad)) * (H - T - B);
+    axisTicks(ylo - pad, yhi + pad).ticks.forEach(v => { el("line", {x1: L, x2: W - R, y1: sy(v), y2: sy(v), stroke: v === 0 ? css("--mute") : css("--grid")}, svg);
+      const t = el("text", {x: L - 6, y: sy(v) + 3.5, "text-anchor": "end", "font-size": 10}, svg); t.textContent = (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v); });
+    ["1 closest","2","3","4","5 farthest"].forEach((s, i) => { const t = el("text", {x: sx(i), y: H - B + 16, "text-anchor": "middle", "font-size": 10}, svg); t.textContent = s; });
+    const xl = el("text", {x: (L + W - R) / 2, y: H - 6, "text-anchor": "middle", "font-size": 10.5}, svg);
+    xl.textContent = `fifth of ${YF.form === "knn" ? "10-nearest" : "centroid"} distance to the training set`;
+    const yl = el("text", {x: 12, y: (T + H - B) / 2, "text-anchor": "middle", "font-size": 10.5, transform: `rotate(-90 12 ${(T + H - B) / 2})`}, svg); yl.textContent = "accuracy change, pts";
+    SP.forEach(([e, col, name], k) => {
+      const d = ds[k], c = css(col), off = (k - .5) * 6;
+      el("polyline", {points: d.mean.map((m, i) => `${sx(i) + off},${sy(m)}`).join(" "), fill: "none", stroke: c, "stroke-width": 2}, svg);
+      d.mean.forEach((m, i) => {
+        el("line", {x1: sx(i) + off, x2: sx(i) + off, y1: sy(m - d.se[i]), y2: sy(m + d.se[i]), stroke: c, "stroke-width": 1.2}, svg);
+        const dot = el("circle", {cx: sx(i) + off, cy: sy(m), r: 4, fill: c, stroke: css("--bg"), "stroke-width": 1.5}, svg);
+        dot.addEventListener("mousemove", ev => showTip(ev, `<b>${esc(set.label)}</b>, ${name}<br>fifth ${i + 1}: mean change <b>${fmt(m, 2)}</b> pts (SE ${d.se[i].toFixed(2)})<br><span class="note">${d.n[i].toLocaleString()} adapter × item rows</span>`));
+        dot.addEventListener("mouseleave", hideTip);
+      });
+    });
+    grid.appendChild(p);
+  });
+}
 /* SYNTH-K12 JS END */
-function renderAll(){ renderM(); renderS(); renderF(); renderSyn(); }
+function renderAll(){ renderM(); renderS(); renderF(); renderSyn(); renderSynF(); }
 renderAll();
 })();
 </script>
