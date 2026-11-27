@@ -108,6 +108,11 @@ measures, both fifth views, both training lengths and both spaces, so switching 
 <h2>5. Training on synthetic Blender questions</h2>
 <p>The same design on synthetic data. 18,987 questions about rendered Blender scenes (written by Claude Sonnet per skill-tree node, 24 frames at 480×270) were split into 12 clusters in the skill-encoder and frozen-embedding spaces and at random. Qwen3.5-9B LoRA adapters were trained on 544 questions of each cluster (1 pass, 34 steps, 2 seeds) and scored on 3,779 held-out synthetic questions (split by scene) and on the 7,399 real test questions above. A real question's "own" cluster is the synthetic cluster with the nearest centre.</p>
 <p>The untrained model answers 40 % of synthetic and 48 % of real questions correctly without the video (chance 29 % / 39 %). So each result is shown on all items and on the <b>blind-wrong</b> subset: the items the untrained model gets wrong without video.</p>
+<p>Matrices as in figures 1–2: columns are the cluster an adapter was trained on, rows the cluster it was scored on, boxed diagonal = own cluster; cells are accuracy change against the untrained model in points, mean of 2 seeds.</p>
+<div class="controls" id="synctl"></div>
+<div class="grid" id="syngrid"></div>
+<div class="legend" id="synleg"></div>
+<p class="note">On real items, the random-partition rows use the skill-encoder assignment (random groups have no centres), so that matrix is a null control. Cluster names: Claude Sonnet 5.5 readings of the synthetic clusters (<code>outputs/synth_items/waves12/interpret/llm_reading.json</code>). Data: <a href="synth_data.json">synth_data.json</a>.</p>
 <h3 style="font-size:15px;margin:22px 0 4px">Own − other gap, with video (points; SE over 12 clusters)</h3>
 <div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:13.5px;min-width:560px"><thead><tr><th style="text-align:left;padding:6px 10px;border-bottom:1px solid var(--rule)">Scored on</th><th style="text-align:left;padding:6px 10px;border-bottom:1px solid var(--rule)">Skill encoder</th><th style="text-align:left;padding:6px 10px;border-bottom:1px solid var(--rule)">Frozen embedding</th><th style="text-align:left;padding:6px 10px;border-bottom:1px solid var(--rule)">Random</th></tr></thead><tbody>
 <tr style="border-bottom:1px solid var(--grid)"><td style="padding:6px 10px">Synthetic, all 3,779</td><td style="padding:6px 10px;vertical-align:top"><b>+8.9</b> <span class="note">(1.9)</span><br><span class="note">own +15.0 · other +6.1 · best 11/12</span></td><td style="padding:6px 10px;vertical-align:top"><b>+6.0</b> <span class="note">(1.7)</span><br><span class="note">own +12.4 · other +6.4 · best 9/12</span></td><td style="padding:6px 10px;vertical-align:top"><b>+0.0</b> <span class="note">(0.4)</span><br><span class="note">own +9.2 · other +9.1 · best 0/12</span></td></tr>
@@ -341,7 +346,55 @@ function renderF(){
     grid.appendChild(p);
   }));
 }
-function renderAll(){ renderM(); renderS(); renderF(); }
+/* SYNTH-K12 JS START */
+const D5 = await (await fetch("synth_data.json")).json();
+const Y = {part:"encoder", arm:"video", centre:"raw", vals:"on"};
+const y5 = document.getElementById("synctl");
+seg(y5, "Clusters", "part", [["encoder","Skill encoder"],["base","Frozen embedding"],["random","Random"]], Y, renderSyn);
+seg(y5, "Input", "arm", [["video","Video"],["blind","Blind"]], Y, renderSyn);
+seg(y5, "Cells", "centre", [["raw","Change vs untrained"],["row","Row-centred"]], Y, renderSyn);
+seg(y5, "Values", "vals", [["on","Show"],["off","Hide"]], Y, renderSyn);
+const lab5 = (p, g) => D5.labels[p][g] ? `g${g} · ${D5.labels[p][g]}` : `g${g}`;
+function renderSyn(){
+  const grid = document.getElementById("syngrid"); grid.innerHTML = "";
+  D5.sets.forEach(set => {
+    const src = D5.matrices[set.key][Y.part][Y.arm], raw = src.M, n = src.n;
+    const rowOther = raw.map((r, j) => r.filter((v, g) => g !== j).reduce((a, b) => a + b, 0) / (K - 1));
+    const V = raw.map((r, j) => r.map(v => Y.centre === "row" ? v - rowOther[j] : v));
+    const own = [], oth = [];
+    V.forEach((r, j) => r.forEach((v, g) => (g === j ? own : oth).push(v)));
+    const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
+    const p = document.createElement("div"); p.className = "panel";
+    const sub = Y.centre === "row" ? `own cluster beyond its row: mean ${fmt(mean(own))} pts` : `own ${fmt(mean(own))}, other ${fmt(mean(oth))}, gap ${fmt(mean(own) - mean(oth))} pts`;
+    p.innerHTML = `<h3>Qwen3.5-9B trained on synthetic · scored on ${esc(set.label)}</h3><div class="sub">${sub}</div>`;
+    const LW = 182, cs = 30, top = 4, W = LW + K * cs + 4, H = top + K * cs + 34;
+    const svg = el("svg", {viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": `${set.label} transfer matrix`}, p);
+    for (let j = 0; j < K; j++){
+      const t = el("text", {x: LW - 6, y: top + j * cs + cs / 2 + 3.5, "text-anchor": "end", "font-size": 9.5}, svg);
+      let s = lab5(Y.part, j); if (s.length > 32) s = s.slice(0, 31) + "…"; t.textContent = s;
+      el("title", {}, t).textContent = lab5(Y.part, j) + ` (${n[j]} scored items)`;
+      for (let g = 0; g < K; g++){
+        const v = V[j][g], x = LW + g * cs, yy = top + j * cs, fill = divColor(v);
+        const r = el("rect", {x: x + 1, y: yy + 1, width: cs - 2, height: cs - 2, rx: 2, fill}, svg);
+        if (Y.vals === "on"){
+          const tx = el("text", {x: x + cs / 2, y: yy + cs / 2 + 3.2, "text-anchor": "middle", "font-size": 8.6, "font-weight": g === j ? 700 : 400, style: `fill:${inkOn(fill)}`}, svg);
+          tx.textContent = (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(Math.abs(v) >= 10 ? 0 : 1);
+        }
+        r.addEventListener("mousemove", e => showTip(e, `<b>Trained on</b> ${esc(lab5(Y.part, g))}<br><b>Scored on</b> ${esc(lab5(Y.part, j))}, ${esc(set.label)}<br>` +
+          `${Y.centre === "row" ? `row-centred <b>${fmt(v, 2)}</b> pts (raw ${fmt(raw[j][g], 2)}, row's other mean ${fmt(rowOther[j], 2)})` : `accuracy change <b>${fmt(v, 2)}</b> pts`}<br><span class="note">${n[j]} scored items × 2 seeds</span>`));
+        r.addEventListener("mouseleave", hideTip);
+      }
+      el("rect", {x: LW + j * cs + .5, y: top + j * cs + .5, width: cs - 1, height: cs - 1, rx: 2, fill: "none", stroke: css("--ink"), "stroke-width": 1.4, "pointer-events": "none"}, svg);
+    }
+    for (let g = 0; g < K; g++){ const t = el("text", {x: LW + g * cs + cs / 2, y: top + K * cs + 13, "text-anchor": "middle", "font-size": 9.5}, svg); t.textContent = "g" + g; el("title", {}, t).textContent = lab5(Y.part, g); }
+    const xl = el("text", {x: LW + K * cs / 2, y: top + K * cs + 29, "text-anchor": "middle", "font-size": 10.5}, svg); xl.textContent = "trained on (synthetic cluster) →";
+    grid.appendChild(p);
+  });
+  const stops = [-15, -10, -5, 0, 5, 10, 15].map(v => divColor(v)).join(",");
+  document.getElementById("synleg").innerHTML = `<span>−15 or less</span><span class="ramp" style="background:linear-gradient(90deg,${stops})"></span><span>+15 or more points</span><span class="note">· rows: scored-on cluster · boxed: own cluster</span>`;
+}
+/* SYNTH-K12 JS END */
+function renderAll(){ renderM(); renderS(); renderF(); renderSyn(); }
 renderAll();
 })();
 </script>
